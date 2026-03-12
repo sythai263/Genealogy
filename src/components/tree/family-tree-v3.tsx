@@ -7,24 +7,33 @@
 
 'use client';
 
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
-import * as d3 from 'd3';
-import { useTreeData } from '@/hooks/use-families';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import {
-  ZoomIn, ZoomOut, RotateCcw, Search, X, AlertCircle
-} from 'lucide-react';
-import type { Person } from '@/types';
-import Link from 'next/link';
-import { buildTreeLayout } from '@/lib/helper';
+import { Skeleton } from '@/components/ui/skeleton';
+import { NODE_HEIGHT, NODE_WIDTH } from '@/constants';
+import { useTreeData } from '@/hooks/use-families';
 import { getInitials } from '@/lib/format-utils';
-import { NODE_WIDTH, NODE_HEIGHT } from '@/constants';
+import { buildTreeLayout, removeVietnameseTones } from '@/lib/helper';
+import type { Person } from '@/types';
+import * as d3 from 'd3';
+import {
+  AlertCircle,
+  RotateCcw,
+  Search,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type ViewMode = 'all' | 'ancestors' | 'descendants';
 
@@ -38,7 +47,7 @@ export function FamilyTreeV3() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>('all');
-  
+
   // Search state
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
@@ -46,12 +55,20 @@ export function FamilyTreeV3() {
   // D3 Refs
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const zoomBehavior = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const zoomBehavior = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(
+    null
+  );
 
   // 1. Calculate Layout (Đã loại bỏ filterRootId không cần thiết)
   const layout = useMemo(() => {
     if (!data || data.people.length === 0) return null;
-    return buildTreeLayout(data, collapsedNodes, viewMode, selectedPerson?.id || null, null);
+    return buildTreeLayout(
+      data,
+      collapsedNodes,
+      viewMode,
+      selectedPerson?.id || null,
+      null
+    );
   }, [data, collapsedNodes, viewMode, selectedPerson?.id]);
 
   // 2. D3 Rendering & Update Cycle
@@ -63,30 +80,36 @@ export function FamilyTreeV3() {
 
     // Khởi tạo các group layer nếu chưa có
     if (svg.select('g.main-container').empty()) {
-      svg.append('rect')
-         .attr('width', '100%')
-         .attr('height', '100%')
-         .attr('fill', 'transparent')
-         .attr('class', 'zoom-capture');
+      svg
+        .append('rect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', 'transparent')
+        .attr('class', 'zoom-capture');
 
       const mainContainer = svg.append('g').attr('class', 'main-container');
       mainContainer.append('g').attr('class', 'links-layer');
       mainContainer.append('g').attr('class', 'nodes-layer');
 
-      const zoom = d3.zoom<SVGSVGElement, unknown>()
+      const zoom = d3
+        .zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.1, 3])
-        .on('zoom', (event) => {
+        .on('zoom', event => {
           mainContainer.attr('transform', event.transform);
         });
-      
+
       svg.call(zoom);
-      svg.on('dblclick.zoom', null); 
-      
+      svg.on('dblclick.zoom', null);
+
       zoomBehavior.current = zoom;
 
       if (wrapperRef.current) {
         const { clientWidth } = wrapperRef.current;
-        svg.call(zoom.translateTo, (layout.width / 2) - offsetX, layout.height / 3);
+        svg.call(
+          zoom.translateTo,
+          layout.width / 2 - offsetX,
+          layout.height / 3
+        );
         svg.call(zoom.scaleTo, clientWidth < 768 ? 0.7 : 1);
       }
     }
@@ -95,37 +118,55 @@ export function FamilyTreeV3() {
     const nodesLayer = mainContainer.select('g.nodes-layer');
     const linksLayer = mainContainer.select('g.links-layer');
 
-    mainContainer.transition().duration(500).attr('transform', () => {
-       const currentTransform = d3.zoomTransform(svg.node()!);
-       return currentTransform.toString();
-    });
+    mainContainer
+      .transition()
+      .duration(500)
+      .attr('transform', () => {
+        const currentTransform = d3.zoomTransform(svg.node()!);
+        return currentTransform.toString();
+      });
 
     // --- RENDER LINKS ---
-    const linkBinding = linksLayer.selectAll('g.link').data(connections, (d: any) => d.id);
+    const linkBinding = linksLayer
+      .selectAll('g.link')
+      .data(connections, (d: any) => d.id);
 
-    const linkEnter = linkBinding.enter().append('g').attr('class', 'link').style('opacity', 0);
+    const linkEnter = linkBinding
+      .enter()
+      .append('g')
+      .attr('class', 'link')
+      .style('opacity', 0);
 
-    linkEnter.each(function(d: any) {
+    linkEnter.each(function (d: any) {
       const g = d3.select(this);
-      const startX = d.x1 + offsetX; 
+      const startX = d.x1 + offsetX;
       const startY = d.y1;
 
       if (d.type === 'couple') {
         g.append('line')
-          .attr('class', 'text-pink-400 stroke-current').attr('stroke-width', 2)
-          .attr('x1', startX).attr('y1', startY).attr('x2', startX).attr('y2', startY); 
+          .attr('class', 'text-pink-400 stroke-current')
+          .attr('stroke-width', 2)
+          .attr('x1', startX)
+          .attr('y1', startY)
+          .attr('x2', startX)
+          .attr('y2', startY);
       } else {
         g.append('path')
-          .attr('class', 'text-muted-foreground stroke-current fill-none').attr('stroke-width', 1.5)
-          .attr('d', `M ${startX} ${startY} L ${startX} ${startY}`); 
+          .attr('class', 'text-muted-foreground stroke-current fill-none')
+          .attr('stroke-width', 1.5)
+          .attr('d', `M ${startX} ${startY} L ${startX} ${startY}`);
       }
     });
 
-    const linkUpdate = linkEnter.merge(linkBinding as any).transition().duration(500).style('opacity', 1);
+    const linkUpdate = linkEnter
+      .merge(linkBinding as any)
+      .transition()
+      .duration(500)
+      .style('opacity', 1);
 
-    linkUpdate.each(function(d: any) {
+    linkUpdate.each(function (d: any) {
       const g = d3.select(this);
-      
+
       const x1 = d.x1 + offsetX;
       const x2 = d.x2 + offsetX;
       const y1 = d.y1;
@@ -133,19 +174,21 @@ export function FamilyTreeV3() {
 
       if (d.type === 'couple') {
         g.select('line')
-          .attr('x1', x1).attr('y1', y1)
-          .attr('x2', x2).attr('y2', y2);
+          .attr('x1', x1)
+          .attr('y1', y1)
+          .attr('x2', x2)
+          .attr('y2', y2);
       } else {
         const midY = y1 + (y2 - y1) / 2;
-        const radius = 10; 
-        
-        let pathData = "";
-        
+        const radius = 10;
+
+        let pathData = '';
+
         if (Math.abs(x1 - x2) < radius * 2) {
-           pathData = `M ${x1} ${y1} L ${x2} ${y2}`;
+          pathData = `M ${x1} ${y1} L ${x2} ${y2}`;
         } else {
-           const dirX = x2 > x1 ? 1 : -1;
-           pathData = `
+          const dirX = x2 > x1 ? 1 : -1;
+          pathData = `
              M ${x1} ${y1} 
              L ${x1} ${midY - radius} 
              Q ${x1} ${midY} ${x1 + radius * dirX} ${midY} 
@@ -162,9 +205,12 @@ export function FamilyTreeV3() {
     linkBinding.exit().transition().duration(300).style('opacity', 0).remove();
 
     // --- RENDER NODES ---
-    const nodeBinding = nodesLayer.selectAll('g.node').data(nodes, (d: any) => d.person.id);
-    
-    const nodeEnter = nodeBinding.enter()
+    const nodeBinding = nodesLayer
+      .selectAll('g.node')
+      .data(nodes, (d: any) => d.person.id);
+
+    const nodeEnter = nodeBinding
+      .enter()
       .append('g')
       .attr('class', 'node cursor-pointer')
       .attr('transform', (d: any) => `translate(${d.x}, ${d.y - 20})`)
@@ -173,18 +219,24 @@ export function FamilyTreeV3() {
         setSelectedPerson(d.person);
       });
 
-    nodeEnter.append('foreignObject')
+    nodeEnter
+      .append('foreignObject')
       .attr('width', NODE_WIDTH)
       .attr('height', NODE_HEIGHT)
       .html((d: any) => {
         const p = d.person;
-        const genderColor = p.gender === 1 ? 'border-blue-400' : 'border-pink-400';
+        const genderColor =
+          p.gender === 1 ? 'border-blue-400' : 'border-pink-400';
         const isSelected = selectedPerson?.id === p.id;
-        const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
-        const isDead = !p.is_living ? `<span class="text-[9px] text-muted-foreground pointer-events-none absolute top-0.5 right-1.5">†</span>` : '';
-        
+        const selectedRing = isSelected
+          ? 'ring-2 ring-primary ring-offset-2'
+          : '';
+        const isDead = !p.is_living
+          ? `<span class="text-[9px] text-muted-foreground pointer-events-none absolute top-0.5 right-1.5">†</span>`
+          : '';
+
         // Native Avatar thuần túy HTML/CSS
-        const avatarHtml = p.avatar_url 
+        const avatarHtml = p.avatar_url
           ? `<img src="${p.avatar_url}" class="h-6 w-6 mb-0.5 rounded-full object-cover pointer-events-none border border-muted shadow-sm" loading="lazy" />`
           : `<div class="h-6 w-6 mb-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[9px] font-bold border border-muted shadow-sm pointer-events-none">
               ${getInitials(p.display_name)}
@@ -199,10 +251,11 @@ export function FamilyTreeV3() {
         `;
       });
 
-    nodeEnter.each(function(d: any) {
+    nodeEnter.each(function (d: any) {
       if (d.hasChildren) {
         const g = d3.select(this);
-        const btn = g.append('g')
+        const btn = g
+          .append('g')
           .attr('class', 'collapse-btn cursor-pointer')
           .attr('transform', `translate(${NODE_WIDTH / 2}, ${NODE_HEIGHT})`)
           .on('click', (event, d: any) => {
@@ -210,39 +263,82 @@ export function FamilyTreeV3() {
             handleToggleCollapse(d.person.id);
           });
 
-        btn.append('circle').attr('r', 8).attr('class', 'fill-background stroke-border hover:fill-muted transition-colors').attr('stroke-width', 1);
-        btn.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'central').attr('class', 'text-[10px] font-bold fill-foreground select-none').text(d.isCollapsed ? '+' : '-');
+        btn
+          .append('circle')
+          .attr('r', 8)
+          .attr(
+            'class',
+            'fill-background stroke-border hover:fill-muted transition-colors'
+          )
+          .attr('stroke-width', 1);
+        btn
+          .append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('class', 'text-[10px] font-bold fill-foreground select-none')
+          .text(d.isCollapsed ? '+' : '-');
       }
     });
 
-    const nodeUpdate = nodeEnter.merge(nodeBinding as any)
-      .transition().duration(500)
+    const nodeUpdate = nodeEnter
+      .merge(nodeBinding as any)
+      .transition()
+      .duration(500)
       .attr('transform', (d: any) => `translate(${d.x + offsetX}, ${d.y})`)
       .style('opacity', 1);
 
-    nodesLayer.selectAll('g.node').select('foreignObject > div')
+    nodesLayer
+      .selectAll('g.node')
+      .select('foreignObject > div')
       .attr('class', (d: any) => {
-        const genderColor = d.person.gender === 1 ? 'border-blue-400' : 'border-pink-400';
+        const genderColor =
+          d.person.gender === 1 ? 'border-blue-400' : 'border-pink-400';
         const isSelected = selectedPerson?.id === d.person.id;
-        const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
+        const selectedRing = isSelected
+          ? 'ring-2 ring-primary ring-offset-2'
+          : '';
         return `h-full bg-card border-[1.5px] ${genderColor} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
       });
 
-    nodesLayer.selectAll('g.node').select('g.collapse-btn text').text((d: any) => d.isCollapsed ? '+' : '-');
+    nodesLayer
+      .selectAll('g.node')
+      .select('g.collapse-btn text')
+      .text((d: any) => (d.isCollapsed ? '+' : '-'));
 
-    nodeBinding.exit().transition().duration(300).attr('transform', (d: any) => `translate(${d.x + offsetX}, ${d.y + 20})`).style('opacity', 0).remove();
-
+    nodeBinding
+      .exit()
+      .transition()
+      .duration(300)
+      .attr('transform', (d: any) => `translate(${d.x + offsetX}, ${d.y + 20})`)
+      .style('opacity', 0)
+      .remove();
   }, [layout, selectedPerson?.id]);
 
   // 3. Toolbar Handlers
-  const handleZoomIn = () => svgRef.current && d3.select(svgRef.current).transition().call(zoomBehavior.current!.scaleBy, 1.3);
-  const handleZoomOut = () => svgRef.current && d3.select(svgRef.current).transition().call(zoomBehavior.current!.scaleBy, 0.7);
-  const handleResetZoom = () => svgRef.current && d3.select(svgRef.current).transition().call(zoomBehavior.current!.scaleTo, 1);
+  const handleZoomIn = () =>
+    svgRef.current &&
+    d3
+      .select(svgRef.current)
+      .transition()
+      .call(zoomBehavior.current!.scaleBy, 1.3);
+  const handleZoomOut = () =>
+    svgRef.current &&
+    d3
+      .select(svgRef.current)
+      .transition()
+      .call(zoomBehavior.current!.scaleBy, 0.7);
+  const handleResetZoom = () =>
+    svgRef.current &&
+    d3
+      .select(svgRef.current)
+      .transition()
+      .call(zoomBehavior.current!.scaleTo, 1);
 
   const handleToggleCollapse = (personId: string) => {
-    setCollapsedNodes((prev) => {
+    setCollapsedNodes(prev => {
       const next = new Set(prev);
-      if (next.has(personId)) next.delete(personId); else next.add(personId);
+      if (next.has(personId)) next.delete(personId);
+      else next.add(personId);
       return next;
     });
   };
@@ -250,145 +346,210 @@ export function FamilyTreeV3() {
   const handleExpandAll = useCallback(() => setCollapsedNodes(new Set()), []);
 
   // --- FOCUS / PAN TO NODE LOGIC ---
-  const focusOnPerson = useCallback((person: Person) => {
-    if (!svgRef.current || !wrapperRef.current || !zoomBehavior.current || !layout) return;
-    
-    const node = layout.nodes.find(n => n.person.id === person.id);
-    if (!node) return;
+  const focusOnPerson = useCallback(
+    (person: Person) => {
+      if (
+        !svgRef.current ||
+        !wrapperRef.current ||
+        !zoomBehavior.current ||
+        !layout
+      )
+        return;
 
-    const { clientWidth, clientHeight } = wrapperRef.current;
-    const scale = 1.2; 
+      const node = layout.nodes.find(n => n.person.id === person.id);
+      if (!node) return;
 
-    const x = - (node.x + layout.offsetX + NODE_WIDTH / 2) * scale + clientWidth / 2;
-    const y = - (node.y + NODE_HEIGHT / 2) * scale + clientHeight / 2;
+      const { clientWidth, clientHeight } = wrapperRef.current;
+      const scale = 1.2;
 
-    const transform = d3.zoomIdentity.translate(x, y).scale(scale);
+      const x =
+        -(node.x + layout.offsetX + NODE_WIDTH / 2) * scale + clientWidth / 2;
+      const y = -(node.y + NODE_HEIGHT / 2) * scale + clientHeight / 2;
 
-    d3.select(svgRef.current)
-      .transition()
-      .duration(750) 
-      .call(zoomBehavior.current.transform, transform);
-      
-    setSelectedPerson(person);
-    setFilterSearch('');
-    setFilterDropdownOpen(false);
-  }, [layout]);
+      const transform = d3.zoomIdentity.translate(x, y).scale(scale);
+
+      d3.select(svgRef.current)
+        .transition()
+        .duration(750)
+        .call(zoomBehavior.current.transform, transform);
+
+      setSelectedPerson(person);
+      setFilterSearch('');
+      setFilterDropdownOpen(false);
+    },
+    [layout]
+  );
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[85vh] text-destructive bg-destructive/5 rounded-xl border border-destructive/20 p-6">
-        <AlertCircle className="h-10 w-10 mb-2 opacity-80" />
-        <h3 className="font-semibold text-lg">Đã có lỗi xảy ra</h3>
-        <p className="text-sm opacity-80">{error.message}</p>
+      <div className='flex flex-col items-center justify-center h-[85vh] text-destructive bg-destructive/5 rounded-xl border border-destructive/20 p-6'>
+        <AlertCircle className='h-10 w-10 mb-2 opacity-80' />
+        <h3 className='font-semibold text-lg'>Đã có lỗi xảy ra</h3>
+        <p className='text-sm opacity-80'>{error.message}</p>
       </div>
     );
   }
 
-  if (isLoading) return <div className="flex items-center justify-center h-[85vh]"><Skeleton className="h-full w-full rounded-xl" /></div>;
+  if (isLoading)
+    return (
+      <div className='flex items-center justify-center h-[85vh]'>
+        <Skeleton className='h-full w-full rounded-xl' />
+      </div>
+    );
 
   return (
-    <div className="space-y-4 w-full">
+    <div className='space-y-4 w-full'>
       {/* Khối Toolbar và Filter */}
-      <div className="flex flex-wrap items-center gap-3 relative z-40 bg-muted/40 p-2 rounded-lg border">
-        
+      <div className='flex flex-wrap items-center gap-3 relative z-40 bg-muted/40 p-2 rounded-lg border'>
         {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input 
-            type="text" 
-            placeholder="Tìm theo tên..." 
-            value={filterSearch} 
-            onChange={(e) => {
+        <div className='relative'>
+          <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+          <input
+            type='text'
+            placeholder='Tìm theo tên...'
+            value={filterSearch}
+            onChange={e => {
               setFilterSearch(e.target.value);
               setFilterDropdownOpen(e.target.value.length >= 2);
-            }} 
-            onFocus={() => filterSearch.length >= 2 && setFilterDropdownOpen(true)}
+            }}
+            onFocus={() =>
+              filterSearch.length >= 2 && setFilterDropdownOpen(true)
+            }
             onBlur={() => setTimeout(() => setFilterDropdownOpen(false), 200)}
-            className="pl-8 pr-3 py-1.5 text-sm border rounded-md bg-background w-56 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" 
+            className='pl-8 pr-3 py-1.5 text-sm border rounded-md bg-background w-56 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm'
           />
           {filterDropdownOpen && data?.people && (
-            <div className="absolute z-50 top-full mt-1 bg-background border rounded-md shadow-lg w-full max-h-56 overflow-y-auto">
+            <div className='absolute z-50 top-full mt-1 bg-background border rounded-md shadow-lg w-full max-h-56 overflow-y-auto'>
               {data.people
-                .filter((p) => p.display_name.toLowerCase().includes(filterSearch.toLowerCase()))
+                .filter(p => {
+                  const normalizedName = removeVietnameseTones(p.display_name);
+                  const normalizedSearch = removeVietnameseTones(filterSearch);
+
+                  return normalizedName.includes(normalizedSearch);
+                })
                 .slice(0, 10)
-                .map((person) => (
-                  <button 
-                    key={person.id} 
-                    onMouseDown={(e) => { e.preventDefault(); focusOnPerson(person); }} 
-                    className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors"
-                  >
-                    <Avatar className="h-6 w-6">
-                       <AvatarImage src={person.avatar_url || ''} />
-                       {/* Dùng Fallback Native */}
-                       <AvatarFallback className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                         {getInitials(person.display_name)}
-                       </AvatarFallback>
+                .map(person => (
+                  <button
+                    key={person.id}
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      focusOnPerson(person);
+                    }}
+                    className='w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors'>
+                    <Avatar className='h-6 w-6'>
+                      <AvatarImage src={person.avatar_url || ''} />
+                      {/* Dùng Fallback Native */}
+                      <AvatarFallback className='text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'>
+                        {getInitials(person.display_name)}
+                      </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-medium truncate">{person.display_name}</p>
+                    <div className='flex flex-col'>
+                      <p className='text-sm font-medium truncate'>
+                        {person.display_name}
+                      </p>
+                      <p className='text-xs text-muted-foreground truncate'>
+                        Chi {person.chi} - Đời {person.generation}
+                      </p>
+                    </div>
                   </button>
                 ))}
             </div>
           )}
         </div>
 
-        <div className="h-6 w-px bg-border mx-1 hidden sm:block"></div>
+        <div className='h-6 w-px bg-border mx-1 hidden sm:block'></div>
 
-        <div className="flex items-center gap-1 border rounded-lg p-1 bg-background shadow-sm">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomOut}><ZoomOut className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomIn}><ZoomIn className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom}><RotateCcw className="h-4 w-4" /></Button>
+        <div className='flex items-center gap-1 border rounded-lg p-1 bg-background shadow-sm'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-7 w-7'
+            onClick={handleZoomOut}>
+            <ZoomOut className='h-4 w-4' />
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-7 w-7'
+            onClick={handleZoomIn}>
+            <ZoomIn className='h-4 w-4' />
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-7 w-7'
+            onClick={handleResetZoom}>
+            <RotateCcw className='h-4 w-4' />
+          </Button>
         </div>
-        
-        <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <SelectTrigger className="w-36 bg-background h-9 shadow-sm"><SelectValue /></SelectTrigger>
+
+        <Select
+          value={viewMode}
+          onValueChange={v => setViewMode(v as ViewMode)}>
+          <SelectTrigger className='w-36 bg-background h-9 shadow-sm'>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value="ancestors">Tổ tiên</SelectItem>
-            <SelectItem value="descendants">Con cháu</SelectItem>
+            <SelectItem value='all'>Tất cả</SelectItem>
+            <SelectItem value='ancestors'>Tổ tiên</SelectItem>
+            <SelectItem value='descendants'>Con cháu</SelectItem>
           </SelectContent>
         </Select>
 
-        <Button variant="outline" size="sm" className="h-9 shadow-sm" onClick={handleExpandAll}>Mở rộng tất cả</Button>
+        <Button
+          variant='outline'
+          size='sm'
+          className='h-9 shadow-sm'
+          onClick={handleExpandAll}>
+          Mở rộng tất cả
+        </Button>
       </div>
 
       {/* D3 Canvas Area */}
-      <div 
-        ref={wrapperRef} 
-        className="border rounded-xl bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden relative shadow-inner w-full h-[85vh]"
-      >
-        <svg 
-          ref={svgRef} 
-          className="w-full h-full cursor-grab active:cursor-grabbing outline-none"
+      <div
+        ref={wrapperRef}
+        className='border rounded-xl bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden relative shadow-inner w-full h-[85vh]'>
+        <svg
+          ref={svgRef}
+          className='w-full h-full cursor-grab active:cursor-grabbing outline-none'
           style={{ display: 'block' }}
         />
-        
-        <div className="absolute bottom-4 left-4 text-xs text-muted-foreground pointer-events-none opacity-50 font-medium select-none">
+
+        <div className='absolute bottom-4 left-4 text-xs text-muted-foreground pointer-events-none opacity-50 font-medium select-none'>
           Dùng chuột/trackpad để cuộn, thu phóng hoặc kéo thả
         </div>
       </div>
 
       {/* Selected Person Card */}
       {selectedPerson && (
-        <Card className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md shadow-2xl animate-in fade-in slide-in-from-bottom-8">
-          <CardContent className="p-4 flex items-center justify-between bg-background rounded-xl">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-primary/10">
+        <Card className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md shadow-2xl animate-in fade-in slide-in-from-bottom-8'>
+          <CardContent className='p-4 flex items-center justify-between bg-background rounded-xl'>
+            <div className='flex items-center gap-4'>
+              <Avatar className='h-12 w-12 border-2 border-primary/10'>
                 <AvatarImage src={selectedPerson.avatar_url || ''} />
-                <AvatarFallback className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-lg">
+                <AvatarFallback className='bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-lg'>
                   {getInitials(selectedPerson.display_name)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-base line-clamp-1">{selectedPerson.display_name}</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">Đời {selectedPerson.generation}</p>
+                <h3 className='font-semibold text-base line-clamp-1'>
+                  {selectedPerson.display_name}
+                </h3>
+                <p className='text-sm text-muted-foreground mt-0.5'>
+                  Đời {selectedPerson.generation}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button asChild size="sm" className="rounded-full px-6">
+            <div className='flex items-center gap-2'>
+              <Button asChild size='sm' className='rounded-full px-6'>
                 <Link href={`/people/${selectedPerson.id}`}>Chi tiết</Link>
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedPerson(null)} className="rounded-full h-8 w-8 text-muted-foreground">
-                <X className="h-4 w-4" />
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={() => setSelectedPerson(null)}
+                className='rounded-full h-8 w-8 text-muted-foreground'>
+                <X className='h-4 w-4' />
               </Button>
             </div>
           </CardContent>
