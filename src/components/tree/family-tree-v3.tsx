@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-v3.tsx
  * @description Interactive family tree optimized with D3.js for rendering and zooming
- * @version 3.2.0 - Cleaned up unused vars, Native Avatars only, Optimized Layout
+ * @version 3.5.0 - Click-Outside Hook + Perfect Keyboard Navigation
  */
 
 'use client';
@@ -38,10 +38,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type ViewMode = 'all' | 'ancestors' | 'descendants';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Main FamilyTreeV3 Component
-// ═══════════════════════════════════════════════════════════════════════════
-
 export function FamilyTreeV3() {
   const { data, isLoading, error } = useTreeData();
 
@@ -52,20 +48,61 @@ export function FamilyTreeV3() {
   // Search state
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-
-  // 2. Thêm state debounce cho search
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
-  // 3. Effect để tạo độ trễ 300ms khi gõ
+  // Ref cho toàn bộ khu vực Search (Input + Dropdown) để bắt sự kiện Click Outside
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // FEATURE: Click ra ngoài tự đóng dropdown (Thay thế hoàn hảo cho Popover)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setFilterDropdownOpen(false);
+      }
+    };
+    // Dùng mousedown để bắt nhạy hơn click
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounce tìm kiếm
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(filterSearch);
+      setFocusedIndex(-1); // Reset vị trí phím
     }, 300);
     return () => clearTimeout(timer);
   }, [filterSearch]);
 
   const { data: searchResults, isFetching: isSearching } =
     useSearchPeople(debouncedSearch);
+
+  // Xử lý Lên/Xuống/Enter siêu mượt
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!filterDropdownOpen || !searchResults || searchResults.length === 0)
+      return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIndex(prev =>
+        prev < searchResults.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIndex(prev => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedIndex >= 0 && focusedIndex < searchResults.length) {
+        focusOnPerson(searchResults[focusedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setFilterDropdownOpen(false);
+    }
+  };
 
   // D3 Refs
   const svgRef = useRef<SVGSVGElement>(null);
@@ -74,7 +111,6 @@ export function FamilyTreeV3() {
     null
   );
 
-  // 1. Calculate Layout (Đã loại bỏ filterRootId không cần thiết)
   const layout = useMemo(() => {
     if (!data || data.people.length === 0) return null;
     return buildTreeLayout(
@@ -86,14 +122,12 @@ export function FamilyTreeV3() {
     );
   }, [data, collapsedNodes, viewMode, selectedPerson?.id]);
 
-  // 2. D3 Rendering & Update Cycle
   useEffect(() => {
     if (!svgRef.current || !layout || layout.nodes.length === 0) return;
 
     const svg = d3.select(svgRef.current);
     const { nodes, connections, offsetX } = layout;
 
-    // Khởi tạo các group layer nếu chưa có
     if (svg.select('g.main-container').empty()) {
       svg
         .append('rect')
@@ -101,7 +135,6 @@ export function FamilyTreeV3() {
         .attr('height', '100%')
         .attr('fill', 'transparent')
         .attr('class', 'zoom-capture');
-
       const mainContainer = svg.append('g').attr('class', 'main-container');
       mainContainer.append('g').attr('class', 'links-layer');
       mainContainer.append('g').attr('class', 'nodes-layer');
@@ -115,7 +148,6 @@ export function FamilyTreeV3() {
 
       svg.call(zoom);
       svg.on('dblclick.zoom', null);
-
       zoomBehavior.current = zoom;
 
       if (wrapperRef.current) {
@@ -136,16 +168,12 @@ export function FamilyTreeV3() {
     mainContainer
       .transition()
       .duration(500)
-      .attr('transform', () => {
-        const currentTransform = d3.zoomTransform(svg.node()!);
-        return currentTransform.toString();
-      });
+      .attr('transform', () => d3.zoomTransform(svg.node()!).toString());
 
     // --- RENDER LINKS ---
     const linkBinding = linksLayer
       .selectAll('g.link')
       .data(connections, (d: any) => d.id);
-
     const linkEnter = linkBinding
       .enter()
       .append('g')
@@ -181,7 +209,6 @@ export function FamilyTreeV3() {
 
     linkUpdate.each(function (d: any) {
       const g = d3.select(this);
-
       const x1 = d.x1 + offsetX;
       const x2 = d.x2 + offsetX;
       const y1 = d.y1;
@@ -196,23 +223,14 @@ export function FamilyTreeV3() {
       } else {
         const midY = y1 + (y2 - y1) / 2;
         const radius = 10;
-
         let pathData = '';
 
         if (Math.abs(x1 - x2) < radius * 2) {
           pathData = `M ${x1} ${y1} L ${x2} ${y2}`;
         } else {
           const dirX = x2 > x1 ? 1 : -1;
-          pathData = `
-             M ${x1} ${y1} 
-             L ${x1} ${midY - radius} 
-             Q ${x1} ${midY} ${x1 + radius * dirX} ${midY} 
-             L ${x2 - radius * dirX} ${midY} 
-             Q ${x2} ${midY} ${x2} ${midY + radius} 
-             L ${x2} ${y2}
-           `;
+          pathData = `M ${x1} ${y1} L ${x1} ${midY - radius} Q ${x1} ${midY} ${x1 + radius * dirX} ${midY} L ${x2 - radius * dirX} ${midY} Q ${x2} ${midY} ${x2} ${midY + radius} L ${x2} ${y2}`;
         }
-
         g.select('path').attr('d', pathData.trim());
       }
     });
@@ -230,9 +248,7 @@ export function FamilyTreeV3() {
       .attr('class', 'node cursor-pointer')
       .attr('transform', (d: any) => `translate(${d.x}, ${d.y - 20})`)
       .style('opacity', 0)
-      .on('click', (event, d: any) => {
-        setSelectedPerson(d.person);
-      });
+      .on('click', (event, d: any) => setSelectedPerson(d.person));
 
     nodeEnter
       .append('foreignObject')
@@ -249,13 +265,9 @@ export function FamilyTreeV3() {
         const isDead = !p.is_living
           ? `<span class="text-[9px] text-muted-foreground pointer-events-none absolute top-0.5 right-1.5">†</span>`
           : '';
-
-        // Native Avatar thuần túy HTML/CSS
         const avatarHtml = p.avatar_url
           ? `<img src="${p.avatar_url}" class="h-6 w-6 mb-0.5 rounded-full object-cover pointer-events-none border border-muted shadow-sm" loading="lazy" />`
-          : `<div class="h-6 w-6 mb-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[9px] font-bold border border-muted shadow-sm pointer-events-none">
-              ${getInitials(p.display_name)}
-             </div>`;
+          : `<div class="h-6 w-6 mb-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[9px] font-bold border border-muted shadow-sm pointer-events-none">${getInitials(p.display_name)}</div>`;
 
         return `
           <div class="h-full bg-card border-[1.5px] ${genderColor} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none">
@@ -277,7 +289,6 @@ export function FamilyTreeV3() {
             event.stopPropagation();
             handleToggleCollapse(d.person.id);
           });
-
         btn
           .append('circle')
           .attr('r', 8)
@@ -295,7 +306,7 @@ export function FamilyTreeV3() {
       }
     });
 
-    const nodeUpdate = nodeEnter
+    nodeEnter
       .merge(nodeBinding as any)
       .transition()
       .duration(500)
@@ -329,7 +340,6 @@ export function FamilyTreeV3() {
       .remove();
   }, [layout, selectedPerson?.id]);
 
-  // 3. Toolbar Handlers
   const handleZoomIn = () =>
     svgRef.current &&
     d3
@@ -360,7 +370,6 @@ export function FamilyTreeV3() {
 
   const handleExpandAll = useCallback(() => setCollapsedNodes(new Set()), []);
 
-  // --- FOCUS / PAN TO NODE LOGIC ---
   const focusOnPerson = useCallback(
     (person: Person) => {
       if (
@@ -381,21 +390,22 @@ export function FamilyTreeV3() {
         -(node.x + layout.offsetX + NODE_WIDTH / 2) * scale + clientWidth / 2;
       const y = -(node.y + NODE_HEIGHT / 2) * scale + clientHeight / 2;
 
-      const transform = d3.zoomIdentity.translate(x, y).scale(scale);
-
       d3.select(svgRef.current)
         .transition()
         .duration(750)
-        .call(zoomBehavior.current.transform, transform);
+        .call(
+          zoomBehavior.current.transform,
+          d3.zoomIdentity.translate(x, y).scale(scale)
+        );
 
       setSelectedPerson(person);
-      setFilterSearch('');
       setFilterDropdownOpen(false);
+      setFilterSearch('');
     },
     [layout]
   );
 
-  if (error) {
+  if (error)
     return (
       <div className='flex flex-col items-center justify-center h-[85vh] text-destructive bg-destructive/5 rounded-xl border border-destructive/20 p-6'>
         <AlertCircle className='h-10 w-10 mb-2 opacity-80' />
@@ -403,7 +413,6 @@ export function FamilyTreeV3() {
         <p className='text-sm opacity-80'>{error.message}</p>
       </div>
     );
-  }
 
   if (isLoading)
     return (
@@ -414,10 +423,9 @@ export function FamilyTreeV3() {
 
   return (
     <div className='space-y-4 w-full'>
-      {/* Khối Toolbar và Filter */}
       <div className='flex flex-wrap items-center gap-3 relative z-40 bg-muted/40 p-2 rounded-lg border'>
-        {/* Search Input */}
-        <div className='relative'>
+        {/* NATIVE CONTAINER VỚI HOOK CLICK OUTSIDE */}
+        <div className='relative w-64' ref={searchContainerRef}>
           <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
           <input
             type='text'
@@ -430,9 +438,10 @@ export function FamilyTreeV3() {
             onFocus={() =>
               filterSearch.length >= 2 && setFilterDropdownOpen(true)
             }
-            onBlur={() => setTimeout(() => setFilterDropdownOpen(false), 200)}
-            className='pl-8 pr-3 py-1.5 text-sm border rounded-md bg-background w-56 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm'
+            onKeyDown={handleSearchKeyDown} // Bàn phím không bị kẹt nữa!
+            className='pl-8 pr-3 py-1.5 text-sm border rounded-md bg-background w-full focus:outline-none focus:ring-2 focus:ring-primary shadow-sm'
           />
+
           {filterDropdownOpen && debouncedSearch.length >= 2 && (
             <div className='absolute z-50 top-full mt-1 bg-background border rounded-md shadow-lg w-full max-h-56 overflow-y-auto'>
               {isSearching ? (
@@ -440,31 +449,36 @@ export function FamilyTreeV3() {
                   Đang tìm kiếm...
                 </div>
               ) : searchResults && searchResults.length > 0 ? (
-                searchResults.map(person => (
-                  <button
-                    key={person.id}
-                    onMouseDown={e => {
-                      e.preventDefault();
-                      focusOnPerson(person);
-                    }}
-                    className='w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors'>
-                    <Avatar className='h-6 w-6'>
-                      <AvatarImage src={person.avatar_url || ''} />
-                      {/* Dùng Fallback Native */}
-                      <AvatarFallback className='text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'>
-                        {getInitials(person.display_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className='flex flex-col'>
-                      <p className='text-sm font-medium truncate'>
-                        {person.display_name}
-                      </p>
-                      <p className='text-xs text-muted-foreground truncate'>
-                        Chi {person.chi} - Đời {person.generation}
-                      </p>
-                    </div>
-                  </button>
-                ))
+                searchResults.map((person, index) => {
+                  const isFocused = index === focusedIndex;
+                  return (
+                    <button
+                      key={person.id}
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        focusOnPerson(person);
+                      }}
+                      onMouseEnter={() => setFocusedIndex(index)}
+                      className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
+                        isFocused ? 'bg-muted' : 'hover:bg-muted/50'
+                      }`}>
+                      <Avatar className='h-6 w-6'>
+                        <AvatarImage src={person.avatar_url || ''} />
+                        <AvatarFallback className='text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'>
+                          {getInitials(person.display_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className='flex flex-col'>
+                        <p className='text-sm font-medium truncate'>
+                          {person.display_name}
+                        </p>
+                        <p className='text-xs text-muted-foreground truncate'>
+                          Chi {person.chi} - Đời {person.generation}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
               ) : (
                 <div className='p-3 text-sm text-center text-muted-foreground'>
                   Không tìm thấy kết quả
@@ -531,7 +545,6 @@ export function FamilyTreeV3() {
           className='w-full h-full cursor-grab active:cursor-grabbing outline-none'
           style={{ display: 'block' }}
         />
-
         <div className='absolute bottom-4 left-4 text-xs text-muted-foreground pointer-events-none opacity-50 font-medium select-none'>
           Dùng chuột/trackpad để cuộn, thu phóng hoặc kéo thả
         </div>
