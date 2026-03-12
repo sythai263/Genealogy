@@ -20,8 +20,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { NODE_HEIGHT, NODE_WIDTH } from '@/constants';
 import { useTreeData } from '@/hooks/use-families';
+import { useSearchPeople } from '@/hooks/use-people';
 import { getInitials } from '@/lib/format-utils';
-import { buildTreeLayout, removeVietnameseTones } from '@/lib/helper';
+import { buildTreeLayout } from '@/lib/helper';
 import type { Person } from '@/types';
 import * as d3 from 'd3';
 import {
@@ -51,6 +52,20 @@ export function FamilyTreeV3() {
   // Search state
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+
+  // 2. Thêm state debounce cho search
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // 3. Effect để tạo độ trễ 300ms khi gõ
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filterSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filterSearch]);
+
+  const { data: searchResults, isFetching: isSearching } =
+    useSearchPeople(debouncedSearch);
 
   // D3 Refs
   const svgRef = useRef<SVGSVGElement>(null);
@@ -418,17 +433,14 @@ export function FamilyTreeV3() {
             onBlur={() => setTimeout(() => setFilterDropdownOpen(false), 200)}
             className='pl-8 pr-3 py-1.5 text-sm border rounded-md bg-background w-56 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm'
           />
-          {filterDropdownOpen && data?.people && (
+          {filterDropdownOpen && debouncedSearch.length >= 2 && (
             <div className='absolute z-50 top-full mt-1 bg-background border rounded-md shadow-lg w-full max-h-56 overflow-y-auto'>
-              {data.people
-                .filter(p => {
-                  const normalizedName = removeVietnameseTones(p.display_name);
-                  const normalizedSearch = removeVietnameseTones(filterSearch);
-
-                  return normalizedName.includes(normalizedSearch);
-                })
-                .slice(0, 10)
-                .map(person => (
+              {isSearching ? (
+                <div className='p-3 text-sm text-center text-muted-foreground'>
+                  Đang tìm kiếm...
+                </div>
+              ) : searchResults && searchResults.length > 0 ? (
+                searchResults.map(person => (
                   <button
                     key={person.id}
                     onMouseDown={e => {
@@ -452,7 +464,12 @@ export function FamilyTreeV3() {
                       </p>
                     </div>
                   </button>
-                ))}
+                ))
+              ) : (
+                <div className='p-3 text-sm text-center text-muted-foreground'>
+                  Không tìm thấy kết quả
+                </div>
+              )}
             </div>
           )}
         </div>
