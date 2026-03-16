@@ -16,6 +16,7 @@ import {
   getPerson,
   getStats,
   searchPeople,
+  searchPeopleAdvanced,
   updatePerson,
 } from '@/lib/supabase-data';
 import type { CreatePersonInput, UpdatePersonInput } from '@/types';
@@ -57,6 +58,14 @@ export function useSearchPeople(query: string) {
   return useQuery({
     queryKey: peopleKeys.search(query),
     queryFn: () => searchPeople(query),
+    enabled: query.length >= 2,
+  });
+}
+
+export function useSearchPeopleAdvanced(query: string, ignoreAccents: boolean = true) {
+  return useQuery({
+    queryKey: peopleKeys.search(query),
+    queryFn: () => searchPeopleAdvanced(query, ignoreAccents),
     enabled: query.length >= 2,
   });
 }

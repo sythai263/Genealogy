@@ -20,7 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { NODE_HEIGHT, NODE_WIDTH } from '@/constants';
 import { useTreeData } from '@/hooks/use-families';
-import { useSearchPeople } from '@/hooks/use-people';
+import { useSearchPeople, useSearchPeopleAdvanced } from '@/hooks/use-people';
 import { getInitials } from '@/lib/format-utils';
 import { buildTreeLayout } from '@/lib/helper';
 import type { Person } from '@/types';
@@ -79,7 +79,7 @@ export function FamilyTreeV3() {
   }, [filterSearch]);
 
   const { data: searchResults, isFetching: isSearching } =
-    useSearchPeople(debouncedSearch);
+    useSearchPeopleAdvanced(debouncedSearch);
 
   // Xử lý Lên/Xuống/Enter siêu mượt
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
