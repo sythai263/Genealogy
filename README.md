@@ -37,9 +37,36 @@ pnpm build
 ## 🗄️ Database Setup
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor
-3. Run the SQL in `supabase/database-setup.sql`
+2. Install
+   [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
+   - Login to supabase account
+
+   ```bash
+   supabase login
+   ```
+
+   - Linked to project
+
+   ```bash
+   supabase link --project-ref <project_id>
+   ```
+
+   - Run migration
+
+   ```bash
+   supabase db push
+   ```
+
+3. Run the SQL in `supabase/seed.sql`
 4. Copy your project URL and anon key to `.env.local`
+
+## Migration
+
+- To create new migration use command
+
+```bash
+supabase migration new <migration_name>
+```
 
 ## 📁 Project Structure
 
