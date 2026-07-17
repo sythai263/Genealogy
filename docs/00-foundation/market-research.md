@@ -10,6 +10,7 @@ status: approved
 
 # Market Research: Genealogy Software
 
+$$
 ## 1. Executive Summary
 
 Nghiên cứu các giải pháp gia phả quốc tế và OSS để xác định:
@@ -442,3 +443,4 @@ Traditional:
 [business-case.md](./business-case.md)
 
 _SDLC Framework 6.1.1 - Stage 00 Foundation_
+$$
