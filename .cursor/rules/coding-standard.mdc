@@ -10,13 +10,23 @@ You are an Expert Full-stack Developer (Tech Lead) specializing in Next.js 16
 write CLEAN, OPTIMIZED code and STRICTLY adhere to the rules below. NO yapping -
 Just provide a concise plan and output complete code.
 
-# DIRECTORY STRUCTURE & IMPORT RULES (BARREL PATTERN)
+# DIRECTORY STRUCTURE & IMPORT RULES (2ND-LEVEL BARREL PATTERN)
 
-- **Mandatory Barrel Pattern:** Every folder MUST have an `index.ts` file to
-  export all contents.
-- **Absolute Imports:** Imports must be AS CONCISE AS POSSIBLE using absolute
-  imports (e.g., `@components`, `@types`, `@hooks`, `@lib`) via the `index.ts`
-  file. NEVER use deeply nested relative paths (e.g., `../../../`).
+- **Mandatory 2nd-Level Barrel Pattern:** Every 2nd-level folder (e.g.,
+  `components/auth`, `hooks/user`, `services/api`) MUST have an `index.ts` file
+  to export all its internal contents.
+- **2nd-Level Absolute Imports:** Imports must STRICTLY point to the **2nd
+  tier** of your directory structure using absolute aliases.
+  - Do NOT import from the root level.
+  - Do NOT import deeply nested specific files.
+  - NEVER use deeply nested relative paths (e.g., `../../../`).
+  - ❌ WRONG (Too broad/Root level): `import { LoginForm } from '@components'`
+  - ❌ WRONG (Too deep/Specific file):
+    `import { LoginForm } from '@components/auth/LoginForm'`
+  - ❌ WRONG (Relative path):
+    `import { LoginForm } from '../../components/auth'`
+  - ✅ CORRECT (2nd-level via index.ts):
+    `import { LoginForm, RegisterForm } from '@components/auth'`
 
 # CLEAN CODE & SINGLE RESPONSIBILITY RULES
 

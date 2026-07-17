@@ -93,3 +93,41 @@ export async function signOutAuth(): Promise<void> {
   const { error } = await supabase.auth.signOut();
   if (error) throwAuthError(error);
 }
+
+export async function signUpAuth(
+  email: string,
+  password: string,
+  fullName: string
+): Promise<void> {
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+    },
+  });
+
+  if (error) throwAuthError(error);
+}
+
+export async function getAuthSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throwAuthError(error);
+  return data.session;
+}
+
+export function subscribeToAuthStateChange(
+  onEvent: (event: string) => void
+): () => void {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event) => {
+    onEvent(event);
+  });
+  return () => subscription.unsubscribe();
+}
+
+export async function updatePassword(password: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throwAuthError(error);
+}

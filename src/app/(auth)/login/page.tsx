@@ -6,8 +6,8 @@
  * @updated 2026-07-17
  */
 
+import { LoginForm } from '@components/auth';
 import { Suspense } from 'react';
-import { LoginForm } from '@components/auth/login-form';
 
 export default function LoginPage() {
   return (

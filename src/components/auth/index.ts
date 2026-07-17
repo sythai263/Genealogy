@@ -5,3 +5,6 @@ export * from './otp-email-form';
 export * from './password-login-form';
 export * from './login-form';
 export * from './forgot-password-form';
+export * from './pending-verification-view';
+export * from './register-form';
+export * from './reset-password-form';

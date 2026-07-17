@@ -20,4 +20,6 @@ export * from './use-notifications';
 export * from './use-pathfinding';
 export * from './use-people';
 export * from './use-profiles';
+export * from './use-register';
 export * from './use-registrations';
+export * from './use-reset-password';
