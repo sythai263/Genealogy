@@ -91,7 +91,6 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules",
-    "vitest.config.ts"
+    "node_modules"
   ]
 }
