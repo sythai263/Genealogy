@@ -1,5 +1,6 @@
 export * from './achievements';
 export * from './auth';
+export * from './backup';
 export * from './events';
 export * from './feed';
 export * from './home';

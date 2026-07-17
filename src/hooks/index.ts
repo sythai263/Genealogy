@@ -1,4 +1,5 @@
 export * from './use-achievements';
+export * from './use-backup';
 export * from './use-backup-schedule';
 export * from './use-can-edit';
 export * from './use-cau-duong';

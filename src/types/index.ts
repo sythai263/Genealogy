@@ -20,3 +20,4 @@ export * from './duplicate';
 export * from './feed';
 export * from './notification';
 export * from './zodiac';
+export * from './backup';

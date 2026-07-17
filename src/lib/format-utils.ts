@@ -30,3 +30,15 @@ export function getInitials(name: string): string {
     ? (parts[parts.length - 1][0] ?? '?').toUpperCase()
     : (parts[0][0] ?? '?').toUpperCase();
 }
+
+export function formatBackupDate(value: Date | string | null): string {
+  if (!value) return '—';
+  const date = typeof value === 'string' ? new Date(value) : value;
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
