@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth/auth-provider';
-import type { PersonFormData } from '@/lib/validations/person';
+import type { PersonFormData } from '@schemas';
 
 interface PageProps {
   params: Promise<{ id: string }>;

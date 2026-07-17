@@ -20,7 +20,7 @@ import { ArrowLeft, Search, X, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import type { PersonFormData } from '@/lib/validations/person';
+import type { PersonFormData } from '@schemas';
 import type { Person } from '@/types';
 
 // ─── PersonCombobox ───────────────────────────────────────────────────────────
