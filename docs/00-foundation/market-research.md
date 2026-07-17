@@ -138,6 +138,7 @@ Nghiên cứu các giải pháp gia phả quốc tế và OSS để xác định
 - Report generation
 
 ### 3.3 Topola Viewer (⭐ 300+ GitHub)
+$$
 
 | Aspect       | Details                               |
 | ------------ | ------------------------------------- |
@@ -443,4 +444,6 @@ Traditional:
 [business-case.md](./business-case.md)
 
 _SDLC Framework 6.1.1 - Stage 00 Foundation_
+
+$$
 $$

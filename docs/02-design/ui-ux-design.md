@@ -1,3 +1,4 @@
+$$
 ---
 project: AncestorTree
 path: docs/02-design/ui-ux-design.md
@@ -966,7 +967,7 @@ BUTTON HOVER
 - Duration: 150ms
 - Easing: ease-out
 
-CARD HOVER  
+CARD HOVER
 - Shadow: shadow-md → shadow-lg
 - TranslateY: -2px
 - Duration: 200ms
@@ -1055,3 +1056,4 @@ Gender:
 **Next:** [04-build/sprint-1-plan.md](../04-build/sprint-1-plan.md)
 
 *SDLC Framework 6.1.1 - Stage 02 Design*
+$$
