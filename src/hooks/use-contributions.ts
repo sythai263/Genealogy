@@ -17,7 +17,7 @@ import {
   getContributionsByPerson,
   deleteContribution,
 } from '@/lib/supabase-data';
-import type { Contribution, ContributionStatus } from '@/types';
+import type { Contribution, ContributionStatus, JsonObject } from '@/types';
 
 export const contributionKeys = {
   all: ['contributions'] as const,
@@ -59,7 +59,7 @@ export function useCreateContribution() {
       author_id: string;
       target_person: string;
       change_type: Contribution['change_type'];
-      changes: Record<string, unknown>;
+      changes: JsonObject;
       reason?: string;
     }) => createContribution(input),
     onSuccess: () => {

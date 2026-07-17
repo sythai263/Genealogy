@@ -57,7 +57,9 @@ Just provide a concise plan and output complete code.
 # STYLING & UI RULES
 
 - **Tailwind CSS v4:** Use the `cn()` function (from `clsx` and
-  `tailwind-merge`) to merge classes.
+  `tailwind-merge`) to merge classes. You must always apply the
+  `suggestCanonicalClasses` rule to format, sort, and optimize Tailwind classes
+  canonically[cite: 2].
 - **Semantic Colors:** DO NOT use inline colors with bracket notation (e.g., ❌
   `bg-[#FFF]`). Must use semantic colors defined in `globals.css`.
 - **Form & Validation:** All Forms must use `react-hook-form` combined with

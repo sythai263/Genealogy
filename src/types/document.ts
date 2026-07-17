@@ -1,0 +1,36 @@
+export type DocumentCategory =
+  | 'anh_lich_su'
+  | 'giay_to'
+  | 'ban_do'
+  | 'video'
+  | 'bai_viet'
+  | 'khac';
+
+export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
+  anh_lich_su: 'Ảnh lịch sử',
+  giay_to: 'Giấy tờ',
+  ban_do: 'Bản đồ',
+  video: 'Video',
+  bai_viet: 'Bài viết',
+  khac: 'Khác',
+};
+
+export interface ClanDocument {
+  id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type?: string;
+  file_size?: number;
+  category: DocumentCategory;
+  tags?: string;
+  person_id?: string;
+  uploaded_by?: string;
+  /** 0=public, 1=members only, 2=admin only */
+  privacy_level: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateClanDocumentInput = Omit<ClanDocument, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateClanDocumentInput = Partial<CreateClanDocumentInput>;

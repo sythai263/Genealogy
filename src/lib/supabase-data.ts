@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import type {
   Person, Family, Profile, Contribution, Event, Media,
   CreatePersonInput, UpdatePersonInput, CreateMediaInput, ContributionStatus, EventType,
-  PersonRelations,
+  PersonRelations, JsonObject,
 } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -753,7 +753,7 @@ export async function createContribution(input: {
   author_id: string;
   target_person: string;
   change_type: Contribution['change_type'];
-  changes: Record<string, unknown>;
+  changes: JsonObject;
   reason?: string;
 }): Promise<Contribution> {
   const { data, error } = await supabase
@@ -789,10 +789,10 @@ export async function reviewContribution(
       'birth_year', 'death_year', 'death_lunar', 'birth_place', 'death_place',
       'occupation', 'biography', 'notes',
     ];
-    const safeChanges: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(contribution.changes)) {
+    const safeChanges: JsonObject = {};
+    for (const key of Object.keys(contribution.changes)) {
       if (allowedFields.includes(key)) {
-        safeChanges[key] = val;
+        safeChanges[key] = contribution.changes[key];
       }
     }
     if (Object.keys(safeChanges).length > 0) {
