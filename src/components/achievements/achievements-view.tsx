@@ -1,0 +1,152 @@
+'use client';
+
+import { useState } from 'react';
+import { Search, Star, Trophy } from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Skeleton,
+} from '@components/ui';
+import { useAchievements, usePeople } from '@hooks';
+import type { AchievementCategory, Person } from '@types';
+import { AchievementCard } from './achievement-card';
+import { ACHIEVEMENT_CATEGORIES } from './achievement-category';
+
+export function AchievementsView() {
+  const [activeCategory, setActiveCategory] = useState<
+    AchievementCategory | 'all'
+  >('all');
+  const [search, setSearch] = useState('');
+
+  const { data: achievements, isLoading } = useAchievements(
+    activeCategory === 'all' ? undefined : activeCategory
+  );
+  const { data: people } = usePeople();
+
+  const peopleMap = new Map<string, Person>();
+  for (const person of people ?? []) {
+    peopleMap.set(person.id, person);
+  }
+
+  const list = achievements ?? [];
+  const featured = list.filter((achievement) => achievement.is_featured);
+
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? list.filter((achievement) => {
+        const person = peopleMap.get(achievement.person_id);
+        return (
+          achievement.title.toLowerCase().includes(query) ||
+          person?.display_name.toLowerCase().includes(query) ||
+          achievement.awarded_by?.toLowerCase().includes(query)
+        );
+      })
+    : list;
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto space-y-6 px-4 py-8">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto space-y-6 px-4 py-8">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <Trophy className="h-6 w-6" />
+          Vinh danh con cháu
+        </h1>
+        <p className="text-muted-foreground">
+          Ghi nhận thành tích nổi bật của các thành viên trong dòng họ
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-wrap gap-2">
+          {ACHIEVEMENT_CATEGORIES.map((category) => {
+            const Icon = category.icon;
+            return (
+              <Button
+                key={category.value}
+                variant={
+                  activeCategory === category.value ? 'default' : 'outline'
+                }
+                size="sm"
+                onClick={() => setActiveCategory(category.value)}
+              >
+                <Icon className="mr-1 h-4 w-4" />
+                {category.label}
+              </Button>
+            );
+          })}
+        </div>
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Tìm kiếm..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {featured.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Star className="h-4 w-4 text-amber-500" />
+              Thành tích nổi bật
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((achievement) => (
+                <AchievementCard
+                  key={achievement.id}
+                  achievement={achievement}
+                  person={peopleMap.get(achievement.person_id)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div>
+        <h2 className="mb-3 text-lg font-semibold">
+          Danh sách vinh danh ({filtered.length})
+        </h2>
+        {filtered.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              <Trophy className="mx-auto mb-2 h-10 w-10 opacity-50" />
+              <p>Chưa có thành tích nào</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {filtered.map((achievement) => (
+              <AchievementCard
+                key={achievement.id}
+                achievement={achievement}
+                person={peopleMap.get(achievement.person_id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
