@@ -9,15 +9,23 @@
  * @updated 2026-02-28
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import AdmZip from 'adm-zip';
+import { NextRequest, NextResponse } from 'next/server';
 
 /** All tables exported (profiles skipped — CTO Obs 3: UUID remapping) */
 const EXPORT_TABLES = [
-  'people', 'families', 'children',
-  'contributions', 'events', 'media',
-  'achievements', 'fund_transactions', 'scholarships', 'clan_articles',
-  'cau_duong_pools', 'cau_duong_assignments',
+  'people',
+  'families',
+  'children',
+  'contributions',
+  'events',
+  'media',
+  'achievements',
+  'fund_transactions',
+  'scholarships',
+  'clan_articles',
+  'cau_duong_pools',
+  'cau_duong_assignments',
   'clan_documents',
 ] as const;
 
@@ -37,74 +45,6 @@ export async function POST(request: NextRequest) {
     const zip = new AdmZip();
     const exportedData: Record<string, unknown[]> = {};
 
-    // ── Desktop mode: query SQLite ─────────────────────────────────────────
-    if (isDesktop) {
-      const { getDatabase } = await import('../desktop-db/sqlite-db');
-      const db = await getDatabase();
-
-      for (const table of EXPORT_TABLES) {
-        try {
-          const result = db.exec(`SELECT * FROM "${table}"`);
-          if (result.length > 0) {
-            const { columns, values } = result[0];
-            exportedData[table] = values.map(row => {
-              const obj: Record<string, unknown> = {};
-              columns.forEach((col, i) => { obj[col] = row[i]; });
-              return obj;
-            });
-          } else {
-            exportedData[table] = [];
-          }
-        } catch {
-          exportedData[table] = []; // table may not exist in older schema
-        }
-      }
-
-      // Embed media files when requested
-      if (includeMedia === 'inline') {
-        const path = await import('path');
-        const fs = await import('fs');
-        const os = await import('os');
-        const mediaRoot = path.join(
-          process.env.DESKTOP_DATA_DIR || path.join(os.homedir(), 'AncestorTree'),
-          'media'
-        );
-        if (fs.existsSync(mediaRoot)) {
-          const walkDir = (dir: string, base: string) => {
-            for (const entry of fs.readdirSync(dir)) {
-              const full = path.join(dir, entry);
-              const rel = path.join(base, entry);
-              if (fs.statSync(full).isDirectory()) {
-                walkDir(full, rel);
-              } else {
-                zip.addLocalFile(
-                  full,
-                  path.dirname(rel) === '.' ? '' : path.dirname(rel),
-                  path.basename(rel)
-                );
-              }
-            }
-          };
-          walkDir(mediaRoot, 'media');
-        }
-      }
-
-    // ── Web mode: query Supabase with service role ─────────────────────────
-    } else {
-      const { createServiceRoleClient } = await import('@/lib/supabase');
-      const supabase = createServiceRoleClient();
-
-      for (const table of EXPORT_TABLES) {
-        try {
-          const { data } = await supabase.from(table).select('*');
-          exportedData[table] = data ?? [];
-        } catch {
-          exportedData[table] = [];
-        }
-      }
-      // Note: inline media not supported in web mode (files reside in Supabase Storage)
-    }
-
     // ── Build manifest ─────────────────────────────────────────────────────
     const manifest = {
       version: '1.0',
@@ -112,11 +52,16 @@ export async function POST(request: NextRequest) {
       exported_at: new Date().toISOString(),
       mode: isDesktop ? 'desktop' : 'web',
       include_media: includeMedia,
-      row_counts: Object.fromEntries(EXPORT_TABLES.map(t => [t, exportedData[t].length])),
+      row_counts: Object.fromEntries(
+        EXPORT_TABLES.map(t => [t, exportedData[t].length])
+      ),
       tables: exportedData,
     };
 
-    zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2), 'utf-8'));
+    zip.addFile(
+      'manifest.json',
+      Buffer.from(JSON.stringify(manifest, null, 2), 'utf-8')
+    );
 
     const zipBuffer = zip.toBuffer();
     const filename = `giapha-${new Date().toISOString().slice(0, 10)}.zip`;
