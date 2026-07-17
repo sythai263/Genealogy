@@ -49,3 +49,13 @@ export function getAchievementCategoryLabel(
       return 'Khác';
   }
 }
+
+export const ACHIEVEMENT_FORM_CATEGORIES: {
+  value: AchievementCategory;
+  label: string;
+}[] = [
+  { value: 'hoc_tap', label: 'Học tập' },
+  { value: 'su_nghiep', label: 'Sự nghiệp' },
+  { value: 'cong_hien', label: 'Cống hiến' },
+  { value: 'other', label: 'Khác' },
+];
