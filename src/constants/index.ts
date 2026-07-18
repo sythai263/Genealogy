@@ -10,3 +10,4 @@ export * from './feed';
 export * from './fund';
 export * from './help';
 export * from './notifications';
+export * from './people';
