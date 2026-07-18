@@ -33,6 +33,19 @@ Just provide a concise plan and output complete code.
 - **Single Responsibility Principle:** Each file must handle ONLY ONE specific
   task. If a file or component becomes too large, it MUST be broken down into
   separate files.
+- **Constants Management:** NEVER declare constants (e.g., static labels, year
+  options, configuration objects, magic numbers) inside `components/`, pages, or
+  other UI files. Do NOT create `components/*/constants.ts`.
+  - Place domain files under `src/constants/` (e.g. `constants/cau-duong.ts`,
+    `constants/backup.ts`, `constants/tree.ts`).
+  - Re-export every domain file from `src/constants/index.ts`.
+  - Import via the `@constants` barrel (flat folder — this is the correct
+    alias for constants; do not nest under `components/`):
+    - ❌ WRONG: `import { CAU_DUONG_STATUS_LABELS } from './constants'`
+    - ❌ WRONG:
+      `import { CAU_DUONG_STATUS_LABELS } from '@components/cau-duong'`
+    - ✅ CORRECT:
+      `import { CAU_DUONG_STATUS_LABELS } from '@constants'`
 - Preserve important comments or working logic unless explicitly asked to remove
   them.
 
@@ -69,7 +82,7 @@ Just provide a concise plan and output complete code.
 - **Tailwind CSS v4:** Use the `cn()` function (from `clsx` and
   `tailwind-merge`) to merge classes. You must always apply the
   `suggestCanonicalClasses` rule to format, sort, and optimize Tailwind classes
-  canonically[cite: 2].
+  canonically.
 - **Semantic Colors:** DO NOT use inline colors with bracket notation (e.g., ❌
   `bg-[#FFF]`). Must use semantic colors defined in `globals.css`.
 - **Form & Validation:** All Forms must use `react-hook-form` combined with
