@@ -1,55 +1,76 @@
 /**
  * @project AncestorTree
- * @file src/app/(main)/stats/stats-charts.tsx
+ * @file src/components/stats/stats-charts.tsx
  * @description Recharts chart components for stats dashboard (client-only)
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.1.0
+ * @updated 2026-07-18
  */
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
-import type { DetailedStats } from '@/lib/stats-calculator';
-
-const BLUE = '#3b82f6';
-const PINK = '#ec4899';
-const GREEN = '#22c55e';
-const GRAY = '#6b7280';
-const AMBER = '#f59e0b';
-
-const GENDER_COLORS = [BLUE, PINK];
-const LIVING_COLORS = [GREEN, GRAY];
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui';
+import {
+  STATS_CHART_AMBER,
+  STATS_CHART_BLUE,
+  STATS_GENDER_COLORS,
+  STATS_LIVING_COLORS,
+} from '@constants';
+import type { DetailedStats } from '@lib/stats-calculator';
 
 interface StatsChartsProps {
   stats: DetailedStats;
 }
 
-export default function StatsCharts({ stats }: StatsChartsProps) {
+interface PieLabelProps {
+  name?: string;
+  value?: number;
+}
+
+function formatPieLabel({ name, value }: PieLabelProps): string {
+  return `${name ?? ''}: ${value ?? 0}`;
+}
+
+export function StatsCharts({ stats }: StatsChartsProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {/* Generation distribution */}
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle className="text-base">Phân bố theo đời</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats.generationStats} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            <BarChart
+              data={stats.generationStats}
+              margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="label" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill={BLUE} name="Số người" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="count"
+                fill={STATS_CHART_BLUE}
+                name="Số người"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Chi distribution */}
       {stats.chiStats.length > 0 && (
         <Card className="md:col-span-2">
           <CardHeader>
@@ -57,19 +78,26 @@ export default function StatsCharts({ stats }: StatsChartsProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.chiStats} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <BarChart
+                data={stats.chiStats}
+                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="count" fill={AMBER} name="Số người" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="count"
+                  fill={STATS_CHART_AMBER}
+                  name="Số người"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
 
-      {/* Gender pie chart */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Tỷ lệ giới tính</CardTitle>
@@ -83,10 +111,15 @@ export default function StatsCharts({ stats }: StatsChartsProps) {
                 cy="50%"
                 outerRadius={90}
                 dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
+                label={formatPieLabel}
               >
                 {stats.genderStats.map((_, idx) => (
-                  <Cell key={idx} fill={GENDER_COLORS[idx % GENDER_COLORS.length]} />
+                  <Cell
+                    key={`gender-${idx}`}
+                    fill={
+                      STATS_GENDER_COLORS[idx % STATS_GENDER_COLORS.length]
+                    }
+                  />
                 ))}
               </Pie>
               <Legend />
@@ -96,7 +129,6 @@ export default function StatsCharts({ stats }: StatsChartsProps) {
         </CardContent>
       </Card>
 
-      {/* Living/deceased pie chart */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Tỷ lệ còn sống / đã mất</CardTitle>
@@ -110,10 +142,15 @@ export default function StatsCharts({ stats }: StatsChartsProps) {
                 cy="50%"
                 outerRadius={90}
                 dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`}
+                label={formatPieLabel}
               >
                 {stats.livingStats.map((_, idx) => (
-                  <Cell key={idx} fill={LIVING_COLORS[idx % LIVING_COLORS.length]} />
+                  <Cell
+                    key={`living-${idx}`}
+                    fill={
+                      STATS_LIVING_COLORS[idx % STATS_LIVING_COLORS.length]
+                    }
+                  />
                 ))}
               </Pie>
               <Legend />
