@@ -30,7 +30,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/components/auth/auth-provider';
 import Link from 'next/link';
 import type { ClanDocument, DocumentCategory, CreateClanDocumentInput, Person } from '@/types';
-import { DOCUMENT_CATEGORY_LABELS } from '@/types';
+import { DOCUMENT_CATEGORY_LABELS } from '@constants';
 
 const CATEGORY_OPTIONS: { value: DocumentCategory; label: string }[] = [
   { value: 'anh_lich_su', label: 'Ảnh lịch sử' },

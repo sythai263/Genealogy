@@ -22,3 +22,4 @@ export * from './notification';
 export * from './zodiac';
 export * from './backup';
 export * from './directory';
+export * from './book';

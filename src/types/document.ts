@@ -1,3 +1,11 @@
+/**
+ * @project AncestorTree
+ * @file src/types/document.ts
+ * @description Type definitions for clan documents (kho tài liệu)
+ * @version 1.1.0
+ * @updated 2026-07-18
+ */
+
 export type DocumentCategory =
   | 'anh_lich_su'
   | 'giay_to'
@@ -5,15 +13,6 @@ export type DocumentCategory =
   | 'video'
   | 'bai_viet'
   | 'khac';
-
-export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
-  anh_lich_su: 'Ảnh lịch sử',
-  giay_to: 'Giấy tờ',
-  ban_do: 'Bản đồ',
-  video: 'Video',
-  bai_viet: 'Bài viết',
-  khac: 'Khác',
-};
 
 export interface ClanDocument {
   id: string;
@@ -32,5 +31,8 @@ export interface ClanDocument {
   updated_at: string;
 }
 
-export type CreateClanDocumentInput = Omit<ClanDocument, 'id' | 'created_at' | 'updated_at'>;
+export type CreateClanDocumentInput = Omit<
+  ClanDocument,
+  'id' | 'created_at' | 'updated_at'
+>;
 export type UpdateClanDocumentInput = Partial<CreateClanDocumentInput>;

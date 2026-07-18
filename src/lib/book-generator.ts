@@ -7,28 +7,8 @@
  */
 
 import type { TreeData } from './supabase-data';
-import type { Person } from '@/types';
+import type { BookBranch, BookChapter, BookPerson, Person } from '@/types';
 import { getZodiacYear } from '@/types';
-
-export interface BookPerson {
-  person: Person;
-  father?: Person;
-  mother?: Person;
-  spouses: Person[];
-  children: Person[];
-  zodiacYear?: string;
-}
-
-export interface BookBranch {
-  chi: number | null;
-  people: BookPerson[];
-}
-
-export interface BookChapter {
-  generation: number;
-  title: string;
-  branches: BookBranch[];
-}
 
 export function generateBookData(data: TreeData): BookChapter[] {
   const peopleMap = new Map<string, Person>();
