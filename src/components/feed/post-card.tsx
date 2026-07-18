@@ -32,7 +32,7 @@ import {
 import { Heart, MoreHorizontal, Trash2, EyeOff, Eye } from 'lucide-react';
 import { useDeletePost, useHidePost, useToggleLike } from '@/hooks/use-feed';
 import { CommentsSection } from './comments-section';
-import { POST_TYPE_LABELS } from '@/types';
+import { POST_TYPE_LABELS } from '@constants';
 import type { Post, Profile } from '@/types';
 import { getRelativeTime, getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';

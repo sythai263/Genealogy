@@ -8,6 +8,7 @@ export * from './directory';
 export * from './documents';
 export * from './events';
 export * from './feed';
+export * from './fund';
 export * from './home';
 export * from './layout';
 export * from './people';

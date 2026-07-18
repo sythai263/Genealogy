@@ -13,7 +13,7 @@ import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/hoo
 import { usePeople } from '@/hooks/use-people';
 import { useSearchPeople } from '@/hooks/use-people';
 import { parseLunarString } from '@/lib/lunar-calendar';
-import { EVENT_TYPE_LABELS } from '@/components/events/event-constants';
+import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

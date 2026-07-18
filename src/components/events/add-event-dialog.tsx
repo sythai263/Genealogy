@@ -12,7 +12,7 @@ import { Search, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import { EVENT_TYPE_LABELS } from "@/components/events/event-constants";
+import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";

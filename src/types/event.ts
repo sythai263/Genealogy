@@ -1,3 +1,13 @@
+/**
+ * @project AncestorTree
+ * @file src/types/event.ts
+ * @description Type definitions for clan events / memorial calendar
+ * @version 1.1.0
+ * @updated 2026-07-18
+ */
+
+import type { Person } from './person';
+
 export type EventType = 'gio' | 'hop_ho' | 'le_tet' | 'other';
 
 export interface Event {
@@ -11,4 +21,13 @@ export interface Event {
   location?: string;
   recurring: boolean;
   created_at: string;
+}
+
+export interface UpcomingEvent {
+  event: Event;
+  person?: Person;
+  nextDate: Date;
+  daysUntil: number;
+  lunarDisplay: string;
+  isAuto: boolean;
 }

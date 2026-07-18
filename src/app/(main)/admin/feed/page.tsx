@@ -28,7 +28,7 @@ import { Eye, EyeOff, Trash2, Search, Shield, Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { usePosts, useDeletePost, useHidePost } from '@/hooks/use-feed';
 import { useProfiles } from '@/hooks/use-profiles';
-import { POST_TYPE_LABELS } from '@/types';
+import { POST_TYPE_LABELS } from '@constants';
 import type { Post, Profile } from '@/types';
 import { getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';

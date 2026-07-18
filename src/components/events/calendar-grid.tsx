@@ -10,7 +10,7 @@
 
 import { useMemo } from 'react';
 import { parseLunarString, getNextLunarOccurrence, solarToLunar } from '@/lib/lunar-calendar';
-import { EVENT_TYPE_LABELS } from './event-constants';
+import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
 import type { Event, Person } from '@/types';
 
 interface CalendarGridProps {

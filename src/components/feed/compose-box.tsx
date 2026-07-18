@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
 import { useCreatePost } from '@/hooks/use-feed';
-import { POST_TYPE_LABELS } from '@/types';
+import { POST_TYPE_LABELS } from '@constants';
 import type { PostType } from '@/types';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';

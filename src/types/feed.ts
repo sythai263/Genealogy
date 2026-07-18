@@ -1,14 +1,6 @@
 export type PostType = 'general' | 'photo' | 'milestone' | 'memory' | 'announcement';
 export type PostStatus = 'published' | 'hidden';
 
-export const POST_TYPE_LABELS: Record<PostType, string> = {
-  general: 'Chung',
-  photo: 'Ảnh',
-  milestone: 'Tin vui',
-  memory: 'Kỷ niệm',
-  announcement: 'Thông báo',
-};
-
 export interface Post {
   id: string;
   author_id: string;
