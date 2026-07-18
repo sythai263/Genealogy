@@ -15,28 +15,17 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Users, RotateCcw, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
-import { CAU_DUONG_CEREMONY_LABELS, CAU_DUONG_CEREMONY_ORDER, type CauDuongStatus } from '@/types';
-
-const currentYear = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => currentYear - 1 + i);
-
-const STATUS_LABELS: Record<CauDuongStatus, string> = {
-  scheduled: 'Đã phân công',
-  completed: 'Đã hoàn thành',
-  delegated: 'Đã ủy quyền',
-  rescheduled: 'Đổi ngày',
-  cancelled: 'Đã hủy',
-};
-
-const STATUS_VARIANT: Record<CauDuongStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  scheduled: 'secondary',
-  completed: 'default',
-  delegated: 'outline',
-  rescheduled: 'outline',
-  cancelled: 'destructive',
-};
+import {
+  CAU_DUONG_CEREMONY_LABELS,
+  CAU_DUONG_CEREMONY_ORDER,
+  CAU_DUONG_STATUS_LABELS,
+  CAU_DUONG_STATUS_VARIANTS,
+  CAU_DUONG_YEAR_OPTIONS,
+  getCauDuongCurrentYear,
+} from '@constants';
 
 export default function CauDuongPage() {
+  const currentYear = getCauDuongCurrentYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
   const { data: pools, isLoading: poolsLoading } = useCauDuongPools();
@@ -89,7 +78,7 @@ export default function CauDuongPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {YEAR_OPTIONS.map(y => (
+            {CAU_DUONG_YEAR_OPTIONS.map(y => (
               <SelectItem key={y} value={y.toString()}>Năm {y}</SelectItem>
             ))}
           </SelectContent>
@@ -181,8 +170,8 @@ export default function CauDuongPage() {
                         </div>
 
                         {assignment && (
-                          <Badge variant={STATUS_VARIANT[assignment.status]} className="self-start sm:self-center">
-                            {STATUS_LABELS[assignment.status]}
+                          <Badge variant={CAU_DUONG_STATUS_VARIANTS[assignment.status]} className="self-start sm:self-center">
+                            {CAU_DUONG_STATUS_LABELS[assignment.status]}
                           </Badge>
                         )}
                       </div>

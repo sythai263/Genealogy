@@ -1,6 +1,7 @@
 export * from './achievements';
 export * from './auth';
 export * from './backup';
+export * from './cau-duong';
 export * from './events';
 export * from './feed';
 export * from './home';

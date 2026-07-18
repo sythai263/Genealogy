@@ -13,12 +13,12 @@ import { supabase } from './supabase';
 import type {
   CauDuongPool,
   CauDuongAssignment,
+  CauDuongAssignmentWithPeople,
   CauDuongEligibleMember,
   CauDuongCeremonyType,
   CauDuongStatus,
-  CAU_DUONG_CEREMONY_ORDER,
+  Person,
 } from '@/types';
-import type { Person } from '@/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -415,7 +415,7 @@ export async function completeCauDuong(
 export async function getCauDuongAssignmentsWithPeople(
   poolId: string,
   year?: number,
-): Promise<Array<CauDuongAssignment & { host_person: Person | null; actual_host_person: Person | null }>> {
+): Promise<CauDuongAssignmentWithPeople[]> {
   const assignments = await getCauDuongAssignments(poolId, year);
 
   if (assignments.length === 0) return [];
