@@ -8,3 +8,5 @@ export * from './documents';
 export * from './events';
 export * from './feed';
 export * from './fund';
+export * from './help';
+export * from './notifications';

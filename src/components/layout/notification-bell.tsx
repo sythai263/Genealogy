@@ -19,7 +19,7 @@ import {
 import { useAuth } from '@/components/auth/auth-provider';
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '@/hooks/use-notifications';
 import { getRelativeTime } from '@/lib/format-utils';
-import { NOTIFICATION_TYPE_ICONS } from '@/types';
+import { NOTIFICATION_FALLBACK_ICON, NOTIFICATION_TYPE_ICONS } from '@constants';
 
 export function NotificationBell() {
   const { user } = useAuth();
@@ -98,7 +98,7 @@ export function NotificationBell() {
               >
                 <div className="flex gap-2.5">
                   <span className="text-base flex-shrink-0 mt-0.5">
-                    {NOTIFICATION_TYPE_ICONS[n.type] || '🔔'}
+                    {NOTIFICATION_TYPE_ICONS[n.type] || NOTIFICATION_FALLBACK_ICON}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${!n.is_read ? 'font-medium' : 'text-muted-foreground'}`}>
