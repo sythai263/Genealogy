@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/directory/directory-table.tsx
  * @description Results table for the family directory
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-07-19
  */
 
 import { Lock } from 'lucide-react';
@@ -25,6 +25,8 @@ import { DirectoryTableRow } from './directory-table-row';
 
 interface DirectoryTableProps {
   people: Person[];
+  /** Total matching rows from server (not just current page). */
+  total: number;
   isLoading: boolean;
   isAuthenticated: boolean;
   getContact: (person: Person) => DirectoryContactDisplay;
@@ -32,6 +34,7 @@ interface DirectoryTableProps {
 
 export function DirectoryTable({
   people,
+  total,
   isLoading,
   isAuthenticated,
   getContact,
@@ -41,7 +44,7 @@ export function DirectoryTable({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardDescription>
-            {isLoading ? 'Đang tải...' : `${people.length} thành viên`}
+            {isLoading ? 'Đang tải...' : `${total} thành viên`}
           </CardDescription>
           {!isAuthenticated && (
             <Badge variant="outline" className="gap-1">

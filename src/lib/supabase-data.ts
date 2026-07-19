@@ -156,6 +156,7 @@ export async function searchPeopleFiltered(
         p_chi: filters.chi,
         p_is_living: filters.isLiving,
         ignore_acc: filters.ignoreAccents ?? true,
+        p_gender: filters.gender ?? null,
       },
       { count: 'exact' }
     )

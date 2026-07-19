@@ -51,12 +51,14 @@ export interface Person {
 export type CreatePersonInput = Omit<Person, 'id' | 'created_at' | 'updated_at'>;
 export type UpdatePersonInput = Partial<CreatePersonInput>;
 
-/** Filters for Supabase `search_people_filtered` RPC (people list page). */
+/** Filters for Supabase `search_people_filtered` RPC (people / directory lists). */
 export interface PeopleListFilters {
   search: string;
   generation: number | null;
   chi: number | null;
   isLiving: boolean | null;
+  /** 1=Male, 2=Female — used by directory; people list passes null */
+  gender?: number | null;
   ignoreAccents?: boolean;
   /** 1-based page index */
   page: number;

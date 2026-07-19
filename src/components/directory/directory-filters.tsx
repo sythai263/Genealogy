@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/directory/directory-filters.tsx
  * @description Search and filter controls for the family directory
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-07-19
  */
 
 'use client';
@@ -63,7 +63,7 @@ export function DirectoryFilters({
             <div className="relative">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Tìm theo tên, SĐT, email..."
+                placeholder="Tìm theo tên..."
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
                 className="pl-9"
