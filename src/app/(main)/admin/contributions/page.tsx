@@ -87,7 +87,7 @@ export default function AdminContributionsPage() {
               Bạn cần quyền quản trị viên để truy cập trang này
             </p>
             <Button asChild className="mt-4">
-              <Link href="/">Về trang chủ</Link>
+              <Link href="/admin">Về trang chủ</Link>
             </Button>
           </CardContent>
         </Card>

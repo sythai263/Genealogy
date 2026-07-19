@@ -24,7 +24,7 @@ export function ProfileSettingsView() {
     <div className="container mx-auto max-w-2xl space-y-6 p-4">
       <div className="flex items-center gap-4">
         <Button asChild variant="ghost" size="sm">
-          <Link href="/">
+          <Link href="/admin">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Trang chủ
           </Link>

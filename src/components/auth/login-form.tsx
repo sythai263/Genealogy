@@ -93,7 +93,7 @@ export function LoginForm() {
       }
 
       toast.success('Đăng nhập thành công!');
-      window.location.replace('/');
+      window.location.replace('/admin');
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Đăng nhập thất bại';
@@ -114,7 +114,7 @@ export function LoginForm() {
   }
 
   function handleTotpSuccess() {
-    window.location.replace('/');
+    window.location.replace('/admin');
   }
 
   async function handleTotpBack() {

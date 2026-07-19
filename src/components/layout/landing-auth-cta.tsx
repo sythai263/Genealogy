@@ -71,7 +71,7 @@ export function LandingAuthCta({
   }
 
   const canAdmin = isAdmin || isEditor;
-  const href = canAdmin ? '/admin' : '/';
+  const href = canAdmin ? '/admin' : '/tree';
   const label = canAdmin ? 'Quản trị' : 'Vào hệ thống';
   const Icon = canAdmin ? Shield : LayoutDashboard;
 

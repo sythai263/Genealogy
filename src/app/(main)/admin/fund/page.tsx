@@ -90,7 +90,7 @@ export default function AdminFundPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/">Về trang chủ</Link></Button>
+            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
           </CardContent>
         </Card>
       </div>

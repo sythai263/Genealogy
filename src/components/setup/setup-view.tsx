@@ -30,7 +30,7 @@ export function SetupView() {
 
   useEffect(() => {
     if (!IS_DESKTOP_MODE) {
-      router.replace('/');
+      router.replace('/admin');
     }
   }, [router]);
 

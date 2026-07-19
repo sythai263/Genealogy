@@ -78,7 +78,7 @@ function deriveSubtitle(fullName: string, shortName: string): string {
 }
 
 const mainNavItems = [
-  { title: 'Trang chủ', url: '/', icon: Home },
+  { title: 'Trang chủ', url: '/admin', icon: Home, adminHome: true },
   { title: 'Cây gia phả', url: '/tree', icon: GitBranchPlus },
   { title: 'Thành viên', url: '/people', icon: Users },
   { title: 'Danh bạ', url: '/directory', icon: BookUser, viewerHidden: true },
@@ -122,7 +122,7 @@ const adminNavItems = [
 ];
 
 // Core nav items shown in elderly mode (simplified sidebar)
-const ELDERLY_NAV_URLS = new Set(['/', '/tree', '/people', '/events', '/help']);
+const ELDERLY_NAV_URLS = new Set(['/admin', '/tree', '/people', '/events', '/help']);
 
 // Admin items shown in elderly mode (essential only)
 const ELDERLY_ADMIN_URLS = new Set(['/admin', '/admin/users', '/admin/contributions']);
@@ -180,7 +180,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-4 py-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href={isAdmin || isEditor ? '/admin' : '/tree'} className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
             {clanInitial}
           </div>
@@ -197,11 +197,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems
+                .filter((item) => !item.adminHome || isAdmin || isEditor)
                 .filter((item) => !item.viewerHidden || isEditor)
                 .filter((item) => !elderlyMode || ELDERLY_NAV_URLS.has(item.url))
                 .map((item) => (
                 <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={item.url === '/' ? pathname === '/' : pathname.startsWith(item.url)}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      item.url === '/admin'
+                        ? pathname === '/admin'
+                        : pathname.startsWith(item.url)
+                    }
+                  >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>

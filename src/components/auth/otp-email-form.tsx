@@ -68,7 +68,7 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
       {
         onSuccess: () => {
           toast.success('Đăng nhập thành công!');
-          window.location.replace('/');
+          window.location.replace('/admin');
         },
         onError: (error: Error) => {
           const is422 = isAuthServiceError(error) && error.status === 422;

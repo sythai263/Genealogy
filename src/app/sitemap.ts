@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/app/sitemap.ts
  * @description Dynamic sitemap generation for public pages
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.1.0
+ * @updated 2026-07-19
  */
 
 import type { MetadataRoute } from 'next';
@@ -13,7 +13,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ancestortree.info'
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: `${BASE_URL}/welcome`,
+      url: `${BASE_URL}/`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 1,

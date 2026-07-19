@@ -43,7 +43,7 @@ export function ResetPasswordForm() {
     updatePasswordMutation.mutate(data.password, {
       onSuccess: () => {
         toast.success('Đặt lại mật khẩu thành công!');
-        router.push('/');
+        router.push('/admin');
       },
       onError: (error: Error) => {
         toast.error(error.message || 'Đặt lại mật khẩu thất bại');

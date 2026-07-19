@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/middleware.ts
  * @description Auth middleware for protected routes — Next.js 16 convention
- * @version 1.6.0
- * @updated 2026-03-01
+ * @version 1.7.0
+ * @updated 2026-07-19
  *
  * Docker networking fix:
  *   The browser client uses NEXT_PUBLIC_SUPABASE_URL (http://localhost:54321).
@@ -74,19 +74,24 @@ function _checkRateLimit(ip: string, pathname: string): { allowed: boolean; retr
 }
 
 // Public paths: accessible without authentication (auth pages + landing + debug)
-const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/welcome', '/council', '/ancestral-hall', '/family-tree', '/register-member', '/api/debug', '/api/cron'];
-// Auth pages only: authenticated users are redirected away from these (not from /welcome or /api/*)
+const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/welcome', '/council', '/ancestral-hall', '/family-tree', '/register-member', '/api/debug', '/api/cron'];
+// Auth pages only: authenticated users are redirected away from these (not from landing or /api/*)
 const authPagePaths = ['/login', '/register', '/forgot-password', '/reset-password'];
 // Accessible when authenticated but NOT yet verified by admin
 const pendingVerificationPath = '/pending-verification';
 // All main app routes require authentication to protect personal data.
+// Note: `/` is public (welcome landing). Do NOT list `/` here — startsWith('/') matches every path.
 const authRequiredPaths = [
-  '/',
   '/people', '/tree', '/directory', '/events',
   '/achievements', '/charter', '/cau-duong', '/contributions',
   '/documents', '/fund', '/admin', '/help', '/settings',
-  '/relationship', '/stats', '/feed', '/notifications',
+  '/relationship', '/stats', '/feed', '/notifications', '/setup',
 ];
+
+/** Post-login / app home for authenticated users */
+const APP_HOME_PATH = '/admin';
+/** Fallback when user cannot access admin */
+const APP_FALLBACK_PATH = '/tree';
 
 // Structured logger — writes to stdout (visible in `docker compose logs -f app`)
 const LOG_ENABLED = process.env.MIDDLEWARE_LOG === 'true' || process.env.NODE_ENV === 'development';
@@ -239,29 +244,24 @@ export async function proxy(request: NextRequest) {
 
   // Public paths (landing, auth pages, api/debug) — always allow
   if (publicPaths.some(path => pathname === path || pathname.startsWith(path + '/'))) {
-    // Redirect authenticated users away from auth pages only (not /welcome, not /api/*)
+    // Redirect authenticated users away from auth pages only (not landing, not /api/*)
     if (user && authPagePaths.some(p => pathname === p || pathname.startsWith(p + '/'))) {
-      mwLog('INFO', 'redirect', { pathname, destination: '/', reason: 'authenticated_on_auth_page' });
-      return NextResponse.redirect(new URL('/', request.url));
+      mwLog('INFO', 'redirect', { pathname, destination: APP_HOME_PATH, reason: 'authenticated_on_auth_page' });
+      return NextResponse.redirect(new URL(APP_HOME_PATH, request.url));
     }
     mwLog('INFO', 'allow', { pathname, reason: 'public_path' });
     return response;
   }
 
   // Redirect unauthenticated users from protected pages
-  if (!user && authRequiredPaths.some(path => pathname.startsWith(path))) {
-    // Root path → landing page (not login) so visitors can see what the app is about
-    if (pathname === '/') {
-      mwLog('INFO', 'redirect', { pathname, destination: '/welcome', reason: 'unauthenticated_root' });
-      return NextResponse.redirect(new URL('/welcome', request.url));
-    }
+  if (!user && authRequiredPaths.some(path => pathname === path || pathname.startsWith(path + '/'))) {
     mwLog('WARN', 'redirect', { pathname, destination: '/login', reason: 'unauthenticated', authMethod });
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Fetch profile for verification + role checks
   // Try full query first; fall back to role-only if Sprint 12 columns not yet migrated
-  if (user && (authRequiredPaths.some(path => pathname.startsWith(path)) || pathname === pendingVerificationPath)) {
+  if (user && (authRequiredPaths.some(path => pathname === path || pathname.startsWith(path + '/')) || pathname === pendingVerificationPath)) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let profile: Record<string, any> | null = null;
@@ -302,18 +302,22 @@ export async function proxy(request: NextRequest) {
         return response;
       }
 
-      // Verified user on /pending-verification → redirect to home
+      // Verified user on /pending-verification → app home
       if (pathname === pendingVerificationPath) {
-        mwLog('INFO', 'redirect', { pathname, destination: '/', reason: 'already_verified' });
-        return NextResponse.redirect(new URL('/', request.url));
+        const dest =
+          profile?.role === 'admin' || profile?.role === 'editor'
+            ? APP_HOME_PATH
+            : APP_FALLBACK_PATH;
+        mwLog('INFO', 'redirect', { pathname, destination: dest, reason: 'already_verified' });
+        return NextResponse.redirect(new URL(dest, request.url));
       }
 
       // Admin routes require admin or editor role
       if (pathname.startsWith('/admin')) {
         mwLog('INFO', 'admin_check', { pathname, userId: user.id, role: profile?.role ?? null });
         if (profile?.role !== 'admin' && profile?.role !== 'editor') {
-          mwLog('WARN', 'redirect', { pathname, destination: '/', reason: 'insufficient_role', role: profile?.role });
-          return NextResponse.redirect(new URL('/', request.url));
+          mwLog('WARN', 'redirect', { pathname, destination: APP_FALLBACK_PATH, reason: 'insufficient_role', role: profile?.role });
+          return NextResponse.redirect(new URL(APP_FALLBACK_PATH, request.url));
         }
       }
     } catch (err) {

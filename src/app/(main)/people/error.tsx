@@ -49,7 +49,7 @@ export default function PeopleError({
               Thử lại
             </Button>
             <Button asChild variant="ghost" size="sm">
-              <Link href="/">
+              <Link href="/admin">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Về trang chủ
               </Link>
