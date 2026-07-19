@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-v3.tsx
  * @description Interactive family tree orchestrator (horizontal / vertical)
- * @version 5.2.0
+ * @version 5.3.0
  * @updated 2026-07-19
  */
 
@@ -10,6 +10,7 @@
 
 import { Skeleton } from '@components/ui';
 import {
+  TREE_ROOT_QUERY_PARAM,
   TREE_SEARCH_DEBOUNCE_MS,
   TREE_ZOOM_IN_FACTOR,
   TREE_ZOOM_OUT_FACTOR,
@@ -28,6 +29,7 @@ import type {
 } from '@types';
 import * as d3 from 'd3';
 import { AlertCircle } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
@@ -52,11 +54,15 @@ export function FamilyTreeV3({
 }: FamilyTreeV3Props) {
   const isPublic = variant === 'public';
   const isMobile = useIsMobile();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data, isLoading, error } = useTreeData();
+
+  const focusRootId = searchParams.get(TREE_ROOT_QUERY_PARAM);
 
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [chiFilter, setChiFilter] = useState<string | null>(null);
-  const [focusRootId, setFocusRootId] = useState<string | null>(null);
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [orientationOverride, setOrientationOverride] =
     useState<TreeOrientation>('vertical');
@@ -79,6 +85,22 @@ export function FamilyTreeV3({
   const orientation =
     orientationOverride ?? getDefaultOrientation(isMobile);
 
+  const setFocusRootId = useCallback(
+    (personId: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (personId) {
+        params.set(TREE_ROOT_QUERY_PARAM, personId);
+      } else {
+        params.delete(TREE_ROOT_QUERY_PARAM);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams]
+  );
+
   const chiValues = useMemo(() => {
     if (!data) return [] as number[];
     const values = new Set<number>();
@@ -93,6 +115,15 @@ export function FamilyTreeV3({
     defaultChiApplied.current = true;
     setChiFilter('all');
   }, [data]);
+
+  // Drop invalid ?root= once tree data is available
+  useEffect(() => {
+    if (!data || !focusRootId) return;
+    const exists = data.people.some((person) => person.id === focusRootId);
+    if (!exists) {
+      setFocusRootId(null);
+    }
+  }, [data, focusRootId, setFocusRootId]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -149,16 +180,19 @@ export function FamilyTreeV3({
     bumpLayout();
   }, [bumpLayout]);
 
-  const handleFocusPerson = useCallback((person: Person) => {
-    setFocusRootId(person.id);
-    setSelectedPerson(person);
-    setFilterDropdownOpen(false);
-    setFilterSearch('');
-  }, []);
+  const handleFocusPerson = useCallback(
+    (person: Person) => {
+      setFocusRootId(person.id);
+      setSelectedPerson(person);
+      setFilterDropdownOpen(false);
+      setFilterSearch('');
+    },
+    [setFocusRootId]
+  );
 
   const handleResetFocusRoot = useCallback(() => {
     setFocusRootId(null);
-  }, []);
+  }, [setFocusRootId]);
 
   const handleOrientationChange = useCallback((next: TreeOrientation) => {
     setOrientationOverride(next);

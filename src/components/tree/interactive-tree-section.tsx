@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/tree/interactive-tree-section.tsx
  * @description Interactive family tree with legend and zoom guidance
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-07-19
  */
 
 'use client';
 
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import {
   Card,
@@ -47,7 +48,11 @@ export function InteractiveTreeSection() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <FamilyTree />
+        <Suspense
+          fallback={<Skeleton className="h-[60vh] w-full rounded-lg" />}
+        >
+          <FamilyTree />
+        </Suspense>
       </CardContent>
     </Card>
   );

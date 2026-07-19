@@ -31,6 +31,9 @@ export const TREE_DEFAULT_COLLAPSE_DEPTH = 2;
 
 export const TREE_VIRTUAL_ROOT_ID = '__clan_root__';
 
+/** Query param for focusing the tree on a person subtree (`/tree?root=<uuid>`). */
+export const TREE_ROOT_QUERY_PARAM = 'root';
+
 export const TREE_SEARCH_DEBOUNCE_MS = 300;
 export const TREE_SEARCH_MIN_CHARS = 2;
 

@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/app/(landing)/family-tree/family-tree-content.tsx
  * @description Public family tree viewer — mobile-first full-viewport layout
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-07-19
  */
 
 'use client';
 
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { GitBranchPlus } from 'lucide-react';
 import { LandingAuthCta } from '@components/layout';
@@ -62,7 +63,15 @@ export function FamilyTreeContent() {
       </header>
 
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col sm:px-4 sm:pb-4 sm:pt-3">
-        <FamilyTreeV3 variant="public" />
+        <Suspense
+          fallback={
+            <div className="flex h-full min-h-[50vh] items-center justify-center p-4">
+              <Skeleton className="h-full w-full rounded-xl" />
+            </div>
+          }
+        >
+          <FamilyTreeV3 variant="public" />
+        </Suspense>
       </div>
     </div>
   );
