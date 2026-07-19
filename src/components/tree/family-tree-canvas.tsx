@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-canvas.tsx
  * @description d3.tree canvas with horizontal/vertical orientation, collapse + zoom
- * @version 2.2.0
+ * @version 2.3.0
  * @updated 2026-07-19
  */
 
@@ -15,6 +15,7 @@ import {
   NODE_WIDTH,
   TREE_COLLAPSE_BTN_RADIUS,
   TREE_EXIT_TRANSITION_MS,
+  TREE_FOCUS_TRANSITION_MS,
   TREE_MOBILE_BREAKPOINT,
   TREE_NODE_SIZE_X,
   TREE_NODE_SIZE_Y,
@@ -187,6 +188,8 @@ export function FamilyTreeCanvas({
   const hierarchyRootRef = useRef(hierarchyRoot);
   const didInitialZoomRef = useRef(false);
   const orientationRef = useRef(orientation);
+  /** After expand, pan/zoom to this node on the next layout pass. */
+  const pendingFocusNodeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     onSelectPersonRef.current = onSelectPerson;
@@ -200,6 +203,15 @@ export function FamilyTreeCanvas({
 
   useEffect(() => {
     if (!svgRef.current || !hierarchyRoot) return;
+
+    function toggleNode(node: HierarchyPersonNode) {
+      if (!hierarchyHasKids(node)) return;
+      if (hierarchyIsCollapsed(node)) {
+        pendingFocusNodeIdRef.current = node.id;
+      }
+      toggleHierarchyNode(node);
+      onHierarchyMutatedRef.current();
+    }
 
     const svg = d3
       .select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
@@ -301,10 +313,7 @@ export function FamilyTreeCanvas({
         if (d.data.id !== TREE_VIRTUAL_ROOT_ID) {
           onSelectPersonRef.current(d.data.person);
         }
-        if (hierarchyHasKids(d.data)) {
-          toggleHierarchyNode(d.data);
-          onHierarchyMutatedRef.current();
-        }
+        toggleNode(d.data);
       });
 
     nodeEnter
@@ -319,10 +328,7 @@ export function FamilyTreeCanvas({
       if (!hierarchyHasKids(d.data)) return;
       const g = d3.select<SVGGElement, HierarchyPoint>(this);
       appendCollapseButton(g, d, orientation, () => {
-        if (hierarchyHasKids(d.data)) {
-          toggleHierarchyNode(d.data);
-          onHierarchyMutatedRef.current();
-        }
+        toggleNode(d.data);
       });
     });
 
@@ -359,10 +365,7 @@ export function FamilyTreeCanvas({
       const hasBtn = !g.select('g.collapse-btn').empty();
       if (hierarchyHasKids(d.data) && !hasBtn) {
         appendCollapseButton(g, d, orientation, () => {
-          if (hierarchyHasKids(d.data)) {
-            toggleHierarchyNode(d.data);
-            onHierarchyMutatedRef.current();
-          }
+          toggleNode(d.data);
         });
       } else if (!hierarchyHasKids(d.data) && hasBtn) {
         g.select('g.collapse-btn').remove();
@@ -378,6 +381,50 @@ export function FamilyTreeCanvas({
 
     const orientationChanged = orientationRef.current !== orientation;
     orientationRef.current = orientation;
+
+    const focusNodeId = pendingFocusNodeIdRef.current;
+    if (
+      focusNodeId &&
+      zoomBehaviorRef.current &&
+      wrapperRef.current &&
+      svgRef.current
+    ) {
+      pendingFocusNodeIdRef.current = null;
+      const target = descendants.find((d) => d.data.id === focusNodeId);
+      if (target) {
+        const { clientWidth, clientHeight } = wrapperRef.current;
+        const current = d3.zoomTransform(svgRef.current);
+        const scale = current.k;
+
+        // Prefer a point between the opened node and its children so the
+        // newly revealed branch stays in view.
+        let focusX = px(target);
+        let focusY = py(target);
+        if (target.children && target.children.length > 0) {
+          const childXs = target.children.map((c) => px(c));
+          const childYs = target.children.map((c) => py(c));
+          const childMidX =
+            (Math.min(...childXs) + Math.max(...childXs)) / 2;
+          const childMidY =
+            (Math.min(...childYs) + Math.max(...childYs)) / 2;
+          focusX = (focusX + childMidX) / 2;
+          focusY = (focusY + childMidY) / 2;
+        }
+
+        svg
+          .transition()
+          .duration(TREE_FOCUS_TRANSITION_MS)
+          .call(
+            zoomBehaviorRef.current.transform,
+            d3.zoomIdentity
+              .translate(clientWidth / 2, clientHeight / 2)
+              .scale(scale)
+              .translate(-focusX, -focusY)
+          );
+        didInitialZoomRef.current = true;
+        return;
+      }
+    }
 
     if (
       (!didInitialZoomRef.current || orientationChanged) &&

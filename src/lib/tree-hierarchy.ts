@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/lib/tree-hierarchy.ts
  * @description Patrilineal hierarchy builder with children/_children collapse
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-07-19
  */
 
@@ -187,6 +187,33 @@ export function buildPersonHierarchy(
         peopleById.has(fatherId) &&
         !isSpouseOnly(fatherId);
       if (!fatherVisible) rootIds.push(id);
+    }
+
+    // Drop unlinked orphans that are deeper than the chi's true head generation.
+    // Without this, Gen-8 people with no family mapping become sibling "roots"
+    // and attach under the virtual/Gen-1 root next to the branch founder.
+    // Keep later-gen people only when they have a father outside this chi
+    // (so their subtree remains visible under a secondary root).
+    if (rootIds.length > 1) {
+      const rootPeople = rootIds
+        .map((id) => peopleById.get(id))
+        .filter((p): p is Person => p != null);
+      const minGen = Math.min(
+        ...rootPeople.map((p) => p.generation || 1)
+      );
+      rootIds = rootPeople
+        .filter((p) => {
+          const gen = p.generation || 1;
+          if (gen === minGen) return true;
+          const fatherId = childToFather.get(p.id);
+          // Father exists in data but outside this chi filter → keep as local root
+          return (
+            fatherId != null &&
+            peopleById.has(fatherId) &&
+            !candidateSet.has(fatherId)
+          );
+        })
+        .map((p) => p.id);
     }
 
     // Fallback: earliest generation within the chi

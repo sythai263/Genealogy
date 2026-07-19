@@ -8,8 +8,6 @@
 
 'use client';
 
-import Link from 'next/link';
-import { X } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
@@ -20,6 +18,8 @@ import {
 } from '@components/ui';
 import { cn, getInitials, getPersonTreeNameParts } from '@lib';
 import type { Person } from '@types';
+import { X } from 'lucide-react';
+import Link from 'next/link';
 
 interface FamilyTreeSelectedCardProps {
   person: Person;
@@ -65,10 +65,10 @@ export function FamilyTreeSelectedCard({
               </p>
             ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-              Đời {person.generation}
-              {person.chi != null ? ` • Chi ${person.chi}` : ''}
+              <span>Chi: {person.chi != null ? person.chi : ''}</span>
+              <span className="ml-1">Đời: {person.generation}</span>
             </p>
-          </div>
+          </div>  
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {showDetailLink ? (

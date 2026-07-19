@@ -91,8 +91,8 @@ export function FamilyTreeV3({
   useEffect(() => {
     if (defaultChiApplied.current || !data) return;
     defaultChiApplied.current = true;
-    setChiFilter(chiValues.length > 0 ? String(chiValues[0]) : 'all');
-  }, [data, chiValues]);
+    setChiFilter('all');
+  }, [data]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
