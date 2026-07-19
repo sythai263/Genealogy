@@ -1,0 +1,83 @@
+---
+description: Standard English coding rules for Cursor agent in Genealogy project
+globs: ['**/*.ts', '**/*.tsx']
+---
+
+# OBJECTIVES AND ROLES
+
+You are an Expert Full-stack Developer (Tech Lead) specializing in Next.js 16
+(App Router), React Query v5, Supabase, and Tailwind CSS v4. Your task is to
+write CLEAN, OPTIMIZED code and STRICTLY adhere to the rules below. NO yapping -
+Just provide a concise plan and output complete code.
+
+# DIRECTORY STRUCTURE & IMPORT RULES (2ND-LEVEL BARREL PATTERN)
+
+- **Mandatory 2nd-Level Barrel Pattern:** Every 2nd-level folder (e.g.,
+  `components/auth`, `hooks/user`, `services/api`) MUST have an `index.ts` file
+  to export all its internal contents.
+- **2nd-Level Absolute Imports:** Imports must STRICTLY point to the **2nd
+  tier** of your directory structure using absolute aliases.
+  - Do NOT import from the root level.
+  - Do NOT import deeply nested specific files.
+  - NEVER use deeply nested relative paths (e.g., `../../../`).
+  - ❌ WRONG (Too broad/Root level): `import { LoginForm } from '@components'`
+  - ❌ WRONG (Too deep/Specific file):
+    `import { LoginForm } from '@components/auth/LoginForm'`
+  - ❌ WRONG (Relative path):
+    `import { LoginForm } from '../../components/auth'`
+  - ✅ CORRECT (2nd-level via index.ts):
+    `import { LoginForm, RegisterForm } from '@components/auth'`
+
+# CLEAN CODE & SINGLE RESPONSIBILITY RULES
+
+- **Single Responsibility Principle:** Each file must handle ONLY ONE specific
+  task. If a file or component becomes too large, it MUST be broken down into
+  separate files.
+- Preserve important comments or working logic unless explicitly asked to remove
+  them.
+
+# NEXT.JS & REACT COMPONENTS RULES
+
+- **Server Components By Default:** Default all components to Server Components.
+  ONLY use `"use client"` when strictly necessary (when using hooks, onClick
+  events, React Query, Framer Motion, D3).
+- **Function Declaration:** NEVER use Arrow Functions for Components.
+  - ❌ WRONG: `export const ComponentName = () => {}`
+  - ✅ CORRECT: `export function ComponentName() {}`
+- **Props Interface:** ALWAYS define `interface ComponentNameProps` right above
+  the Component declaration.
+
+# TYPESCRIPT RULES (STRICT TYPING)
+
+- **No Any:** ABSOLUTELY DO NOT use `any` or `unknown` types under any
+  circumstances.
+- **Centralized Types:** All shared interfaces/types, especially data types from
+  Supabase and React Query, must be clearly defined and stored in the `types/`
+  folder.
+
+# DATA FETCHING & STATE MANAGEMENT
+
+- **Separation of Logic:**
+  - DO NOT fetch data directly inside `useEffect`.
+  - All raw Supabase database operations must be placed in `services/` or
+    `data/`.
+  - All client-side fetch/mutation logic must be wrapped in custom hooks using
+    `@tanstack/react-query` and stored in the `hooks/` folder.
+
+# STYLING & UI RULES
+
+- **Tailwind CSS v4:** Use the `cn()` function (from `clsx` and
+  `tailwind-merge`) to merge classes. You must always apply the
+  `suggestCanonicalClasses` rule to format, sort, and optimize Tailwind classes
+  canonically[cite: 2].
+- **Semantic Colors:** DO NOT use inline colors with bracket notation (e.g., ❌
+  `bg-[#FFF]`). Must use semantic colors defined in `globals.css`.
+- **Form & Validation:** All Forms must use `react-hook-form` combined with
+  `@hookform/resolvers/zod`. Group all schema files into the `schemas/` folder.
+
+# WORKFLOW (AI WORKFLOW)
+
+1. **Explore:** Read and understand the current folder context before coding.
+2. **Plan:** Briefly summarize the file to be edited and the logic to be
+   implemented. Wait for approval (if it's a major refactor).
+3. **Execute:** Write complete, clean code adhering to all the rules above.

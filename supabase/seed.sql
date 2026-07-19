@@ -11,8 +11,8 @@ INSERT INTO auth.users (
 ) VALUES (
     'c8ddaf0d-eb13-4376-a95d-e5907904fbb1',
     '00000000-0000-0000-0000-000000000000',
-    'admin@giapha.dev',
-    extensions.crypt('admin123', extensions.gen_salt('bf')),
+    'admin@lesy.vn',
+    extensions.crypt('n30mJ5F6mTOVEm8nbry', extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"full_name": "Quản trị viên"}'::jsonb,
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -26,7 +26,7 @@ INSERT INTO auth.identities (
 ) VALUES (
     'c8ddaf0d-eb13-4376-a95d-e5907904fbb1',
     'c8ddaf0d-eb13-4376-a95d-e5907904fbb1',
-    '{"sub": "c8ddaf0d-eb13-4376-a95d-e5907904fbb1", "email": "admin@giapha.dev"}'::jsonb,
+    '{"sub": "c8ddaf0d-eb13-4376-a95d-e5907904fbb1", "email": "admin@lesy.vn"}'::jsonb,
     'email',
     'c8ddaf0d-eb13-4376-a95d-e5907904fbb1',
     NOW(), NOW(), NOW()
@@ -42,8 +42,8 @@ INSERT INTO auth.users (
 ) VALUES (
     '8516908b-2774-4ac9-93fb-bb6e85790113',
     '00000000-0000-0000-0000-000000000000',
-    'viewer@giapha.dev',
-    extensions.crypt('viewer123', extensions.gen_salt('bf')),
+    'viewer@lesy.vn',
+    extensions.crypt('rSrWF8nuHh0ud3oJidE', extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"full_name": "Người xem"}'::jsonb,
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -57,7 +57,7 @@ INSERT INTO auth.identities (
 ) VALUES (
     '8516908b-2774-4ac9-93fb-bb6e85790113',
     '8516908b-2774-4ac9-93fb-bb6e85790113',
-    '{"sub": "8516908b-2774-4ac9-93fb-bb6e85790113", "email": "viewer@giapha.dev"}'::jsonb,
+    '{"sub": "8516908b-2774-4ac9-93fb-bb6e85790113", "email": "viewer@lesy.vn"}'::jsonb,
     'email',
     '8516908b-2774-4ac9-93fb-bb6e85790113',
     NOW(), NOW(), NOW()
@@ -73,8 +73,8 @@ INSERT INTO auth.users (
 ) VALUES (
     'a5af6a18-8504-4d39-a69a-c84ec5efcc6c',
     '00000000-0000-0000-0000-000000000000',
-    'editor@giapha.dev',
-    extensions.crypt('editor123', extensions.gen_salt('bf')),
+    'editor@lesy.vn',
+    extensions.crypt('aR36HXA4Erw8mE1juFT', extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"full_name": "Biên tập viên"}'::jsonb,
     '{"provider": "email", "providers": ["email"]}'::jsonb,

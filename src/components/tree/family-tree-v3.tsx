@@ -20,7 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { NODE_HEIGHT, NODE_WIDTH } from '@/constants';
 import { useTreeData } from '@/hooks/use-families';
-import { useSearchPeople, useSearchPeopleAdvanced } from '@/hooks/use-people';
+import { useSearchPeopleAdvanced } from '@/hooks/use-people';
 import { getInitials } from '@/lib/format-utils';
 import { buildTreeLayout } from '@/lib/helper';
 import type { Person } from '@/types';
@@ -44,6 +44,7 @@ export function FamilyTreeV3() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>('all');
+  const [chiFilter, setChiFilter] = useState<string | null>(null);
 
   // Search state
   const [filterSearch, setFilterSearch] = useState('');
@@ -53,6 +54,56 @@ export function FamilyTreeV3() {
 
   // Ref cho toàn bộ khu vực Search (Input + Dropdown) để bắt sự kiện Click Outside
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const defaultChiApplied = useRef(false);
+  const autoCollapseApplied = useRef(false);
+
+  const chiValues = useMemo(() => {
+    if (!data) return [] as number[];
+    const values = new Set<number>();
+    for (const person of data.people) {
+      if (person.chi != null) values.add(person.chi);
+    }
+    return [...values].sort((a, b) => a - b);
+  }, [data]);
+
+  // Default view to the first chi for faster initial render on large trees
+  useEffect(() => {
+    if (defaultChiApplied.current || !data) return;
+    defaultChiApplied.current = true;
+    setChiFilter(chiValues.length > 0 ? String(chiValues[0]) : 'all');
+  }, [data, chiValues]);
+
+  // Auto-collapse deep generations when the tree is large
+  useEffect(() => {
+    if (!data || autoCollapseApplied.current) return;
+    if (data.people.length <= 50) return;
+    autoCollapseApplied.current = true;
+
+    const minGen = Math.min(...data.people.map(p => p.generation || 1));
+    const collapseFromGen = minGen + 2;
+    const fathersWithChildren = new Set<string>();
+
+    for (const family of data.families) {
+      if (
+        family.father_id &&
+        data.children.some(c => c.family_id === family.id)
+      ) {
+        fathersWithChildren.add(family.father_id);
+      }
+    }
+
+    const toCollapse = new Set<string>();
+    for (const person of data.people) {
+      if (
+        (person.generation || 1) >= collapseFromGen &&
+        fathersWithChildren.has(person.id)
+      ) {
+        toCollapse.add(person.id);
+      }
+    }
+
+    if (toCollapse.size > 0) setCollapsedNodes(toCollapse);
+  }, [data]);
 
   // FEATURE: Click ra ngoài tự đóng dropdown (Thay thế hoàn hảo cho Popover)
   useEffect(() => {
@@ -111,16 +162,20 @@ export function FamilyTreeV3() {
     null
   );
 
+  const filterChi =
+    chiFilter == null || chiFilter === 'all' ? null : Number(chiFilter);
+
   const layout = useMemo(() => {
-    if (!data || data.people.length === 0) return null;
+    if (!data || data.people.length === 0 || chiFilter == null) return null;
     return buildTreeLayout(
       data,
       collapsedNodes,
       viewMode,
       selectedPerson?.id || null,
-      null
+      null,
+      Number.isFinite(filterChi) ? filterChi : null
     );
-  }, [data, collapsedNodes, viewMode, selectedPerson?.id]);
+  }, [data, collapsedNodes, viewMode, selectedPerson?.id, filterChi, chiFilter]);
 
   useEffect(() => {
     if (!svgRef.current || !layout || layout.nodes.length === 0) return;
@@ -490,6 +545,27 @@ export function FamilyTreeV3() {
 
         <div className='h-6 w-px bg-border mx-1 hidden sm:block'></div>
 
+        {chiValues.length > 0 && chiFilter != null && (
+          <Select
+            value={chiFilter}
+            onValueChange={value => {
+              setChiFilter(value);
+              setSelectedPerson(null);
+            }}>
+            <SelectTrigger className='w-32 bg-background h-9 shadow-sm'>
+              <SelectValue placeholder='Chọn chi' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>Tất cả chi</SelectItem>
+              {chiValues.map(chi => (
+                <SelectItem key={chi} value={String(chi)}>
+                  Chi {chi}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         <div className='flex items-center gap-1 border rounded-lg p-1 bg-background shadow-sm'>
           <Button
             variant='ghost'
@@ -541,6 +617,7 @@ export function FamilyTreeV3() {
         ref={wrapperRef}
         className='border rounded-xl bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden relative shadow-inner w-full h-[85vh]'>
         <svg
+          key={chiFilter ?? 'pending'}
           ref={svgRef}
           className='w-full h-full cursor-grab active:cursor-grabbing outline-none'
           style={{ display: 'block' }}
@@ -567,6 +644,7 @@ export function FamilyTreeV3() {
                 </h3>
                 <p className='text-sm text-muted-foreground mt-0.5'>
                   Đời {selectedPerson.generation}
+                  {selectedPerson.chi != null ? ` • Chi ${selectedPerson.chi}` : ''}
                 </p>
               </div>
             </div>

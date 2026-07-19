@@ -35,7 +35,8 @@ export function buildTreeLayout(
   collapsedNodes: Set<string>,
   viewMode: ViewMode,
   focusPersonId: string | null,
-  filterRootId: string | null = null
+  filterRootId: string | null = null,
+  filterChi: number | null = null
 ) {
   const { people, families, children } = data;
 
@@ -71,6 +72,31 @@ export function buildTreeLayout(
     }
   }
 
+  const hideCollapsedDescendants = (visible: Set<string>) => {
+    const hideDescendants = (personId: string) => {
+      const fams = fatherToFamilies.get(personId) || [];
+      for (const fam of fams) {
+        const kids = familyToChildren.get(fam.id) || [];
+        kids.forEach(c => {
+          visible.delete(c.person_id);
+          hideDescendants(c.person_id);
+        });
+      }
+    };
+    collapsedNodes.forEach(nodeId => hideDescendants(nodeId));
+  };
+
+  const includeSpouses = (visible: Set<string>) => {
+    for (const family of families) {
+      if (family.father_id && visible.has(family.father_id) && family.mother_id) {
+        visible.add(family.mother_id);
+      }
+      if (family.mother_id && visible.has(family.mother_id) && family.father_id) {
+        visible.add(family.father_id);
+      }
+    }
+  };
+
   const getVisiblePeopleIds = (): Set<string> => {
     const visible = new Set<string>();
 
@@ -92,22 +118,31 @@ export function buildTreeLayout(
         }
       };
       addWithDescendants(filterRootId);
+      if (filterChi != null) {
+        for (const id of [...visible]) {
+          const person = people.find(p => p.id === id);
+          if (person && person.chi != null && person.chi !== filterChi) {
+            visible.delete(id);
+          }
+        }
+        includeSpouses(visible);
+      }
+      hideCollapsedDescendants(visible);
+      return visible;
+    }
+
+    if (filterChi != null) {
+      people.forEach(p => {
+        if (p.chi === filterChi) visible.add(p.id);
+      });
+      includeSpouses(visible);
+      hideCollapsedDescendants(visible);
       return visible;
     }
 
     if (viewMode === 'all') {
       people.forEach(p => visible.add(p.id));
-      const hideDescendants = (personId: string) => {
-        const fams = fatherToFamilies.get(personId) || [];
-        for (const fam of fams) {
-          const kids = familyToChildren.get(fam.id) || [];
-          kids.forEach(c => {
-            visible.delete(c.person_id);
-            hideDescendants(c.person_id);
-          });
-        }
-      };
-      collapsedNodes.forEach(nodeId => hideDescendants(nodeId));
+      hideCollapsedDescendants(visible);
     } else if (viewMode === 'ancestors' && focusPersonId) {
       const addAncestors = (personId: string) => {
         visible.add(personId);
