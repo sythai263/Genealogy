@@ -31,6 +31,41 @@ export function getInitials(name: string): string {
     : (parts[0][0] ?? '?').toUpperCase();
 }
 
+/** Tree card: given name on top; surname + middle name below. */
+export interface PersonTreeNameParts {
+  givenName: string;
+  familyLine: string;
+}
+
+export function getPersonTreeNameParts(person: {
+  display_name: string;
+  first_name?: string;
+  middle_name?: string;
+  surname?: string;
+}): PersonTreeNameParts {
+  const givenName =
+    person.first_name?.trim() ||
+    person.display_name.trim().split(/\s+/).at(-1) ||
+    person.display_name;
+
+  const familyParts = [person.surname, person.middle_name]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  if (familyParts.length > 0) {
+    return { givenName, familyLine: familyParts.join(' ') };
+  }
+
+  const tokens = person.display_name.trim().split(/\s+/);
+  if (tokens.length <= 1) {
+    return { givenName, familyLine: '' };
+  }
+  return {
+    givenName: tokens[tokens.length - 1],
+    familyLine: tokens.slice(0, -1).join(' '),
+  };
+}
+
 export function formatBackupDate(value: Date | string | null): string {
   if (!value) return '—';
   const date = typeof value === 'string' ? new Date(value) : value;

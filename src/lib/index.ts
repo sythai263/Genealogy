@@ -7,6 +7,7 @@ export * from './format-utils';
 export * from './gedcom-export';
 export * from './gedcom-import';
 export * from './helper';
+export * from './tree-hierarchy';
 export * from './login-lockout';
 export * from './lunar-calendar';
 export * from './markdown-export';

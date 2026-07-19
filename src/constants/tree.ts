@@ -1,6 +1,43 @@
-export const NODE_WIDTH = 90;    
-export const NODE_HEIGHT = 55;   
-export const LEVEL_HEIGHT = 80;  
-export const SIBLING_GAP = 12;   
-export const BRANCH_GAP = 30;    
-export const COUPLE_GAP = 12;    
+/**
+ * @project AncestorTree
+ * @file src/constants/tree.ts
+ * @description Layout and interaction constants for the family tree
+ * @version 2.0.0
+ * @updated 2026-07-19
+ */
+
+export const NODE_WIDTH = 100;
+export const NODE_HEIGHT = 64;
+export const LEVEL_HEIGHT = 80;
+export const SIBLING_GAP = 12;
+export const BRANCH_GAP = 30;
+export const COUPLE_GAP = 12;
+
+/** Vertical sibling spacing for horizontal d3.tree nodeSize [height, width] */
+export const TREE_NODE_SIZE_Y = NODE_HEIGHT + 24;
+/** Horizontal depth spacing for horizontal d3.tree nodeSize */
+export const TREE_NODE_SIZE_X = NODE_WIDTH + 80;
+
+/**
+ * Collapse nodes at depth >= this value on initial load.
+ * Depth 0 = root → depth 2 = 3rd generation visible, deeper collapsed.
+ */
+export const TREE_DEFAULT_COLLAPSE_DEPTH = 2;
+
+export const TREE_VIRTUAL_ROOT_ID = '__clan_root__';
+
+export const TREE_SEARCH_DEBOUNCE_MS = 300;
+export const TREE_SEARCH_MIN_CHARS = 2;
+
+export const TREE_ZOOM_MIN = 0.08;
+export const TREE_ZOOM_MAX = 3;
+export const TREE_ZOOM_IN_FACTOR = 1.3;
+export const TREE_ZOOM_OUT_FACTOR = 0.7;
+export const TREE_ZOOM_MOBILE_SCALE = 0.6;
+export const TREE_ZOOM_INITIAL_SCALE = 0.85;
+export const TREE_MOBILE_BREAKPOINT = 768;
+
+export const TREE_TRANSITION_MS = 450;
+export const TREE_EXIT_TRANSITION_MS = 300;
+export const TREE_FOCUS_TRANSITION_MS = 750;
+export const TREE_COLLAPSE_BTN_RADIUS = 8;

@@ -5,39 +5,23 @@ import {
   NODE_HEIGHT,
   NODE_WIDTH,
   SIBLING_GAP,
-} from '@/constants';
-import type { TreeData } from '@/lib/supabase-data';
-import type { Person } from '@/types';
-
-type ViewMode = 'all' | 'ancestors' | 'descendants';
-
-interface TreeNodeData {
-  person: Person;
-  x: number;
-  y: number;
-  isCollapsed: boolean;
-  hasChildren: boolean;
-  isVisible: boolean;
-}
-
-interface TreeConnectionData {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  type: 'parent-child' | 'couple';
-  isVisible: boolean;
-}
+} from '@constants';
+import type { TreeData } from './supabase-data';
+import type {
+  TreeLayoutConnection,
+  TreeLayoutNode,
+  TreeLayoutResult,
+  TreeViewMode,
+} from '@types';
 
 export function buildTreeLayout(
   data: TreeData,
   collapsedNodes: Set<string>,
-  viewMode: ViewMode,
+  viewMode: TreeViewMode,
   focusPersonId: string | null,
   filterRootId: string | null = null,
   filterChi: number | null = null
-) {
+): TreeLayoutResult {
   const { people, families, children } = data;
 
   // Pre-compute maps for O(1) performance
@@ -297,7 +281,7 @@ export function buildTreeLayout(
   }
 
   const minGen = Math.min(...visiblePeople.map(p => p.generation || 1));
-  const nodes: TreeNodeData[] = [];
+  const nodes: TreeLayoutNode[] = [];
   for (const person of visiblePeople) {
     if (!xPositions.has(person.id)) continue;
     nodes.push({
@@ -310,7 +294,7 @@ export function buildTreeLayout(
     });
   }
 
-  const connections: TreeConnectionData[] = [];
+  const connections: TreeLayoutConnection[] = [];
   const personPos = new Map(nodes.map(n => [n.person.id, { x: n.x, y: n.y }]));
 
   for (const family of families) {
