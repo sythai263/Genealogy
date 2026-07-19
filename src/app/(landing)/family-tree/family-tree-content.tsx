@@ -2,16 +2,16 @@
  * @project AncestorTree
  * @file src/app/(landing)/family-tree/family-tree-content.tsx
  * @description Public family tree viewer — mobile-first full-viewport layout
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-07-19
  */
 
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { GitBranchPlus, LogIn } from 'lucide-react';
-import { Button, Skeleton } from '@components/ui';
+import { GitBranchPlus } from 'lucide-react';
+import { LandingAuthCta } from '@components/layout';
+import { Skeleton } from '@components/ui';
 import { useClanSettings } from '@hooks';
 
 const FamilyTreeV3 = dynamic(
@@ -56,17 +56,7 @@ export function FamilyTreeContent() {
               thu/mở
             </p>
           </div>
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="h-9 shrink-0 gap-1.5"
-          >
-            <Link href="/login" aria-label="Đăng nhập">
-              <LogIn className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Đăng nhập</span>
-            </Link>
-          </Button>
+          <LandingAuthCta variant="header" />
         </div>
       </header>
 
