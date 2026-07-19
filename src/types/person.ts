@@ -50,3 +50,18 @@ export interface Person {
 
 export type CreatePersonInput = Omit<Person, 'id' | 'created_at' | 'updated_at'>;
 export type UpdatePersonInput = Partial<CreatePersonInput>;
+
+/** Filters for Supabase `search_people_filtered` RPC (people list page). */
+export interface PeopleListFilters {
+  search: string;
+  generation: number | null;
+  chi: number | null;
+  isLiving: boolean | null;
+  ignoreAccents?: boolean;
+}
+
+/** Distinct filter dropdown values from `get_people_filter_options` RPC. */
+export interface PeopleFilterOptions {
+  generations: number[];
+  chiValues: number[];
+}

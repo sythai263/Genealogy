@@ -2,8 +2,8 @@ import { supabase } from './supabase';
 import type {
   Person, Family, Profile, Contribution, Event, Media,
   CreatePersonInput, UpdatePersonInput, CreateMediaInput, ContributionStatus, EventType,
-  PersonRelations, JsonObject,
-} from '@/types';
+  PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
+} from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Security: Contact field definitions
@@ -129,7 +129,47 @@ export async function searchPeopleAdvanced(query: string, ignoreAccents: boolean
   return data || [];
 }
 
+interface PeopleFilterOptionsRpcResult {
+  generations: number[];
+  chi_values: number[];
+}
 
+/**
+ * Server-side people list search with optional filters.
+ * Uses `search_people_filtered` RPC (accent-insensitive Vietnamese search).
+ */
+export async function searchPeopleFiltered(
+  filters: PeopleListFilters
+): Promise<Person[]> {
+  const trimmed = filters.search.trim();
+  const searchTerm = trimmed.length >= 2 ? trimmed : null;
+
+  const { data, error } = await supabase.rpc('search_people_filtered', {
+    search_term: searchTerm,
+    p_generation: filters.generation,
+    p_chi: filters.chi,
+    p_is_living: filters.isLiving,
+    ignore_acc: filters.ignoreAccents ?? true,
+  });
+
+  if (error) throw error;
+  return (data as Person[] | null) ?? [];
+}
+
+/**
+ * Distinct generation / chi values for people list filter dropdowns.
+ */
+export async function getPeopleFilterOptions(): Promise<PeopleFilterOptions> {
+  const { data, error } = await supabase.rpc('get_people_filter_options');
+
+  if (error) throw error;
+
+  const result = data as PeopleFilterOptionsRpcResult | null;
+  return {
+    generations: result?.generations ?? [],
+    chiValues: result?.chi_values ?? [],
+  };
+}
 
 export async function getPeopleByGeneration(generation: number): Promise<Person[]> {
   const { data, error } = await supabase

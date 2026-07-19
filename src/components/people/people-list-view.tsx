@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/components/people/people-list-view.tsx
- * @description People list with search and filter
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description People list with Supabase search and filter
+ * @version 1.1.0
+ * @updated 2026-07-19
  */
 
 'use client';
@@ -19,14 +19,27 @@ import {
   Skeleton,
 } from '@components/ui';
 import type { PeopleStatusFilter } from '@constants';
-import { useFuzzySearch, usePeople, useStats } from '@hooks';
+import {
+  usePeopleFilterOptions,
+  usePeopleList,
+  useStats,
+} from '@hooks';
+import type { PeopleListFilters } from '@types';
 import { PeopleFilters } from './people-filters';
 import { PersonCard } from './person-card';
 
+function statusToIsLiving(
+  status: PeopleStatusFilter
+): boolean | null {
+  if (status === 'living') return true;
+  if (status === 'deceased') return false;
+  return null;
+}
+
 export function PeopleListView() {
   const { isEditor } = useAuth();
-  const { data: people, isLoading, error } = usePeople();
   const { data: stats } = useStats();
+  const { data: filterOptions } = usePeopleFilterOptions();
 
   const [search, setSearch] = useState('');
   const [generationFilter, setGenerationFilter] = useState('all');
@@ -34,42 +47,23 @@ export function PeopleListView() {
   const [statusFilter, setStatusFilter] =
     useState<PeopleStatusFilter>('all');
 
-  const generations = useMemo(() => {
-    if (!people) return [];
-    return [...new Set(people.map((person) => person.generation))].sort(
-      (a, b) => a - b
-    );
-  }, [people]);
+  const listFilters: PeopleListFilters = useMemo(
+    () => ({
+      search,
+      generation:
+        generationFilter === 'all' ? null : parseInt(generationFilter, 10),
+      chi: chiFilter === 'all' ? null : parseInt(chiFilter, 10),
+      isLiving: statusToIsLiving(statusFilter),
+      ignoreAccents: true,
+    }),
+    [search, generationFilter, chiFilter, statusFilter]
+  );
 
-  const chiValues = useMemo(() => {
-    if (!people) return [];
-    return [
-      ...new Set(
-        people
-          .filter((person) => person.chi)
-          .map((person) => person.chi as number)
-      ),
-    ].sort((a, b) => a - b);
-  }, [people]);
+  const { data: people, isLoading, error } = usePeopleList(listFilters);
 
-  const fuzzyResults = useFuzzySearch(people, search);
-
-  const filteredPeople = useMemo(() => {
-    return fuzzyResults.filter((person) => {
-      if (
-        generationFilter !== 'all' &&
-        person.generation !== parseInt(generationFilter)
-      ) {
-        return false;
-      }
-      if (chiFilter !== 'all' && person.chi !== parseInt(chiFilter)) {
-        return false;
-      }
-      if (statusFilter === 'living' && !person.is_living) return false;
-      if (statusFilter === 'deceased' && person.is_living) return false;
-      return true;
-    });
-  }, [fuzzyResults, generationFilter, chiFilter, statusFilter]);
+  const generations = filterOptions?.generations ?? [];
+  const chiValues = filterOptions?.chiValues ?? [];
+  const filteredPeople = people ?? [];
 
   const hasFilters =
     !!search ||
