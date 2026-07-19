@@ -8,9 +8,6 @@
 
 'use client';
 
-import * as d3 from 'd3';
-import { AlertCircle } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Skeleton } from '@components/ui';
 import {
   TREE_SEARCH_DEBOUNCE_MS,
@@ -29,6 +26,9 @@ import type {
   TreeOrientation,
   TreeSvgDatum,
 } from '@types';
+import * as d3 from 'd3';
+import { AlertCircle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
 import { FamilyTreeToolbar } from './family-tree-toolbar';
@@ -59,7 +59,7 @@ export function FamilyTreeV3({
   const [focusRootId, setFocusRootId] = useState<string | null>(null);
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [orientationOverride, setOrientationOverride] =
-    useState<TreeOrientation | null>(null);
+    useState<TreeOrientation>('vertical');
 
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
