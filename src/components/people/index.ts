@@ -12,6 +12,7 @@ export * from './family-relations-card';
 export * from './new-person-view';
 export * from './people-filters';
 export * from './people-list-view';
+export * from './people-pagination';
 export * from './person-birth-death-card';
 export * from './person-card';
 export * from './person-combobox';

@@ -58,6 +58,15 @@ export interface PeopleListFilters {
   chi: number | null;
   isLiving: boolean | null;
   ignoreAccents?: boolean;
+  /** 1-based page index */
+  page: number;
+  pageSize: 20 | 30 | 50;
+}
+
+/** Paginated result from `search_people_filtered` RPC. */
+export interface PeopleListResult {
+  items: Person[];
+  total: number;
 }
 
 /** Distinct filter dropdown values from `get_people_filter_options` RPC. */

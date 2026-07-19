@@ -3,6 +3,7 @@ import type {
   Person, Family, Profile, Contribution, Event, Media,
   CreatePersonInput, UpdatePersonInput, CreateMediaInput, ContributionStatus, EventType,
   PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
+  PeopleListResult,
 } from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -135,25 +136,37 @@ interface PeopleFilterOptionsRpcResult {
 }
 
 /**
- * Server-side people list search with optional filters.
- * Uses `search_people_filtered` RPC (accent-insensitive Vietnamese search).
+ * Filtered people search via RPC; pagination via Supabase `.range()` + count.
  */
 export async function searchPeopleFiltered(
   filters: PeopleListFilters
-): Promise<Person[]> {
+): Promise<PeopleListResult> {
   const trimmed = filters.search.trim();
   const searchTerm = trimmed.length >= 2 ? trimmed : null;
+  const page = Math.max(filters.page, 1);
+  const from = (page - 1) * filters.pageSize;
+  const to = from + filters.pageSize - 1;
 
-  const { data, error } = await supabase.rpc('search_people_filtered', {
-    search_term: searchTerm,
-    p_generation: filters.generation,
-    p_chi: filters.chi,
-    p_is_living: filters.isLiving,
-    ignore_acc: filters.ignoreAccents ?? true,
-  });
+  const { data, error, count } = await supabase
+    .rpc(
+      'search_people_filtered',
+      {
+        search_term: searchTerm,
+        p_generation: filters.generation,
+        p_chi: filters.chi,
+        p_is_living: filters.isLiving,
+        ignore_acc: filters.ignoreAccents ?? true,
+      },
+      { count: 'exact' }
+    )
+    .range(from, to);
 
   if (error) throw error;
-  return (data as Person[] | null) ?? [];
+
+  return {
+    items: (data as Person[] | null) ?? [],
+    total: count ?? 0,
+  };
 }
 
 /**

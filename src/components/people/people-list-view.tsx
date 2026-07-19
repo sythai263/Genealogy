@@ -1,14 +1,14 @@
 /**
  * @project AncestorTree
  * @file src/components/people/people-list-view.tsx
- * @description People list with Supabase search and filter
- * @version 1.1.0
+ * @description People list with Supabase search, filter, and pagination
+ * @version 1.2.0
  * @updated 2026-07-19
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Users } from 'lucide-react';
 import { useAuth } from '@components/auth';
@@ -18,7 +18,11 @@ import {
   CardContent,
   Skeleton,
 } from '@components/ui';
-import type { PeopleStatusFilter } from '@constants';
+import {
+  PEOPLE_DEFAULT_PAGE_SIZE,
+  type PeoplePageSize,
+  type PeopleStatusFilter,
+} from '@constants';
 import {
   usePeopleFilterOptions,
   usePeopleList,
@@ -26,6 +30,7 @@ import {
 } from '@hooks';
 import type { PeopleListFilters } from '@types';
 import { PeopleFilters } from './people-filters';
+import { PeoplePagination } from './people-pagination';
 import { PersonCard } from './person-card';
 
 function statusToIsLiving(
@@ -46,6 +51,10 @@ export function PeopleListView() {
   const [chiFilter, setChiFilter] = useState('all');
   const [statusFilter, setStatusFilter] =
     useState<PeopleStatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PeoplePageSize>(
+    PEOPLE_DEFAULT_PAGE_SIZE
+  );
 
   const listFilters: PeopleListFilters = useMemo(
     () => ({
@@ -55,15 +64,18 @@ export function PeopleListView() {
       chi: chiFilter === 'all' ? null : parseInt(chiFilter, 10),
       isLiving: statusToIsLiving(statusFilter),
       ignoreAccents: true,
+      page,
+      pageSize,
     }),
-    [search, generationFilter, chiFilter, statusFilter]
+    [search, generationFilter, chiFilter, statusFilter, page, pageSize]
   );
 
-  const { data: people, isLoading, error } = usePeopleList(listFilters);
+  const { data, isLoading, error, isFetching } = usePeopleList(listFilters);
 
   const generations = filterOptions?.generations ?? [];
   const chiValues = filterOptions?.chiValues ?? [];
-  const filteredPeople = people ?? [];
+  const people = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   const hasFilters =
     !!search ||
@@ -71,11 +83,20 @@ export function PeopleListView() {
     chiFilter !== 'all' ||
     statusFilter !== 'all';
 
+  useEffect(() => {
+    setPage(1);
+  }, [search, generationFilter, chiFilter, statusFilter, pageSize]);
+
   function clearFilters() {
     setSearch('');
     setGenerationFilter('all');
     setChiFilter('all');
     setStatusFilter('all');
+    setPage(1);
+  }
+
+  function handlePageSizeChange(nextSize: PeoplePageSize) {
+    setPageSize(nextSize);
   }
 
   if (error) {
@@ -131,12 +152,15 @@ export function PeopleListView() {
         onClearFilters={clearFilters}
       />
 
-      <div>
-        <p className="mb-4 text-sm text-muted-foreground">
-          {isLoading
-            ? 'Đang tải...'
-            : `Hiển thị ${filteredPeople.length} người`}
-        </p>
+      <div className="space-y-4">
+        <PeoplePagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={handlePageSizeChange}
+          disabled={isLoading || isFetching}
+        />
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -155,7 +179,7 @@ export function PeopleListView() {
               </Card>
             ))}
           </div>
-        ) : filteredPeople.length === 0 ? (
+        ) : people.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               {hasFilters ? (
@@ -179,10 +203,21 @@ export function PeopleListView() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredPeople.map((person) => (
+            {people.map((person) => (
               <PersonCard key={person.id} person={person} />
             ))}
           </div>
+        )}
+
+        {people.length > 0 && (
+          <PeoplePagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+            disabled={isLoading || isFetching}
+          />
         )}
       </div>
     </div>

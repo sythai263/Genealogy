@@ -2,12 +2,13 @@
 -- Migration: Filtered People Search + Filter Options
 -- Description: search_people_filtered RPC for list page (accent-
 -- insensitive Vietnamese search + generation/chi/living filters).
+-- Pagination is NOT in SQL — use PostgREST .range() + count.
 -- get_people_filter_options returns distinct dropdown values.
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
--- 1. Filtered search for /people list (no hard LIMIT)
+-- 1. Filtered search for /people list (SETOF; paginate via Supabase .range())
 CREATE OR REPLACE FUNCTION search_people_filtered(
   search_term text DEFAULT NULL,
   p_generation int DEFAULT NULL,

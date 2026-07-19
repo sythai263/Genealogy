@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/hooks/use-people.ts
  * @description React Query hooks for people data
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-07-19
  */
 
@@ -58,6 +58,7 @@ export function usePeople() {
 
 /**
  * People list with Supabase-side search + filters (debounced query).
+ * Returns paginated `{ items, total }` — never loads the full table.
  */
 export function usePeopleList(filters: PeopleListFilters) {
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
@@ -78,6 +79,7 @@ export function usePeopleList(filters: PeopleListFilters) {
     queryKey: peopleKeys.list(queryFilters),
     queryFn: () => searchPeopleFiltered(queryFilters),
     staleTime: 30 * 1000,
+    placeholderData: (previous) => previous,
   });
 }
 

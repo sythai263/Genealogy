@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/constants/people.ts
  * @description Shared constants for people list filters
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-07-19
  */
 
@@ -20,8 +20,16 @@ export const PEOPLE_STATUS_FILTER_OPTIONS: {
 export const PEOPLE_SEARCH_DEBOUNCE_MS = 300;
 export const PEOPLE_SEARCH_MIN_CHARS = 2;
 
+export const PEOPLE_PAGE_SIZE_OPTIONS = [20, 30, 50] as const;
+export type PeoplePageSize = (typeof PEOPLE_PAGE_SIZE_OPTIONS)[number];
+export const PEOPLE_DEFAULT_PAGE_SIZE: PeoplePageSize = 20;
+
 export function isPeopleStatusFilter(
   value: string
 ): value is PeopleStatusFilter {
   return PEOPLE_STATUS_FILTER_OPTIONS.some((option) => option.value === value);
+}
+
+export function isPeoplePageSize(value: number): value is PeoplePageSize {
+  return PEOPLE_PAGE_SIZE_OPTIONS.some((size) => size === value);
 }
