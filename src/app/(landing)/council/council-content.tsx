@@ -145,6 +145,10 @@ export function CouncilContent() {
           Trang chủ
         </Link>
         <span className="text-gray-300">|</span>
+        <Link href="/family-tree" className="text-sm text-primary hover:underline">
+          Cây gia phả
+        </Link>
+        <span className="text-gray-300">|</span>
         <Link href="/ancestral-hall" className="text-sm text-primary hover:underline">
           Nhà thờ họ
         </Link>

@@ -25,14 +25,17 @@ export default function LandingLayout({
             </Link>
             <span className="hidden sm:inline text-xs text-gray-400 ml-1">Gia Phả Điện Tử</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/family-tree" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              Cây gia phả
+            </Link>
             <Link href="/council" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">
               Hội đồng
             </Link>
             <Link href="/ancestral-hall" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">
               Nhà thờ
             </Link>
-            <Link href="/register-member" className="hidden sm:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/register-member" className="hidden md:inline text-sm text-gray-600 hover:text-gray-900 transition-colors">
               Ghi danh
             </Link>
             <a

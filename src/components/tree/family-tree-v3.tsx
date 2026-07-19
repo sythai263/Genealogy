@@ -1,8 +1,8 @@
 /**
  * @project AncestorTree
  * @file src/components/tree/family-tree-v3.tsx
- * @description Interactive horizontal family tree orchestrator
- * @version 5.0.0
+ * @description Interactive family tree orchestrator (horizontal / vertical)
+ * @version 5.2.0
  * @updated 2026-07-19
  */
 
@@ -17,23 +17,49 @@ import {
   TREE_ZOOM_IN_FACTOR,
   TREE_ZOOM_OUT_FACTOR,
 } from '@constants';
-import { useSearchPeopleAdvanced, useTreeData } from '@hooks';
+import { useIsMobile, useSearchPeopleAdvanced, useTreeData } from '@hooks';
 import {
   buildPersonHierarchy,
+  cn,
   expandAllNodes,
 } from '@lib';
-import type { HierarchyPersonNode, Person, TreeSvgDatum } from '@types';
+import type {
+  HierarchyPersonNode,
+  Person,
+  TreeOrientation,
+  TreeSvgDatum,
+} from '@types';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
 import { FamilyTreeToolbar } from './family-tree-toolbar';
 
-export function FamilyTreeV3() {
+interface FamilyTreeV3Props {
+  /**
+   * `app` — authenticated tree page (default).
+   * `public` — landing page: compact toolbar, full-height canvas, no people detail link.
+   */
+  variant?: 'app' | 'public';
+  className?: string;
+}
+
+function getDefaultOrientation(isMobile: boolean): TreeOrientation {
+  return isMobile ? 'vertical' : 'horizontal';
+}
+
+export function FamilyTreeV3({
+  variant = 'app',
+  className,
+}: FamilyTreeV3Props) {
+  const isPublic = variant === 'public';
+  const isMobile = useIsMobile();
   const { data, isLoading, error } = useTreeData();
 
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [chiFilter, setChiFilter] = useState<string | null>(null);
   const [focusRootId, setFocusRootId] = useState<string | null>(null);
   const [layoutVersion, setLayoutVersion] = useState(0);
+  const [orientationOverride, setOrientationOverride] =
+    useState<TreeOrientation | null>(null);
 
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
@@ -49,6 +75,9 @@ export function FamilyTreeV3() {
     TreeSvgDatum
   > | null>(null);
   const hierarchyRef = useRef<HierarchyPersonNode | null>(null);
+
+  const orientation =
+    orientationOverride ?? getDefaultOrientation(isMobile);
 
   const chiValues = useMemo(() => {
     if (!data) return [] as number[];
@@ -131,6 +160,10 @@ export function FamilyTreeV3() {
     setFocusRootId(null);
   }, []);
 
+  const handleOrientationChange = useCallback((next: TreeOrientation) => {
+    setOrientationOverride(next);
+  }, []);
+
   function handleSearchKeyDown(
     event: React.KeyboardEvent<HTMLInputElement>
   ) {
@@ -185,7 +218,12 @@ export function FamilyTreeV3() {
 
   if (error) {
     return (
-      <div className="flex h-[85vh] flex-col items-center justify-center rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-destructive">
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-destructive',
+          isPublic ? 'h-full min-h-[50vh]' : 'h-[85vh]'
+        )}
+      >
         <AlertCircle className="mb-2 h-10 w-10 opacity-80" />
         <h3 className="text-lg font-semibold">Đã có lỗi xảy ra</h3>
         <p className="text-sm opacity-80">{error.message}</p>
@@ -195,14 +233,25 @@ export function FamilyTreeV3() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[85vh] items-center justify-center">
+      <div
+        className={cn(
+          'flex items-center justify-center',
+          isPublic ? 'h-full min-h-[50vh]' : 'h-[85vh]'
+        )}
+      >
         <Skeleton className="h-full w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div
+      className={cn(
+        'w-full',
+        isPublic ? 'flex h-full min-h-0 flex-col' : 'space-y-4',
+        className
+      )}
+    >
       <FamilyTreeToolbar
         filterSearch={filterSearch}
         onFilterSearchChange={setFilterSearch}
@@ -225,23 +274,34 @@ export function FamilyTreeV3() {
         onZoomOut={handleZoomOut}
         onResetZoom={handleResetZoom}
         onExpandAll={handleExpandAll}
+        orientation={orientation}
+        onOrientationChange={handleOrientationChange}
+        compact={isPublic}
       />
 
       <FamilyTreeCanvas
         hierarchyRoot={hierarchyRoot}
         layoutVersion={layoutVersion}
+        orientation={orientation}
         selectedPersonId={selectedPerson?.id ?? null}
         onSelectPerson={setSelectedPerson}
         onHierarchyMutated={bumpLayout}
         zoomBehaviorRef={zoomBehaviorRef}
         wrapperRef={wrapperRef}
         svgRef={svgRef}
+        compactHint={isPublic || orientation === 'vertical'}
+        className={
+          isPublic
+            ? 'h-full min-h-0 flex-1 rounded-none border-x-0 border-b-0 sm:rounded-xl sm:border'
+            : undefined
+        }
       />
 
       {selectedPerson && (
         <FamilyTreeSelectedCard
           person={selectedPerson}
           onClose={() => setSelectedPerson(null)}
+          showDetailLink={!isPublic}
         />
       )}
     </div>

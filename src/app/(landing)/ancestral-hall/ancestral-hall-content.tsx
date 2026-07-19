@@ -169,6 +169,10 @@ export function AncestralHallContent() {
           Trang chủ
         </Link>
         <span className="text-gray-300">|</span>
+        <Link href="/family-tree" className="text-sm text-primary hover:underline">
+          Cây gia phả
+        </Link>
+        <span className="text-gray-300">|</span>
         <Link href="/council" className="text-sm text-primary hover:underline">
           Hội đồng gia tộc
         </Link>

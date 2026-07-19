@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/constants/tree.ts
  * @description Layout and interaction constants for the family tree
- * @version 2.0.0
+ * @version 2.1.0
  * @updated 2026-07-19
  */
 
@@ -13,10 +13,15 @@ export const SIBLING_GAP = 12;
 export const BRANCH_GAP = 30;
 export const COUPLE_GAP = 12;
 
-/** Vertical sibling spacing for horizontal d3.tree nodeSize [height, width] */
+/** Sibling spacing along Y for horizontal (LTR) tree nodeSize[0] */
 export const TREE_NODE_SIZE_Y = NODE_HEIGHT + 24;
-/** Horizontal depth spacing for horizontal d3.tree nodeSize */
+/** Depth spacing along X for horizontal (LTR) tree nodeSize[1] */
 export const TREE_NODE_SIZE_X = NODE_WIDTH + 80;
+
+/** Sibling spacing along X for vertical (TTB) tree nodeSize[0] */
+export const TREE_VERTICAL_NODE_SIZE_X = NODE_WIDTH + 24;
+/** Depth spacing along Y for vertical (TTB) tree nodeSize[1] */
+export const TREE_VERTICAL_NODE_SIZE_Y = NODE_HEIGHT + 80;
 
 /**
  * Collapse nodes at depth >= this value on initial load.

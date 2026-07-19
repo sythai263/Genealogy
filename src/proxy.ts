@@ -74,7 +74,7 @@ function _checkRateLimit(ip: string, pathname: string): { allowed: boolean; retr
 }
 
 // Public paths: accessible without authentication (auth pages + landing + debug)
-const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/welcome', '/council', '/ancestral-hall', '/register-member', '/api/debug', '/api/cron'];
+const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/welcome', '/council', '/ancestral-hall', '/family-tree', '/register-member', '/api/debug', '/api/cron'];
 // Auth pages only: authenticated users are redirected away from these (not from /welcome or /api/*)
 const authPagePaths = ['/login', '/register', '/forgot-password', '/reset-password'];
 // Accessible when authenticated but NOT yet verified by admin

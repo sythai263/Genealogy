@@ -2,13 +2,16 @@
  * @project AncestorTree
  * @file src/types/tree.ts
  * @description Family tree layout, hierarchy, and view-mode types
- * @version 3.0.0
+ * @version 3.1.0
  * @updated 2026-07-19
  */
 
 import type { Person } from './person';
 
 export type TreeViewMode = 'all' | 'ancestors' | 'descendants';
+
+/** Tree growth direction: left→right (PC) or top→bottom (mobile-friendly) */
+export type TreeOrientation = 'horizontal' | 'vertical';
 
 /** Mutable D3-style hierarchy node (children / _children collapse) */
 export interface HierarchyPersonNode {
