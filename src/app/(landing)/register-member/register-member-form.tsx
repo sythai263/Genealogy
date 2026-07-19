@@ -18,10 +18,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserPlus, CheckCircle, Loader2 } from 'lucide-react';
 import { useSubmitRegistration } from '@/hooks/use-registrations';
 import { useClanSettings } from '@/hooks/use-clan-settings';
+import { CLAN_NAME } from '@lib';
 import Link from 'next/link';
 
 export function RegisterMemberForm() {
   const { data: cs } = useClanSettings();
+  const clanName = cs?.clan_name ?? CLAN_NAME;
   const submitMutation = useSubmitRegistration();
   const [submitted, setSubmitted] = useState(false);
 
@@ -70,7 +72,7 @@ export function RegisterMemberForm() {
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
         <h1 className="text-2xl font-bold text-gray-900">Ghi danh thành công!</h1>
         <p className="text-gray-600">
-          Thông tin của bạn đã được gửi đến ban quản trị {cs?.clan_name ?? 'dòng họ'}.
+          Thông tin của bạn đã được gửi đến ban quản trị {clanName}.
           Sau khi được xét duyệt, bạn sẽ được thêm vào gia phả.
         </p>
         <div className="flex gap-3 justify-center">
@@ -94,7 +96,7 @@ export function RegisterMemberForm() {
           Đăng ký thành viên
         </h1>
         <p className="text-gray-600">
-          Dành cho con cháu {cs?.clan_name ?? 'dòng họ'} sống xa muốn ghi danh vào gia phả
+          Dành cho con cháu {clanName} sống xa muốn ghi danh vào gia phả
         </p>
       </div>
 
@@ -198,7 +200,7 @@ export function RegisterMemberForm() {
               <Input
                 value={parentName}
                 onChange={e => setParentName(e.target.value)}
-                placeholder="Con ông Đặng Văn B"
+                placeholder="Họ tên cha/mẹ để đối chiếu"
                 className="mt-1"
               />
             </div>

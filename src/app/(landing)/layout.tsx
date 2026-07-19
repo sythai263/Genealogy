@@ -8,6 +8,7 @@
 
 import Link from 'next/link';
 import { LandingAuthCta } from '@components/layout';
+import { CLAN_NAME } from '@lib';
 
 export default function LandingLayout({
   children,
@@ -21,11 +22,8 @@ export default function LandingLayout({
           <div className="flex items-center gap-2">
             <Link href="/welcome" className="flex items-center gap-2">
               <span className="text-xl">🌳</span>
-              <span className="font-semibold text-gray-900">AncestorTree</span>
+              <span className="font-semibold text-gray-900">{CLAN_NAME}</span>
             </Link>
-            <span className="ml-1 hidden text-xs text-gray-400 sm:inline">
-              Gia Phả Điện Tử
-            </span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
             <Link

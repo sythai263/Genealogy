@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/app/(landing)/welcome/page.tsx
  * @description Public landing page — 10 sections, Vietnamese-first, SSR static
- * @version 2.4.0
- * @updated 2026-03-01
+ * @version 2.5.0
+ * @updated 2026-07-19
  */
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CLAN_FULL_NAME, CLAN_NAME } from '@lib';
 import {
   Award,
   BarChart3,
@@ -18,7 +19,6 @@ import {
   Calendar,
   ChevronRight,
   Clock,
-  Code2,
   FileDown,
   GitBranch,
   Heart,
@@ -41,26 +41,20 @@ import {
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
-const GITHUB_REPO = 'https://github.com/Minh-Tam-Solution/AncestorTree';
-const GITHUB_RELEASES = `${GITHUB_REPO}/releases`;
-const GITHUB_ISSUES = `${GITHUB_REPO}/issues`;
-const GITHUB_DISCUSSIONS = `${GITHUB_REPO}/discussions`;
-
 export const metadata: Metadata = {
-  title: 'AncestorTree — Gia Phả Điện Tử',
-  description:
-    'Phần mềm mã nguồn mở quản lý gia phả điện tử. Cây gia phả tương tác, lịch âm dương, quản lý dòng họ. Miễn phí, tự host, có bản Desktop offline.',
+  title: `AncestorTree — ${CLAN_FULL_NAME}`,
+  description: `Gia phả điện tử ${CLAN_FULL_NAME}. Cây gia phả tương tác, lịch âm dương, quản lý dòng họ.`,
   alternates: {
     canonical: 'https://ancestortree.info/welcome',
   },
   openGraph: {
-    title: 'AncestorTree — Gia Phả Điện Tử',
+    title: `AncestorTree — ${CLAN_FULL_NAME}`,
     description: 'Gìn giữ tinh hoa — Tiếp bước cha ông',
     type: 'website',
     locale: 'vi_VN',
     url: 'https://ancestortree.info/welcome',
     images: [
-      { url: '/og-landing.png', width: 1200, height: 630, alt: 'AncestorTree' },
+      { url: '/og-landing.png', width: 1200, height: 630, alt: CLAN_FULL_NAME },
     ],
   },
 };
@@ -208,7 +202,7 @@ export default function WelcomePage() {
             Open Source &middot; MIT License &middot; v2.5.0
           </Badge>
           <h1 className='text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4'>
-            Gia Phả Điện Tử
+            {CLAN_FULL_NAME}
           </h1>
           <p className='text-lg sm:text-xl text-emerald-100 max-w-2xl mx-auto mb-10'>
             Gìn giữ tinh hoa — Tiếp bước cha ông
@@ -224,9 +218,9 @@ export default function WelcomePage() {
               size='lg'
               className='bg-white/10 border border-white/30 text-white hover:bg-white/20'
               asChild>
-              <a href={GITHUB_REPO} target='_blank' rel='noopener noreferrer'>
-                <Code2 className='mr-2 h-5 w-5' />
-                Mã nguồn GitHub
+              <a href='#contact'>
+                <Mail className='mr-2 h-5 w-5' />
+                Liên hệ
               </a>
             </Button>
           </div>
@@ -500,10 +494,9 @@ export default function WelcomePage() {
               <CardContent className='space-y-4'>
                 <div className='bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm leading-relaxed'>
                   <p className='text-gray-400'>
-                    # Clone &amp; chạy (cần Docker Desktop + pnpm)
+                    # Chạy local (cần Docker Desktop + pnpm)
                   </p>
-                  <p>git clone {GITHUB_REPO}.git</p>
-                  <p>cd AncestorTree/frontend</p>
+                  <p>cd frontend</p>
                   <p>
                     pnpm install &amp;&amp; pnpm local:setup &amp;&amp; pnpm dev
                   </p>
@@ -540,15 +533,7 @@ export default function WelcomePage() {
                 <p className='text-sm text-gray-600'>
                   Bản Desktop (offline, không cần Docker) đang chờ Apple
                   Developer Certificate. Khi code signing sẵn sàng, bản cài đặt
-                  sẽ được phát hành tại{' '}
-                  <a
-                    href={GITHUB_RELEASES}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='underline text-emerald-700 hover:text-emerald-800'>
-                    GitHub Releases
-                  </a>
-                  .
+                  sẽ được thông báo trên trang này.
                 </p>
               </CardContent>
             </Card>
@@ -677,14 +662,11 @@ export default function WelcomePage() {
                 </div>
                 <h3 className='font-semibold'>Báo lỗi</h3>
                 <p className='text-sm text-gray-500'>
-                  Phát hiện lỗi? Tạo issue trên GitHub.
+                  Phát hiện lỗi? Vui lòng liên hệ ban quản trị.
                 </p>
                 <Button variant='outline' size='sm' asChild>
-                  <a
-                    href={`${GITHUB_ISSUES}/new?template=bug_report.md`}
-                    target='_blank'
-                    rel='noopener noreferrer'>
-                    Báo lỗi <ChevronRight className='ml-1 h-4 w-4' />
+                  <a href='#contact'>
+                    Liên hệ <ChevronRight className='ml-1 h-4 w-4' />
                   </a>
                 </Button>
               </CardContent>
@@ -699,10 +681,7 @@ export default function WelcomePage() {
                   Ý tưởng mới? Hãy chia sẻ với chúng tôi.
                 </p>
                 <Button variant='outline' size='sm' asChild>
-                  <a
-                    href={`${GITHUB_ISSUES}/new?template=feature_request.md`}
-                    target='_blank'
-                    rel='noopener noreferrer'>
+                  <a href='#contact'>
                     Đề xuất <ChevronRight className='ml-1 h-4 w-4' />
                   </a>
                 </Button>
@@ -715,13 +694,10 @@ export default function WelcomePage() {
                 </div>
                 <h3 className='font-semibold'>Thảo luận & hỗ trợ</h3>
                 <p className='text-sm text-gray-500'>
-                  Đặt câu hỏi, thảo luận với cộng đồng.
+                  Đặt câu hỏi, thảo luận với ban quản trị dòng họ.
                 </p>
                 <Button variant='outline' size='sm' asChild>
-                  <a
-                    href={GITHUB_DISCUSSIONS}
-                    target='_blank'
-                    rel='noopener noreferrer'>
+                  <a href='#contact'>
                     Thảo luận <ChevronRight className='ml-1 h-4 w-4' />
                   </a>
                 </Button>
@@ -737,8 +713,8 @@ export default function WelcomePage() {
           <div className='text-center mb-14'>
             <h2 className='text-3xl font-bold text-gray-900 mb-3'>Liên hệ</h2>
             <p className='text-gray-500 max-w-2xl mx-auto'>
-              Phần mềm được phát triển phục vụ chi tộc Đặng Đình, Thạch Lâm, Hà
-              Tĩnh. Con cháu họ Đặng vui lòng liên hệ để được hỗ trợ.
+              Phần mềm được phát triển phục vụ {CLAN_FULL_NAME}. Con cháu{' '}
+              {CLAN_NAME} vui lòng liên hệ để được hỗ trợ.
             </p>
           </div>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto'>
@@ -808,16 +784,16 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* ───── 9. Dành cho lập trình viên ───── */}
+      {/* ───── 9. Dành cho thành viên ───── */}
       <section className='py-20 bg-gray-50'>
         <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='max-w-2xl mx-auto text-center'>
             <h2 className='text-3xl font-bold text-gray-900 mb-3'>
-              Dành cho lập trình viên
+              Tham gia {CLAN_NAME}
             </h2>
             <p className='text-gray-500 mb-8'>
-              Mã nguồn mở MIT — fork, tùy chỉnh và deploy cho dòng họ của bạn
-              trong 30 phút.
+              Đăng nhập để xem đầy đủ gia phả, hoặc ghi danh nếu bạn là con cháu
+              sống xa.
             </p>
             <div className='flex flex-wrap justify-center gap-2 mb-8'>
               {techStack.map(t => (
@@ -826,12 +802,20 @@ export default function WelcomePage() {
                 </Badge>
               ))}
             </div>
-            <Button asChild>
-              <a href={GITHUB_REPO} target='_blank' rel='noopener noreferrer'>
-                <Code2 className='mr-2 h-5 w-5' />
-                Xem mã nguồn trên GitHub
-              </a>
-            </Button>
+            <div className='flex flex-col sm:flex-row items-center justify-center gap-3'>
+              <Button asChild>
+                <Link href='/login'>
+                  <LogIn className='mr-2 h-5 w-5' />
+                  Đăng nhập
+                </Link>
+              </Button>
+              <Button variant='outline' asChild>
+                <Link href='/register-member'>
+                  <UserPlus className='mr-2 h-5 w-5' />
+                  Ghi danh thành viên
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -842,36 +826,22 @@ export default function WelcomePage() {
           <div className='flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500'>
             <div className='flex items-center gap-2'>
               <span className='text-lg'>🌳</span>
-              <span className='font-semibold text-gray-700'>AncestorTree</span>
-              <span className='text-gray-400'>v2.5.0</span>
+              <span className='font-semibold text-gray-700'>{CLAN_NAME}</span>
             </div>
             <div className='flex items-center gap-4'>
-              <a
-                href={GITHUB_REPO}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='hover:text-gray-700'>
-                GitHub
-              </a>
-              <a
-                href='https://github.com/Minh-Tam-Solution'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='hover:text-gray-700'>
-                Minh Tam Solution
-              </a>
-              <a
-                href='https://github.com/Minh-Tam-Solution/tinysdlc'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='hover:text-gray-700'>
-                TinySDLC
+              <Link href='/family-tree' className='hover:text-gray-700'>
+                Cây gia phả
+              </Link>
+              <Link href='/council' className='hover:text-gray-700'>
+                Hội đồng
+              </Link>
+              <a href='#contact' className='hover:text-gray-700'>
+                Liên hệ
               </a>
             </div>
           </div>
           <p className='text-center text-xs text-gray-400 mt-6'>
-            &copy; 2026 AncestorTree &middot; Tác giả: Đặng Thế Tài &middot;
-            Built with TinySDLC &middot; MIT License
+            &copy; {new Date().getFullYear()} {CLAN_FULL_NAME}
           </p>
         </div>
       </footer>

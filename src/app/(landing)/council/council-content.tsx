@@ -11,6 +11,7 @@
 import { useClanSettings } from '@/hooks/use-clan-settings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CLAN_FULL_NAME } from '@lib';
 import { Users, BookOpen, Target } from 'lucide-react';
 import Link from 'next/link';
 import type { CouncilMember } from '@/types';
@@ -39,7 +40,7 @@ export function CouncilContent() {
           Hội đồng gia tộc
         </h1>
         <p className="text-lg text-gray-600">
-          {cs?.clan_full_name ?? 'Gia Phả Điện Tử'}
+          {cs?.clan_full_name ?? CLAN_FULL_NAME}
         </p>
       </div>
 

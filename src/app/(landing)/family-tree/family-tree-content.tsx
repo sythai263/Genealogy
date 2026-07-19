@@ -13,6 +13,7 @@ import { GitBranchPlus } from 'lucide-react';
 import { LandingAuthCta } from '@components/layout';
 import { Skeleton } from '@components/ui';
 import { useClanSettings } from '@hooks';
+import { CLAN_FULL_NAME } from '@lib';
 
 const FamilyTreeV3 = dynamic(
   () =>
@@ -32,7 +33,7 @@ const FamilyTreeV3 = dynamic(
 export function FamilyTreeContent() {
   const { data: clanSettings } = useClanSettings();
   const clanName =
-    clanSettings?.clan_full_name ?? clanSettings?.clan_name ?? 'Dòng họ';
+    clanSettings?.clan_full_name ?? clanSettings?.clan_name ?? CLAN_FULL_NAME;
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-muted/20">
