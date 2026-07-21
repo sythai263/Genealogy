@@ -2220,3 +2220,5 @@ INSERT INTO public.children (family_id, person_id, sort_order) VALUES ('ac12cab1
 INSERT INTO public.children (family_id, person_id, sort_order) VALUES ('15da6bd3-1a7e-49d0-b8a0-0de7ba392d11', '6a4b087f-413c-4e4d-a2f1-9faf422573d8', 1);
 INSERT INTO public.children (family_id, person_id, sort_order) VALUES ('15da6bd3-1a7e-49d0-b8a0-0de7ba392d11', 'fdeab091-e355-47d2-b1f1-eac3bba95015', 2);
 INSERT INTO public.children (family_id, person_id, sort_order) VALUES ('0d1fb7af-ef8b-4eeb-9254-6231ffb3401a', '7e15360a-4483-43a4-8d91-4c77f1d81d64', 1);
+
+UPDATE public.people SET is_living = false WHERE generation < 7;
