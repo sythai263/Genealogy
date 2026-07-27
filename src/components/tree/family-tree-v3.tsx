@@ -146,8 +146,21 @@ export function FamilyTreeV3({
     return () => clearTimeout(timer);
   }, [filterSearch]);
 
-  const { data: searchResults, isFetching: isSearching } =
-    useSearchPeopleAdvanced(debouncedSearch);
+  const { data: remoteSearchResults, isFetching: isRemoteSearching } =
+    useSearchPeopleAdvanced(isPublic ? '' : debouncedSearch);
+
+  const searchResults = useMemo(() => {
+    if (!isPublic) return remoteSearchResults;
+    const query = debouncedSearch.trim().toLowerCase();
+    if (query.length < 2 || !data?.people) return [];
+    return data.people
+      .filter((person) =>
+        person.display_name.toLowerCase().includes(query)
+      )
+      .slice(0, 20);
+  }, [isPublic, remoteSearchResults, debouncedSearch, data?.people]);
+
+  const isSearching = isPublic ? false : isRemoteSearching;
 
   const filterChi =
     chiFilter == null || chiFilter === 'all' ? null : Number(chiFilter);

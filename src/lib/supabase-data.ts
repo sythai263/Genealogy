@@ -715,16 +715,39 @@ export interface TreeData {
 }
 
 export async function getTreeData(): Promise<TreeData> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Unauthenticated: people_public_tree view (no contact PII) + public families/children RLS
+  if (!session) {
+    const [peopleRes, familiesRes, childrenRes] = await Promise.all([
+      supabase.from('people_public_tree').select('*'),
+      supabase.from('families').select('*'),
+      supabase.from('children').select('family_id, person_id, sort_order'),
+    ]);
+
+    if (peopleRes.error) throw peopleRes.error;
+    if (familiesRes.error) throw familiesRes.error;
+    if (childrenRes.error) throw childrenRes.error;
+
+    return {
+      people: (peopleRes.data || []) as Person[],
+      families: familiesRes.data || [],
+      children: childrenRes.data || [],
+    };
+  }
+
   const [peopleRes, familiesRes, childrenRes] = await Promise.all([
     supabase.from('people').select('*'),
     supabase.from('families').select('*'),
     supabase.from('children').select('family_id, person_id, sort_order'),
   ]);
-  
+
   if (peopleRes.error) throw peopleRes.error;
   if (familiesRes.error) throw familiesRes.error;
   if (childrenRes.error) throw childrenRes.error;
-  
+
   return {
     people: peopleRes.data || [],
     families: familiesRes.data || [],
