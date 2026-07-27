@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Star, Trophy } from 'lucide-react';
 import {
   Button,
@@ -11,7 +11,16 @@ import {
   Input,
   Skeleton,
 } from '@components/ui';
-import { useAchievements, usePeople } from '@hooks';
+import { ListPagination } from '@components/shared';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
+import {
+  useAchievements,
+  useFeaturedAchievements,
+  usePeople,
+} from '@hooks';
 import type { AchievementCategory, Person } from '@types';
 import { AchievementCard } from './achievement-card';
 import { ACHIEVEMENT_CATEGORIES } from './achievement-category';
@@ -21,10 +30,16 @@ export function AchievementsView() {
     AchievementCategory | 'all'
   >('all');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
-  const { data: achievements, isLoading } = useAchievements(
-    activeCategory === 'all' ? undefined : activeCategory
-  );
+  const { data, isLoading } = useAchievements({
+    category: activeCategory === 'all' ? undefined : activeCategory,
+    search: search || undefined,
+    page,
+    pageSize,
+  });
+  const { data: featured = [] } = useFeaturedAchievements();
   const { data: people } = usePeople();
 
   const peopleMap = new Map<string, Person>();
@@ -32,20 +47,12 @@ export function AchievementsView() {
     peopleMap.set(person.id, person);
   }
 
-  const list = achievements ?? [];
-  const featured = list.filter((achievement) => achievement.is_featured);
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
 
-  const query = search.trim().toLowerCase();
-  const filtered = query
-    ? list.filter((achievement) => {
-        const person = peopleMap.get(achievement.person_id);
-        return (
-          achievement.title.toLowerCase().includes(query) ||
-          person?.display_name.toLowerCase().includes(query) ||
-          achievement.awarded_by?.toLowerCase().includes(query)
-        );
-      })
-    : list;
+  useEffect(() => {
+    setPage(1);
+  }, [search, activeCategory, pageSize]);
 
   if (isLoading) {
     return (
@@ -124,11 +131,19 @@ export function AchievementsView() {
         </Card>
       )}
 
-      <div>
-        <h2 className="mb-3 text-lg font-semibold">
-          Danh sách vinh danh ({filtered.length})
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Danh sách vinh danh ({total})
         </h2>
-        {filtered.length === 0 ? (
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          itemLabel="thành tích"
+        />
+        {items.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <Trophy className="mx-auto mb-2 h-10 w-10 opacity-50" />
@@ -137,7 +152,7 @@ export function AchievementsView() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {filtered.map((achievement) => (
+            {items.map((achievement) => (
               <AchievementCard
                 key={achievement.id}
                 achievement={achievement}

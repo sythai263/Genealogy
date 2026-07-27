@@ -11,6 +11,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getProfiles,
+  getProfilesPage,
+  getUnverifiedProfilesCount,
   getProfile,
   updateProfile,
   updateUserRole,
@@ -22,23 +24,42 @@ import {
   getUnverifiedProfiles,
 } from '@/lib/supabase-data';
 import { deleteUserAccount } from '@/app/(main)/admin/users/actions';
-import type { Profile, UserRole } from '@/types';
+import type { Profile, ProfilesListFilters, UserRole } from '@/types';
 
 // Query keys
 export const profileKeys = {
   all: ['profiles'] as const,
   lists: () => [...profileKeys.all, 'list'] as const,
+  list: (filters: ProfilesListFilters) =>
+    [
+      ...profileKeys.lists(),
+      {
+        unverifiedOnly: filters.unverifiedOnly ?? false,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
   unverified: () => [...profileKeys.all, 'unverified'] as const,
+  unverifiedCount: () => [...profileKeys.all, 'unverified-count'] as const,
   details: () => [...profileKeys.all, 'detail'] as const,
   detail: (id: string) => [...profileKeys.details(), id] as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
+/** Full profiles list for author/display lookup maps only. */
 export function useProfiles() {
   return useQuery({
     queryKey: profileKeys.lists(),
     queryFn: getProfiles,
+  });
+}
+
+/** Paginated admin users list — queries one page from the backend. */
+export function useProfilesPage(filters: ProfilesListFilters) {
+  return useQuery({
+    queryKey: profileKeys.list(filters),
+    queryFn: () => getProfilesPage(filters),
   });
 }
 
@@ -54,6 +75,13 @@ export function useUnverifiedProfiles() {
   return useQuery({
     queryKey: profileKeys.unverified(),
     queryFn: getUnverifiedProfiles,
+  });
+}
+
+export function useUnverifiedProfilesCount() {
+  return useQuery({
+    queryKey: profileKeys.unverifiedCount(),
+    queryFn: getUnverifiedProfilesCount,
   });
 }
 
@@ -145,6 +173,7 @@ export function useVerifyUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: profileKeys.all });
       queryClient.invalidateQueries({ queryKey: profileKeys.unverified() });
+      queryClient.invalidateQueries({ queryKey: profileKeys.unverifiedCount() });
     },
   });
 }

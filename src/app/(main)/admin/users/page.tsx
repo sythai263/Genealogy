@@ -8,9 +8,10 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
-  useProfiles,
+  useProfilesPage,
+  useUnverifiedProfilesCount,
   useUpdateUserRole,
   useUpdateLinkedPerson,
   useUpdateEditRootPerson,
@@ -21,6 +22,7 @@ import {
 } from '@/hooks/use-profiles';
 import { useSearchPeople, usePerson } from '@/hooks/use-people';
 import { useAuth } from '@/components/auth/auth-provider';
+import { ListPagination } from '@/components/shared';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +86,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import type { UserRole } from '@/types';
 import type { Person, Profile } from '@/types';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 
 // ─── Role config ──────────────────────────────────────────────────────────────
 
@@ -326,14 +332,22 @@ function TreeMappingDialog({ user, open, onOpenChange }: TreeMappingDialogProps)
 
 export default function UsersPage() {
   const { profile: currentProfile } = useAuth();
-  const { data: profiles, isLoading, error } = useProfiles();
+  const [showUnverifiedOnly, setShowUnverifiedOnly] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const { data, isLoading, error } = useProfilesPage({
+    unverifiedOnly: showUnverifiedOnly,
+    page,
+    pageSize,
+  });
+  const { data: unverifiedCount = 0 } = useUnverifiedProfilesCount();
   const updateRole = useUpdateUserRole();
   const suspendMutation = useSuspendUser();
   const unsuspendMutation = useUnsuspendUser();
   const deleteMutation = useDeleteUser();
   const verifyMutation = useVerifyUser();
 
-  const [showUnverifiedOnly, setShowUnverifiedOnly] = useState(false);
   const [suspendDialog, setSuspendDialog] = useState<{ open: boolean; user: Profile } | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; user: Profile } | null>(null);
@@ -345,15 +359,16 @@ export default function UsersPage() {
   const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
-  const unverifiedCount = useMemo(
-    () => (profiles ?? []).filter((p) => !p.is_verified).length,
-    [profiles],
-  );
+  const displayedProfiles = data?.items ?? [];
+  const total = data?.total ?? 0;
 
-  const displayedProfiles = useMemo(
-    () => showUnverifiedOnly ? (profiles ?? []).filter((p) => !p.is_verified) : (profiles ?? []),
-    [profiles, showUnverifiedOnly],
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [showUnverifiedOnly, pageSize]);
+
+  useEffect(() => {
+    setSelectedUsers(new Set());
+  }, [showUnverifiedOnly, page, pageSize]);
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -455,10 +470,10 @@ export default function UsersPage() {
     });
   }, []);
 
-  // Get selected profile objects for display
+  // Get selected profile objects for display (current page only)
   const selectedProfiles = useMemo(
-    () => (profiles ?? []).filter((p) => selectedUsers.has(p.user_id)),
-    [profiles, selectedUsers],
+    () => displayedProfiles.filter((p) => selectedUsers.has(p.user_id)),
+    [displayedProfiles, selectedUsers],
   );
   const selectedUnverifiedCount = selectedProfiles.filter((p) => !p.is_verified).length;
   const selectedActiveCount = selectedProfiles.filter((p) => !p.is_suspended).length;
@@ -559,7 +574,7 @@ export default function UsersPage() {
             Danh sách người dùng
           </CardTitle>
           <CardDescription>
-            {isLoading ? 'Đang tải...' : `${profiles?.length || 0} người dùng đã đăng ký`}
+            {isLoading ? 'Đang tải...' : `${total} người dùng đã đăng ký`}
             {unverifiedCount > 0 && !isLoading && (
               <span className="ml-2 text-amber-600">({unverifiedCount} chờ xác nhận)</span>
             )}
@@ -885,6 +900,18 @@ export default function UsersPage() {
                 </Button>
               </div>
             )}
+
+            <div className="mt-4">
+              <ListPagination
+                page={page}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+                itemLabel="người dùng"
+                disabled={isLoading}
+              />
+            </div>
             </>
           ) : (
             <div className="py-12 text-center text-muted-foreground">

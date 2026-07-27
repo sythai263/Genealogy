@@ -14,6 +14,15 @@ export interface Post {
   updated_at: string;
 }
 
+export interface PostsListFilters {
+  type?: PostType;
+  /** Omit for published-only. Use 'all' for no status filter (admin). */
+  status?: PostStatus | 'all';
+  search?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}
+
 export interface PostComment {
   id: string;
   post_id: string;

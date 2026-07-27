@@ -2,13 +2,15 @@
  * @project AncestorTree
  * @file src/hooks/use-documents.ts
  * @description React Query hooks for clan documents (Kho tài liệu)
- * @version 1.0.0
- * @updated 2026-02-27
+ * @version 1.2.0
+ * @updated 2026-07-27
  */
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
   getDocuments,
   getDocumentsByPerson,
@@ -18,24 +20,48 @@ import {
   uploadDocumentFile,
   deleteDocumentFile,
 } from '@/lib/supabase-data-documents';
-import type { DocumentCategory, CreateClanDocumentInput, UpdateClanDocumentInput } from '@/types';
-
-// ─── Query Keys ─────────────────────────────────────────────────────
+import type {
+  CreateClanDocumentInput,
+  DocumentsListFilters,
+  UpdateClanDocumentInput,
+} from '@/types';
 
 export const documentKeys = {
   all: ['clan_documents'] as const,
   lists: () => [...documentKeys.all, 'list'] as const,
-  list: (category?: DocumentCategory, search?: string) =>
-    [...documentKeys.lists(), { category, search }] as const,
+  list: (filters: DocumentsListFilters) =>
+    [
+      ...documentKeys.lists(),
+      {
+        category: filters.category ?? null,
+        search: filters.search ?? '',
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
   byPerson: (personId: string) => [...documentKeys.all, 'person', personId] as const,
 };
 
-// ─── Query Hooks ────────────────────────────────────────────────────
+export function useDocuments(filters: DocumentsListFilters) {
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
-export function useDocuments(category?: DocumentCategory, search?: string) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, PEOPLE_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  const queryFilters: DocumentsListFilters = {
+    category: filters.category,
+    search: debouncedSearch,
+    page: filters.page,
+    pageSize: filters.pageSize,
+  };
+
   return useQuery({
-    queryKey: documentKeys.list(category, search),
-    queryFn: () => getDocuments(category, search),
+    queryKey: documentKeys.list(queryFilters),
+    queryFn: () => getDocuments(queryFilters),
   });
 }
 
@@ -46,8 +72,6 @@ export function usePersonDocuments(personId: string | undefined) {
     enabled: !!personId,
   });
 }
-
-// ─── Mutation Hooks ─────────────────────────────────────────────────
 
 export function useCreateDocument() {
   const queryClient = useQueryClient();

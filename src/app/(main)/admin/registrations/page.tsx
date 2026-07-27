@@ -8,9 +8,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useRegistrations, useApproveRegistration, useRejectRegistration, useDeleteRegistration } from '@/hooks/use-registrations';
+import { ListPagination } from '@/components/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,10 @@ import { toast } from 'sonner';
 import { getRelativeTime } from '@/lib/format-utils';
 import Link from 'next/link';
 import type { MemberRegistration } from '@/types';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   pending: { label: 'Chờ duyệt', variant: 'default' },
@@ -44,7 +49,15 @@ export default function AdminRegistrationsPage() {
   const { isEditor, isAdmin } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [search, setSearch] = useState('');
-  const { data: registrations, isLoading } = useRegistrations(statusFilter);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const { data, isLoading } = useRegistrations({
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: search || undefined,
+    page,
+    pageSize,
+  });
   const approveMutation = useApproveRegistration();
   const rejectMutation = useRejectRegistration();
   const deleteMutation = useDeleteRegistration();
@@ -52,6 +65,13 @@ export default function AdminRegistrationsPage() {
   const [rejectTarget, setRejectTarget] = useState<MemberRegistration | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<MemberRegistration | null>(null);
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, search, pageSize]);
 
   if (!isEditor) {
     return (
@@ -64,9 +84,7 @@ export default function AdminRegistrationsPage() {
     );
   }
 
-  const filtered = (registrations || []).filter(r =>
-    !search || r.full_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = items;
 
   const handleApprove = async (reg: MemberRegistration) => {
     try {
@@ -146,95 +164,105 @@ export default function AdminRegistrationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {filtered.map(reg => (
-            <Card key={reg.id}>
-              <CardHeader className="pb-2 pt-3 px-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-base">{reg.full_name}</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {reg.gender === 1 ? 'Nam' : 'Nữ'}
-                      {reg.birth_year && ` · Sinh ${reg.birth_year}`}
-                      {reg.birth_place && ` · ${reg.birth_place}`}
-                    </p>
+        <div className="space-y-4">
+          <div className="space-y-3">
+            {filtered.map(reg => (
+              <Card key={reg.id}>
+                <CardHeader className="pb-2 pt-3 px-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-base">{reg.full_name}</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {reg.gender === 1 ? 'Nam' : 'Nữ'}
+                        {reg.birth_year && ` · Sinh ${reg.birth_year}`}
+                        {reg.birth_place && ` · ${reg.birth_place}`}
+                      </p>
+                    </div>
+                    <Badge variant={STATUS_MAP[reg.status]?.variant ?? 'outline'}>
+                      {STATUS_MAP[reg.status]?.label ?? reg.status}
+                    </Badge>
                   </div>
-                  <Badge variant={STATUS_MAP[reg.status]?.variant ?? 'outline'}>
-                    {STATUS_MAP[reg.status]?.label ?? reg.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 space-y-2">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                  {reg.parent_name && (
-                    <div><span className="text-muted-foreground">Cha/mẹ: </span>{reg.parent_name}</div>
+                </CardHeader>
+                <CardContent className="px-4 pb-3 space-y-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    {reg.parent_name && (
+                      <div><span className="text-muted-foreground">Cha/mẹ: </span>{reg.parent_name}</div>
+                    )}
+                    {reg.generation && (
+                      <div><span className="text-muted-foreground">Đời: </span>{reg.generation}</div>
+                    )}
+                    {reg.chi && (
+                      <div><span className="text-muted-foreground">Chi: </span>{reg.chi}</div>
+                    )}
+                    {reg.relationship && (
+                      <div><span className="text-muted-foreground">Quan hệ: </span>{reg.relationship}</div>
+                    )}
+                    {reg.phone && (
+                      <div><span className="text-muted-foreground">SĐT: </span>{reg.phone}</div>
+                    )}
+                    {reg.email && (
+                      <div><span className="text-muted-foreground">Email: </span>{reg.email}</div>
+                    )}
+                  </div>
+                  {reg.notes && (
+                    <p className="text-xs text-muted-foreground border-t pt-2">{reg.notes}</p>
                   )}
-                  {reg.generation && (
-                    <div><span className="text-muted-foreground">Đời: </span>{reg.generation}</div>
+                  {reg.reject_reason && (
+                    <p className="text-xs text-red-500 border-t pt-2">Lý do từ chối: {reg.reject_reason}</p>
                   )}
-                  {reg.chi && (
-                    <div><span className="text-muted-foreground">Chi: </span>{reg.chi}</div>
-                  )}
-                  {reg.relationship && (
-                    <div><span className="text-muted-foreground">Quan hệ: </span>{reg.relationship}</div>
-                  )}
-                  {reg.phone && (
-                    <div><span className="text-muted-foreground">SĐT: </span>{reg.phone}</div>
-                  )}
-                  {reg.email && (
-                    <div><span className="text-muted-foreground">Email: </span>{reg.email}</div>
-                  )}
-                </div>
-                {reg.notes && (
-                  <p className="text-xs text-muted-foreground border-t pt-2">{reg.notes}</p>
-                )}
-                {reg.reject_reason && (
-                  <p className="text-xs text-red-500 border-t pt-2">Lý do từ chối: {reg.reject_reason}</p>
-                )}
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-[10px] text-muted-foreground">
-                    {getRelativeTime(reg.created_at)}
-                  </span>
-                  <div className="flex gap-1.5">
-                    {reg.status === 'pending' && (
-                      <>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-[10px] text-muted-foreground">
+                      {getRelativeTime(reg.created_at)}
+                    </span>
+                    <div className="flex gap-1.5">
+                      {reg.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="h-7 text-xs"
+                            onClick={() => handleApprove(reg)}
+                            disabled={approveMutation.isPending}
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Duyệt
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => { setRejectTarget(reg); setRejectReason(''); }}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Từ chối
+                          </Button>
+                        </>
+                      )}
+                      {isAdmin && (
                         <Button
                           size="sm"
-                          variant="default"
-                          className="h-7 text-xs"
-                          onClick={() => handleApprove(reg)}
-                          disabled={approveMutation.isPending}
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeleteTarget(reg)}
                         >
-                          <Check className="h-3 w-3 mr-1" />
-                          Duyệt
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          onClick={() => { setRejectTarget(reg); setRejectReason(''); }}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          Từ chối
-                        </Button>
-                      </>
-                    )}
-                    {isAdmin && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => setDeleteTarget(reg)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="đơn"
+          />
         </div>
       )}
 

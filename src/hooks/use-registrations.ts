@@ -2,13 +2,15 @@
  * @project AncestorTree
  * @file src/hooks/use-registrations.ts
  * @description React Query hooks for member registrations
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.2.0
+ * @updated 2026-07-27
  */
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
   getRegistrations,
   getPendingRegistrationCount,
@@ -17,18 +19,44 @@ import {
   rejectRegistration,
   deleteRegistration,
 } from '@/lib/supabase-data-registrations';
-import type { CreateRegistrationInput } from '@/types';
+import type { CreateRegistrationInput, RegistrationsListFilters } from '@/types';
 
 export const registrationKeys = {
   all: ['registrations'] as const,
-  list: (status?: string) => [...registrationKeys.all, 'list', status] as const,
+  list: (filters: RegistrationsListFilters) =>
+    [
+      ...registrationKeys.all,
+      'list',
+      {
+        status: filters.status ?? null,
+        search: filters.search ?? '',
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
   pending: () => [...registrationKeys.all, 'pending'] as const,
 };
 
-export function useRegistrations(status?: string) {
+export function useRegistrations(filters: RegistrationsListFilters) {
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, PEOPLE_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  const queryFilters: RegistrationsListFilters = {
+    status: filters.status,
+    search: debouncedSearch,
+    page: filters.page,
+    pageSize: filters.pageSize,
+  };
+
   return useQuery({
-    queryKey: registrationKeys.list(status),
-    queryFn: () => getRegistrations(status),
+    queryKey: registrationKeys.list(queryFilters),
+    queryFn: () => getRegistrations(queryFilters),
   });
 }
 
@@ -36,7 +64,7 @@ export function usePendingRegistrationCount() {
   return useQuery({
     queryKey: registrationKeys.pending(),
     queryFn: () => getPendingRegistrationCount(),
-    refetchInterval: 120_000, // Poll every 2 minutes
+    refetchInterval: 120_000,
   });
 }
 

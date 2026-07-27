@@ -10,6 +10,7 @@ export * from './feed';
 export * from './fund';
 export * from './help';
 export * from './notifications';
+export * from './pagination';
 export * from './people';
 export * from './settings';
 export * from './setup';

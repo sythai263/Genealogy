@@ -2,15 +2,18 @@
  * @project AncestorTree
  * @file src/hooks/use-feed.ts
  * @description React Query hooks for feed posts, comments, and likes
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.2.0
+ * @updated 2026-07-27
  */
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
   getPosts,
+  getPostsCount,
   getPost,
   createPost,
   updatePost,
@@ -23,26 +26,63 @@ import {
   toggleLike,
   getUserLikedPosts,
 } from '@/lib/supabase-data-feed';
-import type { PostType, CreatePostInput, UpdatePostInput, CreateCommentInput } from '@/types';
-
-// ─── Query Keys ─────────────────────────────────────────────────────
+import type {
+  PostsListFilters,
+  CreatePostInput,
+  UpdatePostInput,
+  CreateCommentInput,
+  PostStatus,
+} from '@/types';
 
 export const postKeys = {
   all: ['posts'] as const,
   lists: () => [...postKeys.all, 'list'] as const,
-  list: (type?: PostType) => [...postKeys.lists(), { type }] as const,
+  list: (filters: PostsListFilters) =>
+    [
+      ...postKeys.lists(),
+      {
+        type: filters.type ?? null,
+        status: filters.status ?? null,
+        search: filters.search ?? '',
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
+  count: (status: PostStatus | 'all') => [...postKeys.all, 'count', status] as const,
   details: () => [...postKeys.all, 'detail'] as const,
   detail: (id: string) => [...postKeys.details(), id] as const,
   comments: (postId: string) => [...postKeys.all, 'comments', postId] as const,
   userLikes: (userId: string) => [...postKeys.all, 'userLikes', userId] as const,
 };
 
-// ─── Query Hooks ────────────────────────────────────────────────────
+export function usePosts(filters: PostsListFilters) {
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
-export function usePosts(type?: PostType, showHidden = false) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, PEOPLE_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  const queryFilters: PostsListFilters = {
+    type: filters.type,
+    status: filters.status,
+    search: debouncedSearch,
+    page: filters.page,
+    pageSize: filters.pageSize,
+  };
+
   return useQuery({
-    queryKey: [...postKeys.list(type), { showHidden }],
-    queryFn: () => getPosts(type, showHidden),
+    queryKey: postKeys.list(queryFilters),
+    queryFn: () => getPosts(queryFilters),
+  });
+}
+
+export function usePostsCount(status: PostStatus | 'all' = 'all') {
+  return useQuery({
+    queryKey: postKeys.count(status),
+    queryFn: () => getPostsCount(status),
   });
 }
 
@@ -69,8 +109,6 @@ export function useUserLikedPosts(userId: string | undefined) {
     enabled: !!userId,
   });
 }
-
-// ─── Mutation Hooks ─────────────────────────────────────────────────
 
 export function useCreatePost() {
   const queryClient = useQueryClient();

@@ -23,6 +23,13 @@ export interface Event {
   created_at: string;
 }
 
+export interface EventsListFilters {
+  type?: EventType;
+  search?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}
+
 export interface UpcomingEvent {
   event: Event;
   person?: Person;

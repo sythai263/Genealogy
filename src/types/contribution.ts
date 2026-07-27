@@ -16,3 +16,11 @@ export interface Contribution {
   review_notes?: string;
   created_at: string;
 }
+
+export interface ContributionsListFilters {
+  status?: ContributionStatus;
+  /** Scope to a single author's proposals (member view). */
+  authorId?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

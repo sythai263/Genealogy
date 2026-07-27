@@ -13,5 +13,12 @@ export interface Achievement {
   updated_at: string;
 }
 
+export interface AchievementsListFilters {
+  category?: AchievementCategory;
+  search?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}
+
 export type CreateAchievementInput = Omit<Achievement, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateAchievementInput = Partial<CreateAchievementInput>;

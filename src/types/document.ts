@@ -36,3 +36,10 @@ export type CreateClanDocumentInput = Omit<
   'id' | 'created_at' | 'updated_at'
 >;
 export type UpdateClanDocumentInput = Partial<CreateClanDocumentInput>;
+
+export interface DocumentsListFilters {
+  category?: DocumentCategory;
+  search?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

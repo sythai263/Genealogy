@@ -3,16 +3,23 @@
  * @file src/components/feed/feed-view.tsx
  * @description Community feed page — timeline + compose + filter
  * @version 1.0.0
- * @updated 2026-07-18
+ * @updated 2026-07-27
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import { Badge } from '@components/ui';
-import { FEED_FILTER_TABS, isFeedFilterKey, type FeedFilterKey } from '@constants';
+import {
+  FEED_FILTER_TABS,
+  LIST_DEFAULT_PAGE_SIZE,
+  isFeedFilterKey,
+  type FeedFilterKey,
+  type ListPageSize,
+} from '@constants';
 import { usePosts, useProfiles, useUserLikedPosts } from '@hooks';
 import type { Profile } from '@types';
 import { ComposeBox } from './compose-box';
@@ -21,11 +28,24 @@ import { PostCard } from './post-card';
 export function FeedView() {
   const { user, isAdmin, isEditor } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilterKey>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
-  const { data: posts, isLoading: postsLoading } = usePosts(filterType);
+  const { data, isLoading: postsLoading } = usePosts({
+    type: filterType,
+    page,
+    pageSize,
+  });
   const { data: profiles } = useProfiles();
   const { data: likedPostIds } = useUserLikedPosts(user?.id);
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilter, pageSize]);
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();
@@ -70,7 +90,7 @@ export function FeedView() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : !posts || posts.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="py-12 text-center text-muted-foreground">
           {activeFilter !== 'all'
             ? 'Không có bài viết nào trong mục này'
@@ -78,7 +98,7 @@ export function FeedView() {
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {items.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -89,6 +109,14 @@ export function FeedView() {
               isEditor={isEditor}
             />
           ))}
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="bài viết"
+          />
         </div>
       )}
     </div>

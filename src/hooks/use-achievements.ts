@@ -2,13 +2,15 @@
  * @project AncestorTree
  * @file src/hooks/use-achievements.ts
  * @description React Query hooks for achievements
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.2.0
+ * @updated 2026-07-27
  */
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
   getAchievements,
   getAchievementsByPerson,
@@ -17,20 +19,49 @@ import {
   updateAchievement,
   deleteAchievement,
 } from '@/lib/supabase-data-achievements';
-import type { AchievementCategory, CreateAchievementInput, UpdateAchievementInput } from '@/types';
+import type {
+  AchievementsListFilters,
+  CreateAchievementInput,
+  UpdateAchievementInput,
+} from '@/types';
 
 export const achievementKeys = {
   all: ['achievements'] as const,
   lists: () => [...achievementKeys.all, 'list'] as const,
-  list: (category?: AchievementCategory) => [...achievementKeys.lists(), { category }] as const,
+  list: (filters: AchievementsListFilters) =>
+    [
+      ...achievementKeys.lists(),
+      {
+        category: filters.category ?? null,
+        search: filters.search ?? '',
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
   byPerson: (personId: string) => [...achievementKeys.all, 'person', personId] as const,
   featured: () => [...achievementKeys.all, 'featured'] as const,
 };
 
-export function useAchievements(category?: AchievementCategory) {
+export function useAchievements(filters: AchievementsListFilters) {
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, PEOPLE_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  const queryFilters: AchievementsListFilters = {
+    category: filters.category,
+    search: debouncedSearch,
+    page: filters.page,
+    pageSize: filters.pageSize,
+  };
+
   return useQuery({
-    queryKey: achievementKeys.list(category),
-    queryFn: () => getAchievements(category),
+    queryKey: achievementKeys.list(queryFilters),
+    queryFn: () => getAchievements(queryFilters),
   });
 }
 

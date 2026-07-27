@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +26,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Eye, EyeOff, Trash2, Search, Shield, Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
-import { usePosts, useDeletePost, useHidePost } from '@/hooks/use-feed';
+import { usePosts, usePostsCount, useDeletePost, useHidePost } from '@/hooks/use-feed';
 import { useProfiles } from '@/hooks/use-profiles';
-import { POST_TYPE_LABELS } from '@constants';
+import { ListPagination } from '@/components/shared';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  POST_TYPE_LABELS,
+  type ListPageSize,
+} from '@constants';
 import type { Post, Profile } from '@/types';
 import { getInitials } from '@/lib/format-utils';
 import { toast } from 'sonner';
@@ -41,11 +46,27 @@ export default function AdminFeedPage() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
-  const { data: posts, isLoading } = usePosts(undefined, true);
+  const { data, isLoading } = usePosts({
+    status: filter === 'hidden' ? 'hidden' : 'all',
+    search: search || undefined,
+    page,
+    pageSize,
+  });
+  const { data: allCount = 0 } = usePostsCount('all');
+  const { data: hiddenCount = 0 } = usePostsCount('hidden');
   const { data: profiles } = useProfiles();
   const deletePost = useDeletePost();
   const hidePost = useHidePost();
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, search, pageSize]);
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();
@@ -68,22 +89,7 @@ export default function AdminFeedPage() {
     );
   }
 
-  const filteredPosts = useMemo(() => {
-    let result = posts || [];
-    if (filter === 'hidden') {
-      result = result.filter(p => p.status === 'hidden');
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(p => {
-        const authorName = profileMap.get(p.author_id)?.full_name || '';
-        return p.content.toLowerCase().includes(q) || authorName.toLowerCase().includes(q);
-      });
-    }
-    return result;
-  }, [posts, filter, search, profileMap]);
-
-  const hiddenCount = (posts || []).filter(p => p.status === 'hidden').length;
+  const filteredPosts = items;
 
   const handleToggleHide = (post: Post) => {
     const isHidden = post.status === 'hidden';
@@ -125,7 +131,7 @@ export default function AdminFeedPage() {
             className="cursor-pointer"
             onClick={() => setFilter('all')}
           >
-            Tất cả ({(posts || []).length})
+            Tất cả ({allCount})
           </Badge>
           <Badge
             variant={filter === 'hidden' ? 'default' : 'outline'}
@@ -158,71 +164,81 @@ export default function AdminFeedPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {filteredPosts.map(post => {
-            const author = profileMap.get(post.author_id);
-            const authorName = author?.full_name || 'Ẩn danh';
-            const isHidden = post.status === 'hidden';
+        <div className="space-y-4">
+          <div className="space-y-3">
+            {filteredPosts.map(post => {
+              const author = profileMap.get(post.author_id);
+              const authorName = author?.full_name || 'Ẩn danh';
+              const isHidden = post.status === 'hidden';
 
-            return (
-              <Card key={post.id} className={isHidden ? 'border-dashed opacity-70' : ''}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">{getInitials(authorName)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2">
-                        {authorName}
-                        {post.post_type !== 'general' && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            {POST_TYPE_LABELS[post.post_type]}
-                          </Badge>
-                        )}
-                        {isHidden && (
-                          <Badge variant="outline" className="text-[10px] text-amber-600">Đã ẩn</Badge>
-                        )}
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(post.created_at).toLocaleString('vi-VN')}
-                        {' · '}
-                        {post.likes_count} tim · {post.comments_count} bình luận
+              return (
+                <Card key={post.id} className={isHidden ? 'border-dashed opacity-70' : ''}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">{getInitials(authorName)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          {authorName}
+                          {post.post_type !== 'general' && (
+                            <Badge variant="secondary" className="text-[10px]">
+                              {POST_TYPE_LABELS[post.post_type]}
+                            </Badge>
+                          )}
+                          {isHidden && (
+                            <Badge variant="outline" className="text-[10px] text-amber-600">Đã ẩn</Badge>
+                          )}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(post.created_at).toLocaleString('vi-VN')}
+                          {' · '}
+                          {post.likes_count} tim · {post.comments_count} bình luận
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleHide(post)}
+                          title={isHidden ? 'Hiện bài viết' : 'Ẩn bài viết'}
+                        >
+                          {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteTarget(post)}
+                          className="text-destructive hover:text-destructive"
+                          title="Xóa bài viết"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm line-clamp-3 whitespace-pre-wrap">{post.content}</p>
+                    {post.images && post.images.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {post.images.length} ảnh đính kèm
                       </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleHide(post)}
-                        title={isHidden ? 'Hiện bài viết' : 'Ẩn bài viết'}
-                      >
-                        {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteTarget(post)}
-                        className="text-destructive hover:text-destructive"
-                        title="Xóa bài viết"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm line-clamp-3 whitespace-pre-wrap">{post.content}</p>
-                  {post.images && post.images.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {post.images.length} ảnh đính kèm
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="bài viết"
+          />
         </div>
       )}
 

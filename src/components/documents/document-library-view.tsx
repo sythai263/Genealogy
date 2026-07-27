@@ -3,16 +3,21 @@
  * @file src/components/documents/document-library-view.tsx
  * @description Kho tài liệu — gallery view with category filter and search
  * @version 1.0.0
- * @updated 2026-07-18
+ * @updated 2026-07-27
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Archive, ArrowLeft, Info } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import { Button, Card, CardContent, Skeleton } from '@components/ui';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import { useDocuments, usePeople } from '@hooks';
 import type { DocumentCategory } from '@types';
 import { DocumentLibraryCard } from './document-library-card';
@@ -23,13 +28,25 @@ export function DocumentLibraryView() {
     DocumentCategory | undefined
   >();
   const [search, setSearch] = useState('');
-  const { data: documents, isLoading } = useDocuments(
-    categoryFilter,
-    search || undefined
-  );
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const { data, isLoading } = useDocuments({
+    category: categoryFilter,
+    search: search || undefined,
+    page,
+    pageSize,
+  });
   const { data: people } = usePeople();
   const { profile } = useAuth();
   const isViewer = profile?.role === 'viewer';
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [categoryFilter, search, pageSize]);
 
   const peopleMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -86,7 +103,7 @@ export function DocumentLibraryView() {
             <Skeleton key={index} className="h-52 rounded-lg" />
           ))}
         </div>
-      ) : !documents || documents.length === 0 ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Archive className="mx-auto mb-3 h-12 w-12 text-muted-foreground opacity-50" />
@@ -98,18 +115,28 @@ export function DocumentLibraryView() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {documents.map((document) => (
-            <DocumentLibraryCard
-              key={document.id}
-              document={document}
-              personName={
-                document.person_id
-                  ? peopleMap.get(document.person_id)
-                  : undefined
-              }
-            />
-          ))}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((document) => (
+              <DocumentLibraryCard
+                key={document.id}
+                document={document}
+                personName={
+                  document.person_id
+                    ? peopleMap.get(document.person_id)
+                    : undefined
+                }
+              />
+            ))}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="tài liệu"
+          />
         </div>
       )}
     </div>

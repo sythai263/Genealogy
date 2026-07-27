@@ -3,15 +3,16 @@
  * @file src/components/contributions/contributions-view.tsx
  * @description Member contributions list and create dialog
  * @version 1.0.0
- * @updated 2026-07-18
+ * @updated 2026-07-27
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import {
   Button,
   Card,
@@ -26,20 +27,37 @@ import {
   DialogTrigger,
   Skeleton,
 } from '@components/ui';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import { useContributions, usePeople } from '@hooks';
 import { ContributionForm } from './contribution-form';
 import { ContributionListItem } from './contribution-list-item';
 
 export function ContributionsView() {
-  const { user, profile } = useAuth();
-  const { data: contributions, isLoading } = useContributions();
-  const { data: people } = usePeople();
+  const { user, profile, isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
-  const myContributions = contributions?.filter(
-    (contribution) =>
-      profile?.role === 'admin' || contribution.author_id === profile?.id
+  const authorId = isAdmin ? undefined : profile?.id;
+  const { data, isLoading } = useContributions(
+    {
+      authorId,
+      page,
+      pageSize,
+    },
+    { enabled: isAdmin || !!profile }
   );
+  const { data: people } = usePeople();
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [authorId, pageSize]);
 
   if (!user) {
     return (
@@ -95,9 +113,7 @@ export function ContributionsView() {
       <Card>
         <CardHeader className="pb-3">
           <CardDescription>
-            {isLoading
-              ? 'Đang tải...'
-              : `${myContributions?.length || 0} đề xuất`}
+            {isLoading ? 'Đang tải...' : `${total} đề xuất`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,24 +123,34 @@ export function ContributionsView() {
                 <Skeleton key={index} className="h-20 w-full" />
               ))}
             </div>
-          ) : !myContributions?.length ? (
+          ) : items.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               Bạn chưa có đề xuất nào
             </div>
           ) : (
-            <div className="space-y-3">
-              {myContributions.map((contribution) => {
-                const person = people?.find(
-                  (item) => item.id === contribution.target_person
-                );
-                return (
-                  <ContributionListItem
-                    key={contribution.id}
-                    contribution={contribution}
-                    person={person}
-                  />
-                );
-              })}
+            <div className="space-y-4">
+              <div className="space-y-3">
+                {items.map((contribution) => {
+                  const person = people?.find(
+                    (item) => item.id === contribution.target_person
+                  );
+                  return (
+                    <ContributionListItem
+                      key={contribution.id}
+                      contribution={contribution}
+                      person={person}
+                    />
+                  );
+                })}
+              </div>
+              <ListPagination
+                page={page}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+                itemLabel="đề xuất"
+              />
             </div>
           )}
         </CardContent>

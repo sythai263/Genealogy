@@ -7,7 +7,19 @@
  */
 
 import { supabase } from './supabase';
-import type { Post, PostComment, PostLike, PostType, CreatePostInput, UpdatePostInput, CreateCommentInput } from '@/types';
+import { escapeIlikePattern } from './utils';
+import { getPaginationRange } from '@constants';
+import type {
+  Post,
+  PostComment,
+  PostLike,
+  PostsListFilters,
+  PaginatedResult,
+  CreatePostInput,
+  UpdatePostInput,
+  CreateCommentInput,
+  PostStatus,
+} from '@/types';
 
 // Security: allowlist for mass-assignment protection
 const ALLOWED_POST_FIELDS = ['content', 'post_type', 'images'] as const;
@@ -22,23 +34,68 @@ function isValidImageUrl(url: string): boolean {
 
 // ─── Posts ───────────────────────────────────────────────────────────────────
 
-export async function getPosts(type?: PostType, showHidden = false): Promise<Post[]> {
+export async function getPosts(
+  filters: PostsListFilters
+): Promise<PaginatedResult<Post>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   let query = supabase
     .from('posts')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false });
 
-  if (!showHidden) {
+  if (filters.status === 'all') {
+    // no status filter — admin moderation
+  } else if (filters.status) {
+    query = query.eq('status', filters.status);
+  } else {
     query = query.eq('status', 'published');
   }
 
-  if (type) {
-    query = query.eq('post_type', type);
+  if (filters.type) {
+    query = query.eq('post_type', filters.type);
   }
 
-  const { data, error } = await query;
+  const trimmed = filters.search?.trim();
+  if (trimmed) {
+    const pattern = `%${escapeIlikePattern(trimmed)}%`;
+
+    const { data: matchingProfiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .ilike('full_name', pattern)
+      .limit(50);
+
+    if (profilesError) throw profilesError;
+
+    const authorIds = (matchingProfiles || []).map((p) => p.user_id);
+    const orParts = [`content.ilike."${pattern}"`];
+    if (authorIds.length > 0) {
+      orParts.push(`author_id.in.(${authorIds.join(',')})`);
+    }
+    query = query.or(orParts.join(','));
+  }
+
+  const { data, error, count } = await query.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
+}
+
+/** Lightweight count for admin badge tabs — does not load rows. */
+export async function getPostsCount(
+  status: PostStatus | 'all' = 'all'
+): Promise<number> {
+  let query = supabase
+    .from('posts')
+    .select('*', { count: 'exact', head: true });
+
+  if (status !== 'all') {
+    query = query.eq('status', status);
+  }
+
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function getPost(id: string): Promise<Post | null> {

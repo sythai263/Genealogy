@@ -7,7 +7,14 @@
  */
 
 import { supabase } from './supabase';
-import type { MemberRegistration, CreateRegistrationInput } from '@/types';
+import { escapeIlikePattern } from './utils';
+import { getPaginationRange } from '@constants';
+import type {
+  MemberRegistration,
+  CreateRegistrationInput,
+  PaginatedResult,
+  RegistrationsListFilters,
+} from '@/types';
 
 const ALLOWED_CREATE_FIELDS = [
   'full_name', 'gender', 'birth_year', 'birth_place',
@@ -51,20 +58,29 @@ export async function submitRegistration(input: CreateRegistrationInput): Promis
   return data;
 }
 
-/** Get all registrations (admin/editor only). */
-export async function getRegistrations(status?: string): Promise<MemberRegistration[]> {
+/** Get registrations (admin/editor only) with backend pagination. */
+export async function getRegistrations(
+  filters: RegistrationsListFilters
+): Promise<PaginatedResult<MemberRegistration>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   let query = supabase
     .from('member_registrations')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false });
 
-  if (status && status !== 'all') {
-    query = query.eq('status', status);
+  if (filters.status && filters.status !== 'all') {
+    query = query.eq('status', filters.status);
   }
 
-  const { data, error } = await query;
+  const trimmed = filters.search?.trim();
+  if (trimmed) {
+    query = query.ilike('full_name', `%${escapeIlikePattern(trimmed)}%`);
+  }
+
+  const { data, error, count } = await query.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
 }
 
 /** Get pending registration count (for admin badge). */

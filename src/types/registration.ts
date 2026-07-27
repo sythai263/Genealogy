@@ -35,3 +35,10 @@ export interface CreateRegistrationInput {
   notes?: string;
   honeypot?: string;
 }
+
+export interface RegistrationsListFilters {
+  status?: string;
+  search?: string;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

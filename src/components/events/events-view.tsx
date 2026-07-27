@@ -3,15 +3,16 @@
  * @file src/components/events/events-view.tsx
  * @description Memorial calendar and events page with lunar date support
  * @version 1.0.0
- * @updated 2026-07-18
+ * @updated 2026-07-27
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import {
   Button,
   Card,
@@ -31,24 +32,26 @@ import {
   TabsTrigger,
 } from '@components/ui';
 import {
+  LIST_DEFAULT_PAGE_SIZE,
   MONTHS_VI,
   UPCOMING_EVENTS_WINDOW_DAYS,
+  type ListPageSize,
 } from '@constants';
-import { useDeleteEvent, useEvents, usePeople } from '@hooks';
+import { useDeleteEvent, useEvents, useEventsCalendar, usePeople } from '@hooks';
 import {
   formatLunarDate,
   getNextLunarOccurrence,
   parseLunarString,
   solarToLunar,
 } from '@lib';
-import type { UpcomingEvent } from '@types';
+import type { EventType, UpcomingEvent } from '@types';
 import { AddEventDialog } from './add-event-dialog';
 import { CalendarGrid } from './calendar-grid';
 import { EventsListPanel } from './events-list-panel';
 import { UpcomingEventsBanner } from './upcoming-events-banner';
 
 export function EventsView() {
-  const { data: events, isLoading: eventsLoading } = useEvents();
+  const { data: events, isLoading: eventsLoading } = useEventsCalendar();
   const { data: people, isLoading: peopleLoading } = usePeople();
   const { isEditor } = useAuth();
   const deleteEvent = useDeleteEvent();
@@ -59,6 +62,23 @@ export function EventsView() {
     new Date().getMonth() + 1
   );
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const listType =
+    typeFilter === 'all' ? undefined : (typeFilter as EventType);
+  const { data: listData, isLoading: listLoading } = useEvents({
+    type: listType,
+    page,
+    pageSize,
+  });
+
+  const listItems = listData?.items ?? [];
+  const listTotal = listData?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [typeFilter, pageSize]);
 
   const isLoading = eventsLoading || peopleLoading;
 
@@ -167,12 +187,6 @@ export function EventsView() {
     );
   }, [upcomingEvents, autoGioEvents]);
 
-  const filteredEvents = useMemo(() => {
-    if (!events) return [];
-    if (typeFilter === 'all') return events;
-    return events.filter((event) => event.event_type === typeFilter);
-  }, [events, typeFilter]);
-
   function navigateMonth(direction: number) {
     let month = calendarMonth + direction;
     let year = calendarYear;
@@ -279,15 +293,24 @@ export function EventsView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="list">
+        <TabsContent value="list" className="space-y-4">
           <EventsListPanel
-            events={filteredEvents}
+            events={listItems}
             people={people || []}
-            isLoading={isLoading}
+            isLoading={isLoading || listLoading}
             isEditor={!!isEditor}
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}
             onDelete={handleDelete}
+          />
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={listTotal}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="sự kiện"
+            disabled={listLoading}
           />
         </TabsContent>
       </Tabs>

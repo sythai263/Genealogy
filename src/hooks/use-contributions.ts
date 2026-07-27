@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/hooks/use-contributions.ts
  * @description React Query hooks for contributions data
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.1.0
+ * @updated 2026-07-27
  */
 
 'use client';
@@ -11,27 +11,53 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getContributions,
+  getPendingContributionsCount,
   getContribution,
   createContribution,
   reviewContribution,
   getContributionsByPerson,
   deleteContribution,
 } from '@/lib/supabase-data';
-import type { Contribution, ContributionStatus, JsonObject } from '@/types';
+import type {
+  Contribution,
+  ContributionsListFilters,
+  JsonObject,
+} from '@/types';
 
 export const contributionKeys = {
   all: ['contributions'] as const,
   lists: () => [...contributionKeys.all, 'list'] as const,
-  list: (status?: ContributionStatus) => [...contributionKeys.lists(), { status }] as const,
+  list: (filters: ContributionsListFilters) =>
+    [
+      ...contributionKeys.lists(),
+      {
+        status: filters.status ?? null,
+        authorId: filters.authorId ?? null,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    ] as const,
+  pendingCount: () => [...contributionKeys.all, 'pending-count'] as const,
   details: () => [...contributionKeys.all, 'detail'] as const,
   detail: (id: string) => [...contributionKeys.details(), id] as const,
   byPerson: (personId: string) => [...contributionKeys.all, 'person', personId] as const,
 };
 
-export function useContributions(status?: ContributionStatus) {
+export function useContributions(
+  filters: ContributionsListFilters,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
-    queryKey: contributionKeys.list(status),
-    queryFn: () => getContributions(status),
+    queryKey: contributionKeys.list(filters),
+    queryFn: () => getContributions(filters),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+export function usePendingContributionsCount() {
+  return useQuery({
+    queryKey: contributionKeys.pendingCount(),
+    queryFn: getPendingContributionsCount,
   });
 }
 
@@ -97,7 +123,7 @@ export function useReviewContribution() {
     onSuccess: (_, { id, status }) => {
       queryClient.invalidateQueries({ queryKey: contributionKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: contributionKeys.lists() });
-      // If approved, person data was updated — invalidate people queries
+      queryClient.invalidateQueries({ queryKey: contributionKeys.pendingCount() });
       if (status === 'approved') {
         queryClient.invalidateQueries({ queryKey: ['people'] });
       }

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Pencil, Plus, Star, Trash2, Trophy } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,10 @@ import {
   DialogTrigger,
   Input,
 } from '@components/ui';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import {
   useAchievements,
   useCreateAchievement,
@@ -54,8 +59,14 @@ export function AdminAchievementsView() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Achievement | undefined>();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
-  const { data: achievements, isLoading } = useAchievements();
+  const { data, isLoading } = useAchievements({
+    search: search || undefined,
+    page,
+    pageSize,
+  });
   const { data: people } = usePeople();
   const createMutation = useCreateAchievement();
   const updateMutation = useUpdateAchievement();
@@ -66,17 +77,12 @@ export function AdminAchievementsView() {
     peopleMap.set(person.id, person);
   }
 
-  const list = achievements ?? [];
-  const query = search.trim().toLowerCase();
-  const filtered = query
-    ? list.filter((achievement) => {
-        const person = peopleMap.get(achievement.person_id);
-        return (
-          achievement.title.toLowerCase().includes(query) ||
-          person?.display_name.toLowerCase().includes(query)
-        );
-      })
-    : list;
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, pageSize]);
 
   if (!isEditor) {
     return (
@@ -190,7 +196,7 @@ export function AdminAchievementsView() {
             </Card>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Trophy className="mx-auto mb-2 h-10 w-10 opacity-50" />
@@ -198,66 +204,76 @@ export function AdminAchievementsView() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {filtered.map((achievement) => {
-            const person = peopleMap.get(achievement.person_id);
-            return (
-              <Card key={achievement.id}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    {achievement.is_featured && (
-                      <Star className="h-4 w-4 shrink-0 text-amber-500" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {achievement.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {person?.display_name ?? '?'} ·{' '}
-                        {getAchievementCategoryLabel(achievement.category)}
-                        {achievement.year && ` · ${achievement.year}`}
-                      </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {items.map((achievement) => {
+              const person = peopleMap.get(achievement.person_id);
+              return (
+                <Card key={achievement.id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      {achievement.is_featured && (
+                        <Star className="h-4 w-4 shrink-0 text-amber-500" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {achievement.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {person?.display_name ?? '?'} ·{' '}
+                          {getAchievementCategoryLabel(achievement.category)}
+                          {achievement.year && ` · ${achievement.year}`}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setEditingItem(achievement);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Xóa thành tích?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Hành động này không thể hoàn tác.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Hủy</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(achievement.id)}
-                          >
-                            Xóa
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingItem(achievement);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa thành tích?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(achievement.id)}
+                            >
+                              Xóa
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="thành tích"
+          />
         </div>
       )}
     </div>

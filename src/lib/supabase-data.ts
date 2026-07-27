@@ -1,9 +1,12 @@
 import { supabase } from './supabase';
+import { escapeIlikePattern } from './utils';
+import { getPaginationRange } from '@constants';
 import type {
   Person, Family, Profile, Contribution, Event, Media,
-  CreatePersonInput, UpdatePersonInput, CreateMediaInput, ContributionStatus, EventType,
+  CreatePersonInput, UpdatePersonInput, CreateMediaInput, EventType,
   PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
-  PeopleListResult,
+  PeopleListResult, EventsListFilters, PaginatedResult, ContributionsListFilters,
+  ProfilesListFilters,
 } from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -489,9 +492,39 @@ export async function getProfiles(): Promise<Profile[]> {
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: false });
-  
+
   if (error) throw error;
   return data || [];
+}
+
+/** Paginated profiles for admin users list — never loads the full table. */
+export async function getProfilesPage(
+  filters: ProfilesListFilters
+): Promise<PaginatedResult<Profile>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+  let query = supabase
+    .from('profiles')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false });
+
+  if (filters.unverifiedOnly) {
+    query = query.eq('is_verified', false);
+  }
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw error;
+  return { items: data || [], total: count ?? 0 };
+}
+
+/** Count-only helper for admin badge (no row payload). */
+export async function getUnverifiedProfilesCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_verified', false);
+
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function updateProfile(userId: string, input: Partial<Profile>): Promise<Profile> {
@@ -703,7 +736,35 @@ export async function getTreeData(): Promise<TreeData> {
 // Events (Memorial Calendar)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export async function getEvents(): Promise<Event[]> {
+export async function getEvents(
+  filters: EventsListFilters
+): Promise<PaginatedResult<Event>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
+  let query = supabase
+    .from('events')
+    .select('*', { count: 'exact' })
+    .order('event_date', { ascending: true });
+
+  if (filters.type) {
+    query = query.eq('event_type', filters.type);
+  }
+
+  const trimmed = filters.search?.trim();
+  if (trimmed) {
+    query = query.ilike('title', `%${escapeIlikePattern(trimmed)}%`);
+  }
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw error;
+  return { items: data || [], total: count ?? 0 };
+}
+
+/**
+ * Full events list for calendar / upcoming banner only.
+ * List UIs must use paginated `getEvents` instead.
+ */
+export async function getEventsForCalendar(): Promise<Event[]> {
   const { data, error } = await supabase
     .from('events')
     .select('*')
@@ -774,19 +835,37 @@ export async function deleteEvent(id: string): Promise<void> {
 // Contributions (Edit Suggestions)
 // ═══════════════════════════════════════════════════════════════════════════
 
-export async function getContributions(status?: ContributionStatus): Promise<Contribution[]> {
+export async function getContributions(
+  filters: ContributionsListFilters
+): Promise<PaginatedResult<Contribution>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   let query = supabase
     .from('contributions')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false });
 
-  if (status) {
-    query = query.eq('status', status);
+  if (filters.status) {
+    query = query.eq('status', filters.status);
   }
 
-  const { data, error } = await query;
+  if (filters.authorId) {
+    query = query.eq('author_id', filters.authorId);
+  }
+
+  const { data, error, count } = await query.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
+}
+
+export async function getPendingContributionsCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('contributions')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function getContribution(id: string): Promise<Contribution | null> {

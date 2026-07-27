@@ -8,9 +8,10 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useDocuments, useCreateDocument, useUpdateDocument, useDeleteDocument, useUploadDocumentFile } from '@/hooks/use-documents';
 import { usePeople } from '@/hooks/use-people';
+import { ListPagination } from '@/components/shared';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,11 @@ import { toast } from 'sonner';
 import { useAuth } from '@/components/auth/auth-provider';
 import Link from 'next/link';
 import type { ClanDocument, DocumentCategory, CreateClanDocumentInput, Person } from '@/types';
-import { DOCUMENT_CATEGORY_LABELS } from '@constants';
+import {
+  DOCUMENT_CATEGORY_LABELS,
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 
 const CATEGORY_OPTIONS: { value: DocumentCategory; label: string }[] = [
   { value: 'anh_lich_su', label: 'Ảnh lịch sử' },
@@ -171,8 +176,14 @@ export default function AdminDocumentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ClanDocument | undefined>();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
 
-  const { data: documents, isLoading } = useDocuments();
+  const { data, isLoading } = useDocuments({
+    search: search || undefined,
+    page,
+    pageSize,
+  });
   const { data: people } = usePeople();
   const createMutation = useCreateDocument();
   const updateMutation = useUpdateDocument();
@@ -185,16 +196,12 @@ export default function AdminDocumentsPage() {
     return map;
   }, [people]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return documents || [];
-    const q = search.toLowerCase();
-    return (documents || []).filter(d => {
-      const person = d.person_id ? peopleMap.get(d.person_id) : undefined;
-      return d.title.toLowerCase().includes(q) ||
-        d.tags?.toLowerCase().includes(q) ||
-        person?.display_name.toLowerCase().includes(q);
-    });
-  }, [documents, search, peopleMap]);
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, pageSize]);
 
   if (!isEditor) {
     return (
@@ -297,7 +304,7 @@ export default function AdminDocumentsPage() {
         <div className="space-y-2">
           {[1, 2, 3].map(i => <Card key={i}><CardContent className="p-4 h-16" /></Card>)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Archive className="h-10 w-10 mx-auto mb-2 opacity-50" />
@@ -305,63 +312,73 @@ export default function AdminDocumentsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {filtered.map(doc => {
-            const person = doc.person_id ? peopleMap.get(doc.person_id) : undefined;
-            return (
-              <Card key={doc.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{doc.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        <Badge variant="outline" className="mr-1 text-xs">
-                          {DOCUMENT_CATEGORY_LABELS[doc.category]}
-                        </Badge>
-                        {doc.privacy_level === 0 && (
-                          <Badge className="mr-1 text-xs bg-green-100 text-green-800">Công khai</Badge>
-                        )}
-                        {doc.privacy_level === 1 && (
-                          <Badge className="mr-1 text-xs bg-blue-100 text-blue-800">Thành viên</Badge>
-                        )}
-                        {doc.privacy_level === 2 && (
-                          <Badge className="mr-1 text-xs bg-red-100 text-red-800">Nội bộ</Badge>
-                        )}
-                        {person && <span>{person.display_name} · </span>}
-                        {formatFileSize(doc.file_size)}
-                        {doc.tags && <span className="ml-1">· {doc.tags}</span>}
-                      </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {items.map(doc => {
+              const person = doc.person_id ? peopleMap.get(doc.person_id) : undefined;
+              return (
+                <Card key={doc.id}>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{doc.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          <Badge variant="outline" className="mr-1 text-xs">
+                            {DOCUMENT_CATEGORY_LABELS[doc.category]}
+                          </Badge>
+                          {doc.privacy_level === 0 && (
+                            <Badge className="mr-1 text-xs bg-green-100 text-green-800">Công khai</Badge>
+                          )}
+                          {doc.privacy_level === 1 && (
+                            <Badge className="mr-1 text-xs bg-blue-100 text-blue-800">Thành viên</Badge>
+                          )}
+                          {doc.privacy_level === 2 && (
+                            <Badge className="mr-1 text-xs bg-red-100 text-red-800">Nội bộ</Badge>
+                          )}
+                          {person && <span>{person.display_name} · </span>}
+                          {formatFileSize(doc.file_size)}
+                          {doc.tags && <span className="ml-1">· {doc.tags}</span>}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost" size="icon"
-                      onClick={() => { setEditingItem(doc); setDialogOpen(true); }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Xóa tài liệu?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            File &quot;{doc.title}&quot; sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Hủy</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(doc)}>Xóa</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost" size="icon"
+                        onClick={() => { setEditingItem(doc); setDialogOpen(true); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa tài liệu?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              File &quot;{doc.title}&quot; sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(doc)}>Xóa</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="tài liệu"
+          />
         </div>
       )}
     </div>

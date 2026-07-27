@@ -7,25 +7,53 @@
  */
 
 import { supabase } from './supabase';
-import type { ClanDocument, DocumentCategory, CreateClanDocumentInput, UpdateClanDocumentInput } from '@/types';
+import { escapeIlikePattern } from './utils';
+import { getPaginationRange } from '@constants';
+import type {
+  ClanDocument,
+  CreateClanDocumentInput,
+  DocumentsListFilters,
+  PaginatedResult,
+  UpdateClanDocumentInput,
+} from '@/types';
 
-export async function getDocuments(category?: DocumentCategory, search?: string): Promise<ClanDocument[]> {
+export async function getDocuments(
+  filters: DocumentsListFilters
+): Promise<PaginatedResult<ClanDocument>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   let query = supabase
     .from('clan_documents')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false });
 
-  if (category) {
-    query = query.eq('category', category);
+  if (filters.category) {
+    query = query.eq('category', filters.category);
   }
 
-  if (search) {
-    query = query.ilike('title', `%${search}%`);
+  const trimmed = filters.search?.trim();
+  if (trimmed) {
+    const pattern = `%${escapeIlikePattern(trimmed)}%`;
+
+    const { data: matchingPeople, error: peopleError } = await supabase
+      .from('people')
+      .select('id')
+      .ilike('display_name', pattern)
+      .limit(50);
+
+    if (peopleError) throw peopleError;
+
+    const personIds = (matchingPeople || []).map((p) => p.id);
+    const orParts = [`title.ilike."${pattern}"`, `tags.ilike."${pattern}"`];
+    if (personIds.length > 0) {
+      orParts.push(`person_id.in.(${personIds.join(',')})`);
+    }
+    query = query.or(orParts.join(','));
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
 }
 
 export async function getDocument(id: string): Promise<ClanDocument | null> {

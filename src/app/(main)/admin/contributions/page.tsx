@@ -8,12 +8,18 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/auth/auth-provider';
 import { usePeople } from '@/hooks/use-people';
-import { useContributions, useReviewContribution, useDeleteContribution } from '@/hooks/use-contributions';
+import {
+  useContributions,
+  usePendingContributionsCount,
+  useReviewContribution,
+  useDeleteContribution,
+} from '@/hooks/use-contributions';
 import { useProfiles } from '@/hooks/use-profiles';
+import { ListPagination } from '@/components/shared';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,6 +46,10 @@ import {
   Trash2,
 } from 'lucide-react';
 import type { ContributionStatus, ChangeType, Contribution } from '@/types';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<ContributionStatus, { label: string; color: string }> = {
@@ -69,14 +79,30 @@ const FIELD_LABELS: Record<string, string> = {
 
 export default function AdminContributionsPage() {
   const { profile, isAdmin } = useAuth();
-  const { data: contributions, isLoading } = useContributions();
+  const [statusFilter, setStatusFilter] = useState<string>('pending');
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const listStatus =
+    statusFilter === 'all' ? undefined : (statusFilter as ContributionStatus);
+  const { data, isLoading } = useContributions({
+    status: listStatus,
+    page,
+    pageSize,
+  });
+  const { data: pendingCount = 0 } = usePendingContributionsCount();
   const { data: people } = usePeople();
   const { data: profiles } = useProfiles();
   const reviewContribution = useReviewContribution();
   const deleteContribution = useDeleteContribution();
 
-  const [statusFilter, setStatusFilter] = useState<string>('pending');
-  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, pageSize]);
 
   if (!isAdmin) {
     return (
@@ -95,11 +121,7 @@ export default function AdminContributionsPage() {
     );
   }
 
-  const filteredContributions = contributions?.filter(c =>
-    statusFilter === 'all' ? true : c.status === statusFilter
-  ) || [];
-
-  const pendingCount = contributions?.filter(c => c.status === 'pending').length || 0;
+  const filteredContributions = items;
 
   const handleDelete = async (c: Contribution) => {
     try {
@@ -164,7 +186,7 @@ export default function AdminContributionsPage() {
           </SelectContent>
         </Select>
         <CardDescription>
-          {isLoading ? 'Đang tải...' : `${filteredContributions.length} đề xuất`}
+          {isLoading ? 'Đang tải...' : `${total} đề xuất`}
         </CardDescription>
       </div>
 
@@ -331,6 +353,14 @@ export default function AdminContributionsPage() {
               </Card>
             );
           })}
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="đề xuất"
+          />
         </div>
       )}
     </div>
