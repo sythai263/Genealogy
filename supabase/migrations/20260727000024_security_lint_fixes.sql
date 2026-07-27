@@ -17,7 +17,11 @@
 -- ─────────────────────────────────────────────────────────────────────────
 -- 1. Move unaccent extension out of public schema (lint 0014)
 -- ─────────────────────────────────────────────────────────────────────────
-CREATE SCHEMA IF NOT EXISTS extensions;
+DO $$ BEGIN
+  CREATE SCHEMA extensions;
+EXCEPTION
+  WHEN duplicate_schema THEN NULL;
+END $$;
 
 -- Relocate existing extension; recreate if it was never installed
 DO $$
@@ -310,7 +314,7 @@ REVOKE ALL ON FUNCTION public.update_post_comments_count() FROM anon, authentica
 -- ─────────────────────────────────────────────────────────────────────────
 
 -- Admin suspend: WITH CHECK must also enforce admin (not always-true)
-DROP POLICY IF EXISTS "Admin can suspend or unsuspend accounts" ON public.profiles;
+DROP POLICY "Admin can suspend or unsuspend accounts" ON public.profiles;
 
 CREATE POLICY "Admin can suspend or unsuspend accounts"
   ON public.profiles
@@ -324,7 +328,7 @@ CREATE POLICY "Admin can suspend or unsuspend accounts"
   );
 
 -- Profile inserts: restrict to service_role only (signup uses handle_new_user DEFINER)
-DROP POLICY IF EXISTS "Service role can insert profiles" ON public.profiles;
+DROP POLICY "Service role can insert profiles" ON public.profiles;
 
 CREATE POLICY "Service role can insert profiles"
   ON public.profiles

@@ -6,7 +6,7 @@
 -- get_people_filter_options returns distinct dropdown values.
 -- ============================================================
 
-CREATE EXTENSION IF NOT EXISTS unaccent;
+-- unaccent is enabled in 20260323000021_function_search_people_advance.sql
 
 -- 1. Filtered search for /people list (SETOF; paginate via Supabase .range())
 CREATE OR REPLACE FUNCTION search_people_filtered(

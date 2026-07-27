@@ -15,7 +15,7 @@
 --         profiles and harvest user emails + roles via the Supabase REST API
 -- After:  USING (auth.uid() IS NOT NULL)  ← logged-in users only
 -- ─────────────────────────────────────────────────────────────────────────
-DROP POLICY IF EXISTS "Users can read all profiles" ON profiles;
+DROP POLICY "Users can read all profiles" ON profiles;
 
 CREATE POLICY "Authenticated users can read profiles"
 ON profiles FOR SELECT
@@ -34,7 +34,7 @@ USING (auth.uid() IS NOT NULL);
 --      (Leaves historical ancestors visible; protects living member data)
 --   c) Require auth for ANY person that has contact data
 -- ─────────────────────────────────────────────────────────────────────────
-DROP POLICY IF EXISTS "Public read for public people" ON people;
+DROP POLICY "Public read for public people" ON people;
 
 -- New policy: unauthenticated users can only see:
 --  - Records explicitly marked public (privacy_level = 0)
@@ -50,7 +50,7 @@ CREATE POLICY "Public read for public non-contact people" ON people
     );
 
 -- Authenticated users can read all members-or-public records (privacy_level < 2)
-DROP POLICY IF EXISTS "Members can read all people" ON people;
+DROP POLICY "Members can read all people" ON people;
 
 CREATE POLICY "Authenticated users can read non-private people" ON people
     FOR SELECT USING (
@@ -99,19 +99,19 @@ WHERE privacy_level = 0
 -- unauthenticated users. Restrict to authenticated only so that structural
 -- data about living members isn't freely crawlable.
 -- ─────────────────────────────────────────────────────────────────────────
-DROP POLICY IF EXISTS "Anyone can read families" ON families;
+DROP POLICY "Anyone can read families" ON families;
 CREATE POLICY "Authenticated can read families" ON families
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "Anyone can read children" ON children;
+DROP POLICY "Anyone can read children" ON children;
 CREATE POLICY "Authenticated can read children" ON children
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "Anyone can read events" ON events;
+DROP POLICY "Anyone can read events" ON events;
 CREATE POLICY "Authenticated can read events" ON events
     FOR SELECT USING (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "Anyone can read media" ON media;
+DROP POLICY "Anyone can read media" ON media;
 CREATE POLICY "Authenticated can read media" ON media
     FOR SELECT USING (auth.uid() IS NOT NULL);
 

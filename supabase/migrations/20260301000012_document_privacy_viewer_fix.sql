@@ -6,7 +6,7 @@
 
 -- The previous policy allowed ALL authenticated users (incl. viewer) to read
 -- privacy_level=1 documents. Per FR: viewer role sees public docs only.
-DROP POLICY IF EXISTS "Auth view members-only documents" ON clan_documents;
+DROP POLICY "Auth view members-only documents" ON clan_documents;
 
 CREATE POLICY "Members can view members-only documents" ON clan_documents
   FOR SELECT USING (

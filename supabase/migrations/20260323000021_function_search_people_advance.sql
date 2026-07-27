@@ -6,7 +6,11 @@
 -- ============================================================
 
 -- 1. Kích hoạt extension hỗ trợ bỏ dấu của PostgreSQL
-CREATE EXTENSION IF NOT EXISTS unaccent;
+DO $$ BEGIN
+  CREATE EXTENSION unaccent;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 2. Tạo function tìm kiếm nâng cao (RPC)
 CREATE OR REPLACE FUNCTION search_people_advanced(search_term text, ignore_acc boolean)

@@ -4,7 +4,11 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+DO $$ BEGIN
+  CREATE EXTENSION "uuid-ossp";
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- TABLES
@@ -323,7 +327,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION handle_new_user();
