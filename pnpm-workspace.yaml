@@ -11,3 +11,4 @@ minimumReleaseAgeExclude:
   - '@supabase/realtime-js@2.110.7'
   - '@supabase/storage-js@2.110.7'
   - '@supabase/supabase-js@2.110.7'
+  - shadcn@4.16.0

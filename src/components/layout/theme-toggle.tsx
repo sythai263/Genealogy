@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTheme } from '@wrksz/themes/client';
+import { useTheme } from 'next-themes';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
