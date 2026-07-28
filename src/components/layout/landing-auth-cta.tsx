@@ -31,7 +31,7 @@ export function LandingAuthCta({
       <span
         className={cn(
           'inline-block h-8 w-20 animate-pulse rounded-md bg-muted',
-          variant === 'nav' && 'h-5 w-16 bg-gray-100',
+          variant === 'nav' && 'h-5 w-16 bg-muted',
           className
         )}
         aria-hidden
@@ -60,7 +60,7 @@ export function LandingAuthCta({
       <Link
         href="/login"
         className={cn(
-          'inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900',
+          'inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
           className
         )}
       >
@@ -94,7 +94,7 @@ export function LandingAuthCta({
     <Link
       href={href}
       className={cn(
-        'inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-900',
+        'inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300',
         className
       )}
     >

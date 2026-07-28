@@ -11,9 +11,11 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { HeaderUser } from '@/components/layout/header-user';
 import { NotificationBell } from '@/components/layout/notification-bell';
 import { ElderlyToggle } from '@/components/layout/elderly-toggle';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { VerificationGuard } from '@/components/auth/verification-guard';
 import { ElderlyProvider } from '@/contexts/elderly-context';
+
 
 export default function MainLayout({
   children,
@@ -29,9 +31,11 @@ export default function MainLayout({
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex-1" />
+            <ThemeToggle />
             <ElderlyToggle />
             <NotificationBell />
             <HeaderUser />
+
           </header>
           <main className="flex-1 overflow-auto">
             <VerificationGuard>
