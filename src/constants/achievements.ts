@@ -1,3 +1,11 @@
+/**
+ * @project AncestorTree
+ * @file src/constants/achievements.ts
+ * @description Shared constants for achievements
+ * @version 1.0.0
+ * @updated 2026-07-31
+ */
+
 import {
   Briefcase,
   GraduationCap,

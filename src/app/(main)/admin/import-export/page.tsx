@@ -10,7 +10,7 @@
 
 import { useState } from 'react';
 import { Download, Upload, AlertTriangle, CheckCircle2, FileArchive } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@components/ui';
 import { toast } from 'sonner';
 
 type IncludeMedia = 'skip' | 'reference' | 'inline';

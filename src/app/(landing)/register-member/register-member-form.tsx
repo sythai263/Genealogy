@@ -9,15 +9,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui';
 import { UserPlus, CheckCircle, Loader2 } from 'lucide-react';
-import { useSubmitRegistration } from '@/hooks/use-registrations';
-import { useClanSettings } from '@/hooks/use-clan-settings';
+import { useSubmitRegistration, useClanSettings } from '@hooks';
 import { CLAN_NAME } from '@lib';
 import Link from 'next/link';
 

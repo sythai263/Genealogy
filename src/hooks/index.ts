@@ -24,3 +24,4 @@ export * from './use-profiles';
 export * from './use-register';
 export * from './use-registrations';
 export * from './use-reset-password';
+export * from './use-resettable-page';

@@ -7,15 +7,7 @@
  */
 
 import type { DirectoryContactDisplay, Person } from '@types';
-
-const MASKED_CONTACT: DirectoryContactDisplay = {
-  phone: null,
-  email: null,
-  address: null,
-  zalo: null,
-  facebook: null,
-  masked: true,
-};
+import { DIRECTORY_MASKED_CONTACT } from '@constants';
 
 interface GetContactDisplayParams {
   person: Person;
@@ -32,15 +24,15 @@ export function getContactDisplay({
 }: GetContactDisplayParams): DirectoryContactDisplay {
   // Viewer role: only see names, all contacts masked (except self)
   if (isViewer && person.id !== linkedPersonId) {
-    return MASKED_CONTACT;
+    return DIRECTORY_MASKED_CONTACT;
   }
   // Privacy level 2 = private: hide contacts from everyone except the person themselves
   if (person.privacy_level === 2 && person.id !== linkedPersonId) {
-    return MASKED_CONTACT;
+    return DIRECTORY_MASKED_CONTACT;
   }
   // Privacy level 1 = members only: hide contacts from non-authenticated users
   if (person.privacy_level === 1 && !isAuthenticated) {
-    return MASKED_CONTACT;
+    return DIRECTORY_MASKED_CONTACT;
   }
   return {
     phone: person.phone || null,

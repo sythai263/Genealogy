@@ -9,13 +9,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button, Input, Avatar, AvatarFallback } from '@components/ui';
 import { MessageSquare, Loader2, Trash2, Send } from 'lucide-react';
-import { usePostComments, useCreateComment, useDeleteComment } from '@/hooks/use-feed';
-import type { Profile } from '@/types';
-import { getRelativeTime, getInitials } from '@/lib/format-utils';
+import { usePostComments, useCreateComment, useDeleteComment } from '@hooks';
+import type { Profile } from '@types';
+import { getRelativeTime, getInitials } from '@lib';
 import { toast } from 'sonner';
 
 interface CommentsSectionProps {

@@ -9,14 +9,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useTreeData } from '@/hooks/use-families';
-import { generateGedcom, validateGedcom, downloadGedcom } from '@/lib/gedcom-export';
-import { generateCsv, downloadCsv } from '@/lib/csv-export';
-import { generateMarkdown, downloadMarkdown } from '@/lib/markdown-export';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@components/ui';
+import { useAuth } from '@components/auth';
+import { useTreeData } from '@hooks';
+import { generateGedcom, validateGedcom, downloadGedcom, generateCsv, downloadCsv, generateMarkdown, downloadMarkdown } from '@lib';
 import { Download, FileText, Loader2, CheckCircle, AlertCircle, Users, GitBranchPlus, Table, FileCode } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';

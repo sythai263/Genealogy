@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  getAuthSession,
-  subscribeToAuthStateChange,
-  updatePassword,
-} from '@services/auth';
+import { getAuthSession, subscribeToAuthStateChange, updatePassword } from '@services';
 
 export function usePasswordRecoveryReady() {
   const [recoveryReady, setRecoveryReady] = useState(false);

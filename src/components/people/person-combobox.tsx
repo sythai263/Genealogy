@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
 import { useSearchPeople } from '@hooks';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { Person } from '@types';
 
 interface PersonComboboxProps {

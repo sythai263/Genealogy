@@ -9,14 +9,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useClanSettings } from '@/hooks/use-clan-settings';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useClanSettings } from '@hooks';
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@components/ui';
 import { CLAN_FULL_NAME } from '@lib';
 import { Landmark, ImageIcon, Calendar, MapPin, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { CeremonyScheduleItem } from '@/types';
+import type { CeremonyScheduleItem } from '@types';
 
 export function AncestralHallContent() {
   const { data: cs, isLoading } = useClanSettings();

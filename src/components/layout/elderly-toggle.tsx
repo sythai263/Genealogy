@@ -8,8 +8,8 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { useElderly } from '@/contexts/elderly-context';
+import { Button } from '@components/ui';
+import { useElderly } from '@contexts';
 import { Eye } from 'lucide-react';
 
 export function ElderlyToggle() {

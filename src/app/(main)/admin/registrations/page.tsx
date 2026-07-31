@@ -9,42 +9,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useRegistrations, useApproveRegistration, useRejectRegistration, useDeleteRegistration } from '@/hooks/use-registrations';
-import { ListPagination } from '@/components/shared';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@components/auth';
+import { useResettablePage, useRegistrations, useApproveRegistration, useRejectRegistration, useDeleteRegistration } from '@hooks';
+import { ListPagination } from '@components/shared';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Textarea } from '@components/ui';
 import { ClipboardList, Check, X, Trash2, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { getRelativeTime } from '@/lib/format-utils';
+import { getRelativeTime } from '@lib';
 import Link from 'next/link';
-import type { MemberRegistration } from '@/types';
+import type { MemberRegistration } from '@types';
 import {
   LIST_DEFAULT_PAGE_SIZE,
+  REGISTRATION_STATUS_MAP,
   type ListPageSize,
 } from '@constants';
-
-const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  pending: { label: 'Chờ duyệt', variant: 'default' },
-  approved: { label: 'Đã duyệt', variant: 'secondary' },
-  rejected: { label: 'Từ chối', variant: 'destructive' },
-};
 
 export default function AdminRegistrationsPage() {
   const { isEditor, isAdmin } = useAuth();
@@ -175,8 +153,8 @@ export default function AdminRegistrationsPage() {
                         {reg.birth_place && ` · ${reg.birth_place}`}
                       </p>
                     </div>
-                    <Badge variant={STATUS_MAP[reg.status]?.variant ?? 'outline'}>
-                      {STATUS_MAP[reg.status]?.label ?? reg.status}
+                    <Badge variant={REGISTRATION_STATUS_MAP[reg.status]?.variant ?? 'outline'}>
+                      {REGISTRATION_STATUS_MAP[reg.status]?.label ?? reg.status}
                     </Badge>
                   </div>
                 </CardHeader>

@@ -32,16 +32,15 @@ import {
 } from '@components/ui';
 import {
   IS_DESKTOP_MODE,
+  MFA_FACTORS_QUERY_KEY,
   MFA_FRIENDLY_NAME,
   MFA_ISSUER,
 } from '@constants';
-import { supabase } from '@lib/supabase';
+import { supabase } from '@lib';
 import type { MfaEnrollState, TotpFactor } from '@types';
 import { mapTotpFactors } from './map-totp-factors';
 import { MfaEnrollPanel } from './mfa-enroll-panel';
 import { MfaUnenrollDialog } from './mfa-unenroll-dialog';
-
-const MFA_FACTORS_QUERY_KEY = ['mfa-totp-factors'] as const;
 
 export function SecuritySettingsView() {
   const queryClient = useQueryClient();

@@ -11,19 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import {
-  getAchievements,
-  getAchievementsByPerson,
-  getFeaturedAchievements,
-  createAchievement,
-  updateAchievement,
-  deleteAchievement,
-} from '@/lib/supabase-data-achievements';
-import type {
-  AchievementsListFilters,
-  CreateAchievementInput,
-  UpdateAchievementInput,
-} from '@/types';
+import { getAchievements, getAchievementsByPerson, getFeaturedAchievements, createAchievement, updateAchievement, deleteAchievement } from '@lib';
+import type { AchievementsListFilters, CreateAchievementInput, UpdateAchievementInput } from '@types';
 
 export const achievementKeys = {
   all: ['achievements'] as const,

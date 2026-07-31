@@ -10,23 +10,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useClanSettings, useUpdateClanSettings } from '@/hooks/use-clan-settings';
-import { useAuth } from '@/components/auth/auth-provider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useClanSettings, useUpdateClanSettings } from '@hooks';
+import { useAuth } from '@components/auth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, Textarea, Badge, Skeleton } from '@components/ui';
 import { Settings, Globe, Database, Save, Loader2, Users, Landmark, Plus, Trash2, Calendar, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { CLAN_NAME as ENV_CLAN_NAME, CLAN_FULL_NAME as ENV_CLAN_FULL_NAME } from '@/lib/clan-config';
-import type { UpdateClanSettingsInput, CouncilMember, CeremonyScheduleItem, LoginMethod } from '@/types';
+import { CLAN_NAME as ENV_CLAN_NAME, CLAN_FULL_NAME as ENV_CLAN_FULL_NAME } from '@lib';
+import { APP_VERSION_DISPLAY } from '@constants';
+import type { UpdateClanSettingsInput, CouncilMember, CeremonyScheduleItem, LoginMethod } from '@types';
 
 const isDesktop = process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true';
-const APP_VERSION = 'v3.0.0';
 
 function deriveInitial(name: string): string {
   const parts = name.trim().split(' ');
@@ -601,7 +595,7 @@ export default function AdminSettingsPage() {
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2 border-b">
               <span className="text-sm text-muted-foreground">Phiên bản</span>
-              <Badge variant="outline">{APP_VERSION}</Badge>
+              <Badge variant="outline">{APP_VERSION_DISPLAY}</Badge>
             </div>
             <div className="flex justify-between items-center py-2 border-b">
               <span className="text-sm text-muted-foreground">Chế độ</span>

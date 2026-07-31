@@ -9,12 +9,7 @@
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
 import { getPaginationRange } from '@constants';
-import type {
-  MemberRegistration,
-  CreateRegistrationInput,
-  PaginatedResult,
-  RegistrationsListFilters,
-} from '@/types';
+import type { MemberRegistration, CreateRegistrationInput, PaginatedResult, RegistrationsListFilters } from '@types';
 
 const ALLOWED_CREATE_FIELDS = [
   'full_name', 'gender', 'birth_year', 'birth_place',

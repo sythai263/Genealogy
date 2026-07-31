@@ -7,7 +7,7 @@
  */
 
 import { supabase } from './supabase';
-import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@/types';
+import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@types';
 
 export async function getClanArticles(category?: ClanArticleCategory): Promise<ClanArticle[]> {
   let query = supabase

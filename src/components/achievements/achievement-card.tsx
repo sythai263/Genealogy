@@ -4,7 +4,7 @@ import type { Achievement, Person } from '@types';
 import {
   ACHIEVEMENT_CATEGORY_ICONS,
   getAchievementCategoryLabel,
-} from './achievement-category';
+} from '@constants';
 
 interface AchievementCardProps {
   achievement: Achievement;

@@ -6,10 +6,9 @@
  * @updated 2026-03-09
  */
 
-import type { Person, Family } from '@/types';
 import type { TreeData } from './supabase-data';
 import { findDuplicates } from './duplicate-detection';
-import type { DuplicatePair } from '@/types';
+import type { Person, Family, DuplicatePair } from '@types';
 
 // ─── Parser Types ───────────────────────────────────────────────────────────
 

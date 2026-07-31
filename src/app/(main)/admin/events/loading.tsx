@@ -6,7 +6,7 @@
  * @updated 2026-02-28
  */
 
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@components/ui';
 
 export default function AdminEventsLoading() {
   return (

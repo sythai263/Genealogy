@@ -9,22 +9,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getProfiles,
-  getProfilesPage,
-  getUnverifiedProfilesCount,
-  getProfile,
-  updateProfile,
-  updateUserRole,
-  updateLinkedPerson,
-  updateEditRootPerson,
-  suspendUser,
-  unsuspendUser,
-  verifyUser,
-  getUnverifiedProfiles,
-} from '@/lib/supabase-data';
+import { getProfiles, getProfilesPage, getUnverifiedProfilesCount, getProfile, updateProfile, updateUserRole, updateLinkedPerson, updateEditRootPerson, suspendUser, unsuspendUser, verifyUser, getUnverifiedProfiles } from '@lib';
 import { deleteUserAccount } from '@/app/(main)/admin/users/actions';
-import type { Profile, ProfilesListFilters, UserRole } from '@/types';
+import type { Profile, ProfilesListFilters, UserRole } from '@types';
 
 // Query keys
 export const profileKeys = {

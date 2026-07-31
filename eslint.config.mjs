@@ -16,15 +16,93 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // react-hook-form's watch/useFormState APIs are intentionally incompatible with
-    // React Compiler memoization; the rule only reports that compilation is skipped.
+    files: ["src/**/*.{ts,tsx}"],
     rules: {
+      // react-hook-form APIs skip React Compiler memoization by design.
       "react-hooks/incompatible-library": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          // Exact module names only (paths does not prefix-match children).
+          paths: [
+            {
+              name: "@components",
+              message:
+                "Do not import from the root @components barrel. Use @components/{feature}.",
+            },
+            {
+              name: "@/components",
+              message:
+                "Use @components/{feature} (2nd-level barrel). Do not use @/ prefix.",
+            },
+            {
+              name: "@/hooks",
+              message: "Import hooks from @hooks (flat barrel), not @/hooks.",
+            },
+            {
+              name: "@/lib",
+              message: "Import from @lib (flat barrel), not @/lib.",
+            },
+            {
+              name: "@/types",
+              message: "Import types from @types (flat barrel), not @/types.",
+            },
+            {
+              name: "@/constants",
+              message: "Import constants from @constants, not @/constants.",
+            },
+            {
+              name: "@/schemas",
+              message: "Import schemas from @schemas, not @/schemas.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["@/components/*", "@/components/*/*", "@/components/*/*/*"],
+              message:
+                "Use @components/{feature} (2nd-level barrel). Do not use @/ prefix or deep file paths.",
+            },
+            {
+              group: ["@components/*/*", "@components/*/*/*"],
+              message:
+                "Import from @components/{feature} barrel only — not deep file paths.",
+            },
+            {
+              group: ["@/hooks/*", "@hooks/*"],
+              message:
+                "Import hooks from @hooks (flat barrel), not deep paths or @/ prefix.",
+            },
+            {
+              group: ["@/lib/*", "@lib/*"],
+              message:
+                "Import from @lib (flat barrel), not deep paths or @/ prefix.",
+            },
+            {
+              group: ["@/types/*"],
+              message:
+                "Import types from @types (flat barrel), not @/ prefix or deep paths.",
+            },
+            {
+              regex: "^@types/.+",
+              message:
+                "Import from @types barrel only — not @types/{file}.",
+            },
+            {
+              group: ["@/constants/*", "@constants/*"],
+              message:
+                "Import constants from @constants (flat barrel), not deep paths.",
+            },
+            {
+              group: ["@/schemas/*", "@schemas/*"],
+              message:
+                "Import schemas from @schemas (flat barrel), not deep paths.",
+            },
+          ],
+        },
+      ],
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

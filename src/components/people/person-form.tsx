@@ -9,26 +9,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { personSchema, type PersonFormData, defaultPersonValues } from '@schemas';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Button, Input, Textarea, Checkbox, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@components/ui';
 import { Loader2, Save } from 'lucide-react';
-import type { Person } from '@/types';
+import type { Person } from '@types';
 
 interface PersonFormProps {
   person?: Person;
@@ -40,8 +26,7 @@ interface PersonFormProps {
 
 export function PersonForm({ person, defaultValues: extraDefaults, lockedGeneration, onSubmit, isLoading }: PersonFormProps) {
   const form = useForm<PersonFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(personSchema) as any,
+    resolver: zodResolver(personSchema) as Resolver<PersonFormData>,
     defaultValues: person ? {
       handle: person.handle,
       display_name: person.display_name,

@@ -11,9 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
-import { OtpEmailForm } from '@components/auth/otp-email-form';
-import { PasswordLoginForm } from '@components/auth/password-login-form';
-import { TotpStep } from '@components/auth/totp-step';
+import { OtpEmailForm } from './otp-email-form';
+import { PasswordLoginForm } from './password-login-form';
+import { TotpStep } from './totp-step';
 import { useAuth } from '@components/auth';
 import {
   useClanSettings,

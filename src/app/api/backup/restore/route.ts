@@ -12,9 +12,7 @@
 
 import AdmZip from 'adm-zip';
 import { NextRequest, NextResponse } from 'next/server';
-
-/** 500 MB max import file */
-const MAX_IMPORT_SIZE = 500 * 1024 * 1024;
+import { BACKUP_MAX_IMPORT_SIZE } from '@constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,10 +26,10 @@ export async function POST(request: NextRequest) {
     }
 
     // SEC-WARN-04: Enforce file size limit
-    if (file.size > MAX_IMPORT_SIZE) {
+    if (file.size > BACKUP_MAX_IMPORT_SIZE) {
       return NextResponse.json(
         {
-          error: `File quá lớn. Giới hạn tối đa là ${MAX_IMPORT_SIZE / 1024 / 1024} MB`,
+          error: `File quá lớn. Giới hạn tối đa là ${BACKUP_MAX_IMPORT_SIZE / 1024 / 1024} MB`,
         },
         { status: 413 }
       );

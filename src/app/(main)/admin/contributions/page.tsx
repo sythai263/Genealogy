@@ -8,48 +8,18 @@
 
 'use client';
 
-import { useAuth } from '@/components/auth/auth-provider';
-import { ListPagination } from '@/components/shared';
+import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Textarea } from '@components/ui';
+import { useContributions, useDeleteContribution, usePendingContributionsCount, useReviewContribution, usePeople, useProfiles, useResettablePage } from '@hooks';
+import type { Contribution, ContributionStatus } from '@types';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  useContributions,
-  useDeleteContribution,
-  usePendingContributionsCount,
-  useReviewContribution,
-} from '@/hooks/use-contributions';
-import { usePeople } from '@/hooks/use-people';
-import { useProfiles } from '@/hooks/use-profiles';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import type { ChangeType, Contribution, ContributionStatus } from '@/types';
-import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
+  CONTRIBUTION_CHANGE_TYPE_LABELS,
+  CONTRIBUTION_STATUS_CONFIG,
+  getContributionFieldLabel,
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -62,34 +32,6 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-const STATUS_CONFIG: Record<
-  ContributionStatus,
-  { label: string; color: string }
-> = {
-  pending: { label: 'Chờ duyệt', color: 'text-amber-600' },
-  approved: { label: 'Đã duyệt', color: 'text-green-600' },
-  rejected: { label: 'Từ chối', color: 'text-destructive' },
-};
-
-const CHANGE_TYPE_LABELS: Record<ChangeType, string> = {
-  create: 'Thêm mới',
-  update: 'Cập nhật',
-  delete: 'Xóa',
-};
-
-const FIELD_LABELS: Record<string, string> = {
-  display_name: 'Họ tên',
-  phone: 'Số điện thoại',
-  email: 'Email',
-  address: 'Địa chỉ',
-  birth_year: 'Năm sinh',
-  death_year: 'Năm mất',
-  death_lunar: 'Ngày giỗ (ÂL)',
-  occupation: 'Nghề nghiệp',
-  biography: 'Tiểu sử',
-  notes: 'Ghi chú',
-};
 
 export default function AdminContributionsPage() {
   const { profile, isAdmin } = useAuth();
@@ -226,7 +168,7 @@ export default function AdminContributionsPage() {
             const reviewer = c.reviewed_by
               ? profiles?.find(p => p.id === c.reviewed_by)
               : undefined;
-            const statusInfo = STATUS_CONFIG[c.status];
+            const statusInfo = CONTRIBUTION_STATUS_CONFIG[c.status];
 
             return (
               <Card key={c.id}>
@@ -244,7 +186,7 @@ export default function AdminContributionsPage() {
                         {statusInfo.label}
                       </Badge>
                       <Badge variant='outline'>
-                        {CHANGE_TYPE_LABELS[c.change_type]}
+                        {CONTRIBUTION_CHANGE_TYPE_LABELS[c.change_type]}
                       </Badge>
                     </div>
                     <div className='flex items-center gap-2 shrink-0'>
@@ -314,7 +256,7 @@ export default function AdminContributionsPage() {
                           key={key}
                           className='flex items-center gap-2 text-sm'>
                           <span className='font-medium min-w-[120px]'>
-                            {FIELD_LABELS[key] || key}:
+                            {getContributionFieldLabel(key)}:
                           </span>
                           <span className='text-green-700 bg-green-50 px-2 py-0.5 rounded'>
                             {String(val)}

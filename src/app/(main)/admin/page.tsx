@@ -8,11 +8,8 @@
 
 'use client';
 
-import { useStats } from '@/hooks/use-people';
-import { useFamilies } from '@/hooks/use-families';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useStats, useFamilies } from '@hooks';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Skeleton } from '@components/ui';
 import {
   Users,
   GitBranchPlus,

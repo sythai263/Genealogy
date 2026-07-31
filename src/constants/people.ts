@@ -17,6 +17,9 @@ export const PEOPLE_STATUS_FILTER_OPTIONS: {
   { value: 'deceased', label: 'Đã mất' },
 ];
 
+export const DUPLICATE_DISMISSED_STORAGE_KEY =
+  'ancestortree_dismissed_duplicates';
+
 export const PEOPLE_SEARCH_DEBOUNCE_MS = 300;
 export const PEOPLE_SEARCH_MIN_CHARS = 2;
 

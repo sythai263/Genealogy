@@ -9,13 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getNotifications,
-  getUnreadCount,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-} from '@/lib/supabase-data-notifications';
+import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '@lib';
 
 export const notificationKeys = {
   all: ['notifications'] as const,

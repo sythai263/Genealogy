@@ -8,6 +8,9 @@
 
 import type { PostType } from '@types';
 
+export const FEED_MAX_IMAGES = 5;
+export const FEED_MAX_CONTENT_LENGTH = 5000;
+
 export const POST_TYPE_LABELS: Record<PostType, string> = {
   general: 'Chung',
   photo: 'Ảnh',

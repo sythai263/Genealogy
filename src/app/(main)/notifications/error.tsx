@@ -8,8 +8,7 @@
 
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, Button } from '@components/ui';
 
 export default function NotificationsError({ reset }: { reset: () => void }) {
   return (

@@ -9,9 +9,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/components/auth/auth-provider';
-import { getClanSettings, updateClanSettings } from '@/lib/supabase-data-clan-settings';
-import type { UpdateClanSettingsInput } from '@/types';
+import { useAuth } from '@components/auth';
+import { getClanSettings, updateClanSettings } from '@lib';
+import type { UpdateClanSettingsInput } from '@types';
 
 export const clanSettingsKeys = {
   all: ['clan_settings'] as const,

@@ -81,6 +81,11 @@ export const EVENT_TYPE_META: Record<
   },
 };
 
+export const EVENT_TYPE_OPTIONS = EVENT_TYPE_ORDER.map((value) => ({
+  value,
+  label: EVENT_TYPE_LABELS[value],
+}));
+
 export function isEventType(value: string): value is EventType {
   for (const eventType of EVENT_TYPE_ORDER) {
     if (eventType === value) return true;

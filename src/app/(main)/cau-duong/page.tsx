@@ -9,11 +9,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useCauDuongPools, useCauDuongAssignments, useEligibleMembers } from '@/hooks/use-cau-duong';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCauDuongPools, useCauDuongAssignments, useEligibleMembers } from '@hooks';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui';
 import { Calendar, Users, RotateCcw, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import {
   CAU_DUONG_CEREMONY_LABELS,

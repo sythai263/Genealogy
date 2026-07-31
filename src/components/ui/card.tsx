@@ -1,8 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
-
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+import { cn } from '@lib';function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"

@@ -11,20 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import {
-  getDocuments,
-  getDocumentsByPerson,
-  createDocument,
-  updateDocument,
-  deleteDocument,
-  uploadDocumentFile,
-  deleteDocumentFile,
-} from '@/lib/supabase-data-documents';
-import type {
-  CreateClanDocumentInput,
-  DocumentsListFilters,
-  UpdateClanDocumentInput,
-} from '@/types';
+import { getDocuments, getDocumentsByPerson, createDocument, updateDocument, deleteDocument, uploadDocumentFile, deleteDocumentFile } from '@lib';
+import type { CreateClanDocumentInput, DocumentsListFilters, UpdateClanDocumentInput } from '@types';
 
 export const documentKeys = {
   all: ['clan_documents'] as const,

@@ -9,7 +9,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useResettablePage } from '@hooks/use-resettable-page';
+import { useResettablePage } from '@hooks';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';

@@ -5,7 +5,7 @@
  * @version 1.1.0
  */
 
-import type { Person } from '@/types';
+import type { Person } from '@types';
 import type { TreeData } from './supabase-data';
 
 // ─── Types ──────────────────────────────────────────────────────────────────

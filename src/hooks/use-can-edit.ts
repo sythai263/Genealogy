@@ -14,8 +14,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/components/auth/auth-provider';
-import { checkPersonInSubtree } from '@/lib/supabase-data';
+import { useAuth } from '@components/auth';
+import { checkPersonInSubtree } from '@lib';
 
 export function useCanEditPerson(personId: string | undefined) {
   const { profile } = useAuth();

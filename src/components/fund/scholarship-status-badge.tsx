@@ -7,19 +7,13 @@
  */
 
 import { Badge } from '@components/ui';
-import { FUND_SCHOLARSHIP_STATUS_LABELS } from '@constants';
-import { cn } from '@lib/utils';
+import { FUND_SCHOLARSHIP_STATUS_CLASSES, FUND_SCHOLARSHIP_STATUS_LABELS } from '@constants';
+import { cn } from '@lib';
 import type { ScholarshipStatus } from '@types';
 
 interface ScholarshipStatusBadgeProps {
   status: ScholarshipStatus;
 }
-
-const STATUS_CLASSES: Record<ScholarshipStatus, string> = {
-  pending: '',
-  approved: 'bg-blue-100 text-blue-800',
-  paid: 'bg-green-100 text-green-800',
-};
 
 export function ScholarshipStatusBadge({
   status,
@@ -33,7 +27,7 @@ export function ScholarshipStatusBadge({
   }
 
   return (
-    <Badge className={cn('text-xs', STATUS_CLASSES[status])}>
+    <Badge className={cn('text-xs', FUND_SCHOLARSHIP_STATUS_CLASSES[status])}>
       {FUND_SCHOLARSHIP_STATUS_LABELS[status]}
     </Badge>
   );

@@ -8,8 +8,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { generateGedcom } from '@/lib/gedcom-export';
-import type { TreeData } from '@/lib/supabase-data';
+import { generateGedcom, type TreeData } from '@lib';
 
 export async function GET(request: Request) {
   // Desktop mode: export handled client-side via generateGedcom()

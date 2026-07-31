@@ -7,22 +7,16 @@
  */
 
 import Link from 'next/link';
-import { CheckCircle2, Clock, XCircle, type LucideIcon } from 'lucide-react';
 import { Badge } from '@components/ui';
 import {
   CONTRIBUTION_CHANGE_TYPE_LABELS,
+  CONTRIBUTION_STATUS_ICONS,
   CONTRIBUTION_STATUS_LABELS,
   CONTRIBUTION_STATUS_VARIANTS,
   getContributionFieldLabel,
 } from '@constants';
-import { cn } from '@lib/utils';
-import type { Contribution, ContributionStatus, Person } from '@types';
-
-const STATUS_ICONS: Record<ContributionStatus, LucideIcon> = {
-  pending: Clock,
-  approved: CheckCircle2,
-  rejected: XCircle,
-};
+import { cn } from '@lib';
+import type { Contribution, Person } from '@types';
 
 interface ContributionListItemProps {
   contribution: Contribution;
@@ -33,7 +27,7 @@ export function ContributionListItem({
   contribution,
   person,
 }: ContributionListItemProps) {
-  const StatusIcon = STATUS_ICONS[contribution.status];
+  const StatusIcon = CONTRIBUTION_STATUS_ICONS[contribution.status];
 
   return (
     <div className="flex items-start gap-3 rounded-lg border p-4">

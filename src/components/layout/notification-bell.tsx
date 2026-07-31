@@ -10,15 +10,10 @@
 
 import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '@/hooks/use-notifications';
-import { getRelativeTime } from '@/lib/format-utils';
+import { Button, Popover, PopoverContent, PopoverTrigger } from '@components/ui';
+import { useAuth } from '@components/auth';
+import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '@hooks';
+import { getRelativeTime } from '@lib';
 import { NOTIFICATION_FALLBACK_ICON, NOTIFICATION_TYPE_ICONS } from '@constants';
 
 export function NotificationBell() {

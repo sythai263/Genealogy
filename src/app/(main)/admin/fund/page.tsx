@@ -9,32 +9,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import {
-  useFundTransactions, useFundBalance, useCreateFundTransaction, useDeleteFundTransaction,
-  useScholarships, useCreateScholarship, useUpdateScholarshipStatus, useDeleteScholarship,
-} from '@/hooks/use-fund';
-import { usePeople } from '@/hooks/use-people';
-import { useAuth } from '@/components/auth/auth-provider';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useFundTransactions, useFundBalance, useCreateFundTransaction, useDeleteFundTransaction, useScholarships, useCreateScholarship, useUpdateScholarshipStatus, useDeleteScholarship, usePeople } from '@hooks';
+import { useAuth } from '@components/auth';
+import { Card, CardContent, Button, Input, Label, Textarea, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@components/ui';
 import { Plus, Trash2, CheckCircle, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { formatVND } from '@/lib/format';
-import type { Person, CreateFundTransactionInput, CreateScholarshipInput, ScholarshipStatus } from '@/types';
+import { formatVND } from '@lib';
+import type { Person, CreateFundTransactionInput, CreateScholarshipInput, ScholarshipStatus } from '@types';
 
 function getStatusBadge(status: ScholarshipStatus) {
   switch (status) {

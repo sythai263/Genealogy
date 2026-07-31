@@ -8,7 +8,7 @@
 
 'use client';
 
-import { RouteError } from '@/components/shared/route-error';
+import { RouteError } from '@components/shared';
 
 export default function AchievementsError({
   error,

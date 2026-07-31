@@ -9,26 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getCauDuongPools,
-  getCauDuongPool,
-  createCauDuongPool,
-  updateCauDuongPool,
-  getCauDuongAssignmentsWithPeople,
-  createCauDuongAssignment,
-  updateCauDuongAssignment,
-  getEligibleMembersInDFSOrder,
-  getNextHostInRotation,
-  autoAssignNextCeremony,
-  delegateCauDuong,
-  rescheduleCauDuong,
-  completeCauDuong,
-} from '@/lib/supabase-data-cau-duong';
-import type {
-  CauDuongPool,
-  CauDuongAssignment,
-  CauDuongCeremonyType,
-} from '@/types';
+import { getCauDuongPools, getCauDuongPool, createCauDuongPool, updateCauDuongPool, getCauDuongAssignmentsWithPeople, createCauDuongAssignment, updateCauDuongAssignment, getEligibleMembersInDFSOrder, getNextHostInRotation, autoAssignNextCeremony, delegateCauDuong, rescheduleCauDuong, completeCauDuong } from '@lib';
+import type { CauDuongPool, CauDuongAssignment, CauDuongCeremonyType } from '@types';
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 

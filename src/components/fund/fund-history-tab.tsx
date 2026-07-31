@@ -9,7 +9,7 @@
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Card, CardContent } from '@components/ui';
 import { formatVND } from '@lib';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { FundTransaction } from '@types';
 
 interface FundHistoryTabProps {

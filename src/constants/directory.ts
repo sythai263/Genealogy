@@ -6,7 +6,20 @@
  * @updated 2026-07-18
  */
 
-import type { DirectoryGenderFilter, DirectoryStatusFilter } from '@types';
+import type {
+  DirectoryContactDisplay,
+  DirectoryGenderFilter,
+  DirectoryStatusFilter,
+} from '@types';
+
+export const DIRECTORY_MASKED_CONTACT: DirectoryContactDisplay = {
+  phone: null,
+  email: null,
+  address: null,
+  zalo: null,
+  facebook: null,
+  masked: true,
+};
 
 export const DIRECTORY_GENDER_FILTER_OPTIONS: {
   value: DirectoryGenderFilter;

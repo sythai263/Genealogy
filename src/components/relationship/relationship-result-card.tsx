@@ -16,8 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
-import type { RelationshipResult } from '@lib/pathfinding';
-import { cn } from '@lib/utils';
+import { type RelationshipResult, cn } from '@lib';
 
 interface RelationshipResultCardProps {
   result: RelationshipResult;

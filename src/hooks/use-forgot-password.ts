@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { requestPasswordReset } from '@services/auth';
+import { requestPasswordReset } from '@services';
 
 export function useForgotPassword() {
   return useMutation({

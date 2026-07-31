@@ -8,13 +8,12 @@
 
 'use client';
 
-import { useClanSettings } from '@/hooks/use-clan-settings';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useClanSettings } from '@hooks';
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@components/ui';
 import { CLAN_FULL_NAME } from '@lib';
 import { Users, BookOpen, Target } from 'lucide-react';
 import Link from 'next/link';
-import type { CouncilMember } from '@/types';
+import type { CouncilMember } from '@types';
 
 export function CouncilContent() {
   const { data: cs, isLoading } = useClanSettings();

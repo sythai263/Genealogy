@@ -1,14 +1,7 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  createMfaChallenge,
-  getVerifiedTotpFactorId,
-  sendLoginOtp,
-  signOutAuth,
-  verifyLoginOtp,
-  verifyMfaCode,
-} from '@services/auth';
+import { createMfaChallenge, getVerifiedTotpFactorId, sendLoginOtp, signOutAuth, verifyLoginOtp, verifyMfaCode } from '@services';
 
 export function useSendLoginOtp() {
   return useMutation({

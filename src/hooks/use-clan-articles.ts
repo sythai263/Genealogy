@@ -9,14 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getClanArticles,
-  getFeaturedArticles,
-  createClanArticle,
-  updateClanArticle,
-  deleteClanArticle,
-} from '@/lib/supabase-data-charter';
-import type { ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@/types';
+import { getClanArticles, getFeaturedArticles, createClanArticle, updateClanArticle, deleteClanArticle } from '@lib';
+import type { ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@types';
 
 export const clanArticleKeys = {
   all: ['clan-articles'] as const,

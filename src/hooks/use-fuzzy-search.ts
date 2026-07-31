@@ -10,7 +10,7 @@
 
 import { useMemo } from 'react';
 import Fuse, { type IFuseOptions } from 'fuse.js';
-import type { Person } from '@/types';
+import type { Person } from '@types';
 
 const FUSE_OPTIONS: IFuseOptions<Person> = {
   keys: [

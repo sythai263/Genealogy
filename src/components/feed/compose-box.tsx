@@ -10,25 +10,13 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Card, CardContent, Button, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui';
+import { FEED_MAX_CONTENT_LENGTH, FEED_MAX_IMAGES, POST_TYPE_LABELS } from '@constants';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
-import { useCreatePost } from '@/hooks/use-feed';
-import { POST_TYPE_LABELS } from '@constants';
-import type { PostType } from '@/types';
+import { useCreatePost } from '@hooks';
+import { supabase } from '@lib';
+import type { PostType } from '@types';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
-
-const MAX_IMAGES = 5;
-const MAX_CONTENT_LENGTH = 5000;
 
 interface ComposeBoxProps {
   onPostCreated?: () => void;
@@ -46,9 +34,9 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const remaining = MAX_IMAGES - imageUrls.length;
+    const remaining = FEED_MAX_IMAGES - imageUrls.length;
     if (remaining <= 0) {
-      toast.error(`Tối đa ${MAX_IMAGES} ảnh`);
+      toast.error(`Tối đa ${FEED_MAX_IMAGES} ảnh`);
       return;
     }
 
@@ -133,7 +121,7 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           value={content}
           onChange={e => setContent(e.target.value)}
           className="min-h-[80px] resize-none"
-          maxLength={MAX_CONTENT_LENGTH}
+          maxLength={FEED_MAX_CONTENT_LENGTH}
         />
 
         {/* Image previews */}
@@ -176,14 +164,14 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || imageUrls.length >= MAX_IMAGES}
+            disabled={isUploading || imageUrls.length >= FEED_MAX_IMAGES}
           >
             {isUploading ? (
               <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
             ) : (
               <ImagePlus className="h-4 w-4 mr-1.5" />
             )}
-            Ảnh ({imageUrls.length}/{MAX_IMAGES})
+            Ảnh ({imageUrls.length}/{FEED_MAX_IMAGES})
           </Button>
 
           <Select value={postType} onValueChange={v => setPostType(v as PostType)}>
@@ -200,7 +188,7 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           <div className="flex-1" />
 
           <span className="text-xs text-muted-foreground">
-            {content.length}/{MAX_CONTENT_LENGTH}
+            {content.length}/{FEED_MAX_CONTENT_LENGTH}
           </span>
 
           <Button

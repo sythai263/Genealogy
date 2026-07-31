@@ -9,10 +9,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { type Person, getZodiacYear } from '@/types';
+import { Card, CardContent, Avatar, AvatarFallback, AvatarImage, Badge } from '@components/ui';
+import { type Person, getZodiacYear } from '@types';
 import { User, MapPin, Calendar } from 'lucide-react';
 
 interface PersonCardProps {

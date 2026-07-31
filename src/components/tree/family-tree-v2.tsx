@@ -7,21 +7,16 @@
 
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage, Button, Card, CardContent, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from '@components/ui';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useTreeData } from '@/hooks/use-families';
-import { buildTreeLayout } from '@/lib/helper';
-import { getExportWarning } from '@/lib/pdf-export';
-import type { Person } from '@/types';
+  MINIMAP_HEIGHT,
+  MINIMAP_WIDTH,
+  NODE_HEIGHT,
+  NODE_WIDTH,
+} from '@constants';
+import { useTreeData } from '@hooks';
+import { buildTreeLayout, getExportWarning } from '@lib';
+import type { Person } from '@types';
 import {
   ArrowDownFromLine,
   ArrowUpFromLine,
@@ -48,15 +43,6 @@ import React, {
 } from 'react';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { toast } from 'sonner';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Constants
-// ═══════════════════════════════════════════════════════════════════════════
-
-const NODE_WIDTH = 120;
-const NODE_HEIGHT = 80;
-const MINIMAP_WIDTH = 160;
-const MINIMAP_HEIGHT = 100;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types

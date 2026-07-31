@@ -9,63 +9,10 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import {
-  useProfilesPage,
-  useUnverifiedProfilesCount,
-  useUpdateUserRole,
-  useUpdateLinkedPerson,
-  useUpdateEditRootPerson,
-  useSuspendUser,
-  useUnsuspendUser,
-  useDeleteUser,
-  useVerifyUser,
-} from '@/hooks/use-profiles';
-import { useSearchPeople, usePerson } from '@/hooks/use-people';
-import { useAuth } from '@/components/auth/auth-provider';
-import { ListPagination } from '@/components/shared';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useResettablePage, useProfilesPage, useUnverifiedProfilesCount, useUpdateUserRole, useUpdateLinkedPerson, useUpdateEditRootPerson, useSuspendUser, useUnsuspendUser, useDeleteUser, useVerifyUser, useSearchPeople, usePerson } from '@hooks';
+import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, Skeleton, Avatar, AvatarFallback, AvatarImage, Input, Textarea, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Checkbox } from '@components/ui';
 import {
   Users,
   ArrowLeft,
@@ -85,8 +32,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import type { UserRole } from '@/types';
-import type { Person, Profile } from '@/types';
+import type { UserRole, Person, Profile } from '@types';
 import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,

@@ -15,7 +15,7 @@ import { useAuth } from '@components/auth';
 import { Button } from '@components/ui';
 import { useElderly } from '@contexts';
 import { useTreeData } from '@hooks';
-import { downloadGedcom, generateGedcom } from '@lib/gedcom-export';
+import { downloadGedcom, generateGedcom } from '@lib';
 import { ElderlyTreeView } from './elderly-tree-view';
 import { InteractiveTreeSection } from './interactive-tree-section';
 

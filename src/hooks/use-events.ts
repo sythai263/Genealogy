@@ -11,16 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import {
-  getEvents,
-  getEventsForCalendar,
-  getEvent,
-  getEventsByType,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-} from '@/lib/supabase-data';
-import type { Event, EventType, EventsListFilters } from '@/types';
+import { getEvents, getEventsForCalendar, getEvent, getEventsByType, createEvent, updateEvent, deleteEvent } from '@lib';
+import type { Event, EventType, EventsListFilters } from '@types';
 
 export const eventKeys = {
   all: ['events'] as const,

@@ -9,13 +9,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useTreeData } from '@/hooks/use-families';
-import { prepareImport } from '@/lib/gedcom-import';
-import type { ImportSummary } from '@/lib/gedcom-import';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@components/ui';
+import { useAuth } from '@components/auth';
+import { useTreeData } from '@hooks';
+import { prepareImport, type ImportSummary } from '@lib';
 import { Upload, FileText, CheckCircle, AlertCircle, AlertTriangle, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';

@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '@components/ui';
 import { useTreeData } from '@hooks';
-import { calculateDetailedStats } from '@lib/stats-calculator';
+import { calculateDetailedStats } from '@lib';
 import { StatsSummaryCards } from './stats-summary-cards';
 
 // Dynamic import recharts to avoid SSR hydration issues (R-04)

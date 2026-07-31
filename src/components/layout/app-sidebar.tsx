@@ -11,26 +11,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, Avatar, AvatarFallback, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@components/ui';
 import {
   Home,
   GitBranchPlus,
@@ -63,10 +44,11 @@ import {
   Bell,
   Landmark,
 } from 'lucide-react';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useElderly } from '@/contexts/elderly-context';
-import { CLAN_NAME, CLAN_FULL_NAME } from '@/lib/clan-config';
-import { useClanSettings } from '@/hooks/use-clan-settings';
+import { useAuth } from '@components/auth';
+import { ELDERLY_ADMIN_URLS, ELDERLY_NAV_URLS } from '@constants';
+import { useElderly } from '@contexts';
+import { CLAN_NAME, CLAN_FULL_NAME } from '@lib';
+import { useClanSettings } from '@hooks';
 
 function deriveInitial(name: string): string {
   const parts = name.trim().split(' ');
@@ -120,12 +102,6 @@ const adminNavItems = [
   { title: 'Cài đặt', url: '/admin/settings', icon: Settings },
   { title: 'Sao lưu dữ liệu', url: '/admin/backup', icon: DatabaseBackup },
 ];
-
-// Core nav items shown in elderly mode (simplified sidebar)
-const ELDERLY_NAV_URLS = new Set(['/admin', '/tree', '/people', '/events', '/help']);
-
-// Admin items shown in elderly mode (essential only)
-const ELDERLY_ADMIN_URLS = new Set(['/admin', '/admin/users', '/admin/contributions']);
 
 function AdminNavGroup({ pathname, elderlyMode }: { pathname: string; elderlyMode: boolean }) {
   const isAdminPath = pathname.startsWith('/admin');

@@ -10,21 +10,17 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/components/auth/auth-provider';
-import { useDuplicates } from '@/hooks/use-duplicates';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, Skeleton } from '@components/ui';
+import { DUPLICATE_DISMISSED_STORAGE_KEY } from '@constants';
+import { useAuth } from '@components/auth';
+import { useDuplicates } from '@hooks';
 import { Users, ExternalLink, X, AlertTriangle, CheckCircle } from 'lucide-react';
-import type { DuplicatePair } from '@/types';
-
-const DISMISSED_KEY = 'ancestortree_dismissed_duplicates';
+import type { DuplicatePair } from '@types';
 
 function getDismissedPairs(): Set<string> {
   if (typeof window === 'undefined') return new Set();
   try {
-    const stored = localStorage.getItem(DISMISSED_KEY);
+    const stored = localStorage.getItem(DUPLICATE_DISMISSED_STORAGE_KEY);
     return new Set(stored ? JSON.parse(stored) : []);
   } catch {
     return new Set();
@@ -32,7 +28,7 @@ function getDismissedPairs(): Set<string> {
 }
 
 function saveDismissedPairs(pairs: Set<string>) {
-  localStorage.setItem(DISMISSED_KEY, JSON.stringify([...pairs]));
+  localStorage.setItem(DUPLICATE_DISMISSED_STORAGE_KEY, JSON.stringify([...pairs]));
 }
 
 function pairKey(pair: DuplicatePair): string {

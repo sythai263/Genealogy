@@ -6,7 +6,7 @@
  * @updated 2026-03-09
  */
 
-import type { Person, DuplicateScore, DuplicatePair } from '@/types';
+import type { Person, DuplicateScore, DuplicatePair } from '@types';
 import type { TreeData } from './supabase-data';
 
 // ─── Vietnamese Name Utilities ───────────────────────────────────────────────

@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+import { BookOpen, MessageCircle, ScrollText, type LucideIcon } from 'lucide-react';
 import type { ClanArticleCategory } from '@types';
 
 export const CHARTER_CATEGORY_LABELS: Record<ClanArticleCategory, string> = {
@@ -19,6 +20,19 @@ export const CHARTER_CATEGORY_ORDER: ClanArticleCategory[] = [
   'quy_uoc',
   'loi_dan',
 ];
+
+export const CHARTER_CATEGORY_OPTIONS = CHARTER_CATEGORY_ORDER.map(
+  (value) => ({
+    value,
+    label: CHARTER_CATEGORY_LABELS[value],
+  })
+);
+
+export const CHARTER_TAB_ICONS: Record<ClanArticleCategory, LucideIcon> = {
+  gia_huan: BookOpen,
+  quy_uoc: ScrollText,
+  loi_dan: MessageCircle,
+};
 
 export const CHARTER_FEATURED_EXCERPT_LENGTH = 200;
 

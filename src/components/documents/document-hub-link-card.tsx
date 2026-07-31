@@ -16,27 +16,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
-import { cn } from '@lib/utils';
-import type { DocumentsHubLinkConfig } from '@constants';
+import { cn } from '@lib';
+import {
+  DOCUMENT_HUB_ICON_TONE_CLASSES,
+  type DocumentsHubLinkConfig,
+} from '@constants';
 
 interface DocumentHubLinkCardProps {
   config: DocumentsHubLinkConfig;
   icon: LucideIcon;
 }
 
-const ICON_TONE_CLASSES: Record<
-  DocumentsHubLinkConfig['iconTone'],
-  { wrap: string; icon: string }
-> = {
-  purple: { wrap: 'bg-purple-50', icon: 'text-purple-600' },
-  amber: { wrap: 'bg-amber-50', icon: 'text-amber-600' },
-};
-
 export function DocumentHubLinkCard({
   config,
   icon: Icon,
 }: DocumentHubLinkCardProps) {
-  const tone = ICON_TONE_CLASSES[config.iconTone];
+  const tone = DOCUMENT_HUB_ICON_TONE_CLASSES[config.iconTone];
 
   return (
     <Card>

@@ -1,3 +1,4 @@
+export * from './achievements';
 export * from './tree';
 export * from './backup';
 export * from './cau-duong';
@@ -9,9 +10,12 @@ export * from './events';
 export * from './feed';
 export * from './fund';
 export * from './help';
+export * from './layout';
+export * from './media';
 export * from './notifications';
 export * from './pagination';
 export * from './people';
+export * from './registrations';
 export * from './settings';
 export * from './setup';
 export * from './stats';

@@ -10,8 +10,8 @@
 
 import { useMemo } from 'react';
 import { useTreeData } from './use-families';
-import { findDuplicates } from '@/lib/duplicate-detection';
-import type { DuplicatePair } from '@/types';
+import { findDuplicates } from '@lib';
+import type { DuplicatePair } from '@types';
 
 export function useDuplicates() {
   const { data: treeData, isLoading } = useTreeData();

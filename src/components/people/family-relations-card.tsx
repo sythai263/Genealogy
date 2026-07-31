@@ -11,27 +11,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import {
-  usePersonRelations,
-  useCreateSpouseFamily,
-  useAddChildToFamilyMutation,
-} from '@/hooks/use-families';
-import { useSearchPeople, useCreatePerson } from '@/hooks/use-people';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePersonRelations, useCreateSpouseFamily, useAddChildToFamilyMutation, useSearchPeople, useCreatePerson } from '@hooks';
+import { Card, CardContent, CardHeader, CardTitle, Button, Separator, Skeleton, Input, Label, Dialog, DialogContent, DialogHeader, DialogTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui';
 import { Users, Plus, Search, UserPlus } from 'lucide-react';
-import type { Person, PersonRelations } from '@/types';
+import type { Person, PersonRelations } from '@types';
 
 // ─── PersonLink ───────────────────────────────────────────────────────────────
 

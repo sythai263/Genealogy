@@ -8,22 +8,11 @@
 
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
-import { getPaginationRange } from '@constants';
-import type {
-  Post,
-  PostComment,
-  PostLike,
-  PostsListFilters,
-  PaginatedResult,
-  CreatePostInput,
-  UpdatePostInput,
-  CreateCommentInput,
-  PostStatus,
-} from '@/types';
+import { FEED_MAX_IMAGES, getPaginationRange } from '@constants';
+import type { Post, PostComment, PostLike, PostsListFilters, PaginatedResult, CreatePostInput, UpdatePostInput, CreateCommentInput, PostStatus } from '@types';
 
 // Security: allowlist for mass-assignment protection
 const ALLOWED_UPDATE_FIELDS = ['content', 'post_type', 'images', 'status'] as const;
-const MAX_IMAGES = 5;
 
 function isValidImageUrl(url: string): boolean {
   const isSupabase = url.includes('/storage/v1/object/');
@@ -122,7 +111,7 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
   }
 
   // Validate images
-  const images = (input.images || []).slice(0, MAX_IMAGES);
+  const images = (input.images || []).slice(0, FEED_MAX_IMAGES);
   for (const url of images) {
     if (!isValidImageUrl(url)) {
       throw new Error(`Invalid image URL: ${url}`);
@@ -149,7 +138,7 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
 export async function updatePost(id: string, input: UpdatePostInput): Promise<Post> {
   // Validate images if provided
   if (input.images) {
-    const images = input.images.slice(0, MAX_IMAGES);
+    const images = input.images.slice(0, FEED_MAX_IMAGES);
     for (const url of images) {
       if (!isValidImageUrl(url)) {
         throw new Error(`Invalid image URL: ${url}`);

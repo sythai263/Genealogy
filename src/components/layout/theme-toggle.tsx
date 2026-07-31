@@ -10,22 +10,8 @@
 
 import { useSyncExternalStore } from 'react';
 import { useTheme } from 'next-themes';
-import { Monitor, Moon, Sun } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-const THEME_OPTIONS = [
-  { value: 'light', label: 'Sáng', icon: Sun },
-  { value: 'dark', label: 'Tối', icon: Moon },
-  { value: 'system', label: 'Hệ thống', icon: Monitor },
-] as const;
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@components/ui';
+import { THEME_OPTIONS } from '@constants';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

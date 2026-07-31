@@ -9,14 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getMediaByPerson,
-  createMedia,
-  deleteMedia as deleteMediaRecord,
-  setPrimaryMedia,
-} from '@/lib/supabase-data';
-import { uploadFile, deleteFile } from '@/lib/supabase-storage';
-import type { CreateMediaInput } from '@/types';
+import { getMediaByPerson, createMedia, deleteMedia as deleteMediaRecord, setPrimaryMedia, uploadFile, deleteFile } from '@lib';
+import type { CreateMediaInput } from '@types';
 
 export const mediaKeys = {
   all: ['media'] as const,

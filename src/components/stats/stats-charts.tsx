@@ -28,7 +28,7 @@ import {
   STATS_GENDER_COLORS,
   STATS_LIVING_COLORS,
 } from '@constants';
-import type { DetailedStats } from '@lib/stats-calculator';
+import type { DetailedStats } from '@lib';
 
 interface StatsChartsProps {
   stats: DetailedStats;

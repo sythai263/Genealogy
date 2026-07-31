@@ -20,4 +20,11 @@ export const FUND_SCHOLARSHIP_TYPE_LABELS: Record<ScholarshipType, string> = {
   khen_thuong: 'Khen thưởng',
 };
 
+export const FUND_SCHOLARSHIP_STATUS_CLASSES: Record<ScholarshipStatus, string> =
+  {
+    pending: '',
+    approved: 'bg-blue-100 text-blue-800',
+    paid: 'bg-green-100 text-green-800',
+  };
+
 export const FUND_REPORT_CLAN_NAME = 'CHI TỘC ĐẶNG ĐÌNH';

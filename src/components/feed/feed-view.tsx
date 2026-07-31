@@ -9,7 +9,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useResettablePage } from '@hooks/use-resettable-page';
+import { useResettablePage } from '@hooks';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ListPagination } from '@components/shared';

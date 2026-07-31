@@ -9,7 +9,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useResettablePage } from '@hooks/use-resettable-page';
+import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useAuth } from '@components/auth';

@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+import { CheckCircle2, Clock, XCircle, type LucideIcon } from 'lucide-react';
 import type { ChangeType, ContributionStatus } from '@types';
 
 export const CONTRIBUTION_STATUS_LABELS: Record<ContributionStatus, string> = {
@@ -13,6 +14,22 @@ export const CONTRIBUTION_STATUS_LABELS: Record<ContributionStatus, string> = {
   approved: 'Đã duyệt',
   rejected: 'Từ chối',
 };
+
+export const CONTRIBUTION_STATUS_CONFIG: Record<
+  ContributionStatus,
+  { label: string; color: string }
+> = {
+  pending: { label: 'Chờ duyệt', color: 'text-amber-600' },
+  approved: { label: 'Đã duyệt', color: 'text-green-600' },
+  rejected: { label: 'Từ chối', color: 'text-destructive' },
+};
+
+export const CONTRIBUTION_STATUS_ICONS: Record<ContributionStatus, LucideIcon> =
+  {
+    pending: Clock,
+    approved: CheckCircle2,
+    rejected: XCircle,
+  };
 
 export const CONTRIBUTION_STATUS_VARIANTS: Record<
   ContributionStatus,

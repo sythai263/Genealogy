@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useResettablePage } from '@hooks/use-resettable-page';
+import { useResettablePage } from '@hooks';
 import { Search, Star, Trophy } from 'lucide-react';
 import {
   Button,
@@ -14,6 +14,7 @@ import {
 } from '@components/ui';
 import { ListPagination } from '@components/shared';
 import {
+  ACHIEVEMENT_CATEGORIES,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
@@ -24,7 +25,6 @@ import {
 } from '@hooks';
 import type { AchievementCategory, Person } from '@types';
 import { AchievementCard } from './achievement-card';
-import { ACHIEVEMENT_CATEGORIES } from './achievement-category';
 
 export function AchievementsView() {
   const [activeCategory, setActiveCategory] = useState<

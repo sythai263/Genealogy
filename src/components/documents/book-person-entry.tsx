@@ -7,7 +7,7 @@
  */
 
 import { Heart, User, Users } from 'lucide-react';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { BookPerson } from '@types';
 
 interface BookPersonEntryProps {

@@ -9,13 +9,7 @@
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
 import { getPaginationRange } from '@constants';
-import type {
-  Achievement,
-  AchievementsListFilters,
-  CreateAchievementInput,
-  PaginatedResult,
-  UpdateAchievementInput,
-} from '@/types';
+import type { Achievement, AchievementsListFilters, CreateAchievementInput, PaginatedResult, UpdateAchievementInput } from '@types';
 
 export async function getAchievements(
   filters: AchievementsListFilters

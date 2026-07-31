@@ -22,7 +22,7 @@ import {
   FormMessage,
   Input,
 } from '@components/ui';
-import { supabase } from '@lib/supabase';
+import { supabase } from '@lib';
 import {
   changePasswordSchema,
   defaultChangePasswordValues,

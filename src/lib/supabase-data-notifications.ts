@@ -7,7 +7,7 @@
  */
 
 import { supabase } from './supabase';
-import type { Notification } from '@/types';
+import type { Notification } from '@types';
 
 export async function getNotifications(limit = 50): Promise<Notification[]> {
   const { data: { user } } = await supabase.auth.getUser();

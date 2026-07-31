@@ -6,6 +6,17 @@
  * @updated 2026-07-18
  */
 
+import {
+  Archive,
+  BookOpen,
+  File,
+  FileText,
+  Image,
+  Map,
+  PenLine,
+  Video,
+  type LucideIcon,
+} from 'lucide-react';
 import type { DocumentCategory } from '@types';
 
 export const DOCUMENTS_PRIVATE_PRIVACY_LEVEL = 2;
@@ -45,6 +56,44 @@ export interface DocumentsHubLinkConfig {
   actionLabel: string;
   iconTone: 'purple' | 'amber';
 }
+
+export const DOCUMENT_CATEGORY_OPTIONS = DOCUMENT_CATEGORY_ORDER.map(
+  (value) => ({
+    value,
+    label: DOCUMENT_CATEGORY_LABELS[value],
+  })
+);
+
+export const DOCUMENT_CATEGORY_ICONS: Record<DocumentCategory, LucideIcon> = {
+  anh_lich_su: Image,
+  giay_to: FileText,
+  ban_do: Map,
+  video: Video,
+  bai_viet: PenLine,
+  khac: File,
+};
+
+export const DOCUMENT_PRIVACY_BADGE_CLASSES: Record<0 | 1 | 2, string> = {
+  0: 'bg-green-100 text-green-800',
+  1: 'bg-blue-100 text-blue-800',
+  2: 'bg-red-100 text-red-800',
+};
+
+export const DOCUMENT_HUB_ICON_TONE_CLASSES: Record<
+  DocumentsHubLinkConfig['iconTone'],
+  { wrap: string; icon: string }
+> = {
+  purple: { wrap: 'bg-purple-50', icon: 'text-purple-600' },
+  amber: { wrap: 'bg-amber-50', icon: 'text-amber-600' },
+};
+
+export const DOCUMENTS_HUB_LINK_ICONS: Record<
+  DocumentsHubLinkConfig['id'],
+  LucideIcon
+> = {
+  book: BookOpen,
+  library: Archive,
+};
 
 export const DOCUMENTS_HUB_LINKS: DocumentsHubLinkConfig[] = [
   {

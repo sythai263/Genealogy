@@ -12,27 +12,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import os from 'os';
 import fs from 'fs';
-
-/** SEC-CRIT-01: Maximum upload file size (50 MB) */
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
-
-/** SEC-CRIT-02: Allowlist of permitted MIME types for upload */
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/svg+xml',
-  'application/pdf',
-  'video/mp4',
-  'video/webm',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]);
-
-const MEDIA_ROOT = path.join(os.homedir(), 'AncestorTree', 'media');
+import {
+  MEDIA_API_ALLOWED_MIME_TYPES,
+  MEDIA_API_MAX_FILE_SIZE,
+  MEDIA_DESKTOP_ROOT,
+} from '@constants';
 
 /**
  * CTO Obs 4: Web-mode guard — this route ONLY serves in desktop mode.
@@ -49,11 +34,11 @@ function guardDesktopOnly(): NextResponse | null {
 }
 
 /**
- * Path traversal guard — prevents accessing files outside MEDIA_ROOT.
+ * Path traversal guard — prevents accessing files outside MEDIA_DESKTOP_ROOT.
  */
 function resolveSafePath(segments: string[]): string | null {
-  const resolved = path.resolve(MEDIA_ROOT, ...segments);
-  if (!resolved.startsWith(MEDIA_ROOT + path.sep) && resolved !== MEDIA_ROOT) {
+  const resolved = path.resolve(MEDIA_DESKTOP_ROOT, ...segments);
+  if (!resolved.startsWith(MEDIA_DESKTOP_ROOT + path.sep) && resolved !== MEDIA_DESKTOP_ROOT) {
     return null;
   }
   return resolved;
@@ -123,15 +108,15 @@ export async function POST(
   }
 
   // SEC-CRIT-01: Enforce file size limit
-  if (file.size > MAX_FILE_SIZE) {
+  if (file.size > MEDIA_API_MAX_FILE_SIZE) {
     return NextResponse.json(
-      { error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB` },
+      { error: `File too large. Maximum size is ${MEDIA_API_MAX_FILE_SIZE / 1024 / 1024}MB` },
       { status: 413 }
     );
   }
 
   // SEC-CRIT-02: Enforce MIME type allowlist
-  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+  if (!MEDIA_API_ALLOWED_MIME_TYPES.has(file.type)) {
     return NextResponse.json(
       { error: `File type '${file.type}' is not allowed` },
       { status: 415 }

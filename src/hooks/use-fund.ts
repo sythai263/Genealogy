@@ -9,17 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getFundTransactions,
-  getFundBalance,
-  createFundTransaction,
-  deleteFundTransaction,
-  getScholarships,
-  createScholarship,
-  updateScholarshipStatus,
-  deleteScholarship,
-} from '@/lib/supabase-data-fund';
-import type { CreateFundTransactionInput, CreateScholarshipInput, ScholarshipStatus } from '@/types';
+import { getFundTransactions, getFundBalance, createFundTransaction, deleteFundTransaction, getScholarships, createScholarship, updateScholarshipStatus, deleteScholarship } from '@lib';
+import type { CreateFundTransactionInput, CreateScholarshipInput, ScholarshipStatus } from '@types';
 
 export const fundKeys = {
   all: ['fund'] as const,

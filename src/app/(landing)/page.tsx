@@ -6,9 +6,7 @@
  * @updated 2026-07-28
  */
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@components/ui';
 import { CLAN_FULL_NAME, CLAN_NAME } from '@lib';
 import {
   Award,

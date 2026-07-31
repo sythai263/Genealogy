@@ -25,7 +25,7 @@ import {
   Card,
   CardContent,
 } from '@components/ui';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { Person } from '@types';
 import { AvatarUpload } from './avatar-upload';
 

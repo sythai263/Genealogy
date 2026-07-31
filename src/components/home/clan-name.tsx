@@ -11,8 +11,8 @@
 
 'use client';
 
-import { useClanSettings } from '@/hooks/use-clan-settings';
-import { CLAN_FULL_NAME } from '@/lib/clan-config';
+import { useClanSettings } from '@hooks';
+import { CLAN_FULL_NAME } from '@lib';
 
 /** Renders the dynamic clan full name; falls back to env var while loading. */
 export function ClanFullName() {

@@ -9,12 +9,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@components/ui';
 import { Camera, Loader2, User } from 'lucide-react';
-import { uploadFile } from '@/lib/supabase-storage';
-import { useUpdatePerson } from '@/hooks/use-people';
+import { uploadFile } from '@lib';
+import { useUpdatePerson } from '@hooks';
 import { toast } from 'sonner';
-import type { Person } from '@/types';
+import type { Person } from '@types';
 
 interface AvatarUploadProps {
   person: Person;

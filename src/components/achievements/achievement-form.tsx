@@ -24,8 +24,8 @@ import {
   defaultAchievementValues,
   type AchievementFormData,
 } from '@schemas';
+import { ACHIEVEMENT_FORM_CATEGORIES } from '@constants';
 import type { Achievement, Person } from '@types';
-import { ACHIEVEMENT_FORM_CATEGORIES } from './achievement-category';
 
 interface AchievementFormProps {
   achievement?: Achievement;

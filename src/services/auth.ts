@@ -1,4 +1,4 @@
-import { supabase } from '@lib/supabase';
+import { supabase } from '@lib';
 
 export class AuthServiceError extends Error {
   readonly status: number | undefined;

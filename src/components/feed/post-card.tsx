@@ -10,32 +10,13 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Card, CardContent, Button, Badge, Avatar, AvatarFallback, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@components/ui';
 import { Heart, MoreHorizontal, Trash2, EyeOff, Eye } from 'lucide-react';
-import { useDeletePost, useHidePost, useToggleLike } from '@/hooks/use-feed';
+import { useDeletePost, useHidePost, useToggleLike } from '@hooks';
 import { CommentsSection } from './comments-section';
 import { POST_TYPE_LABELS } from '@constants';
-import type { Post, Profile } from '@/types';
-import { getRelativeTime, getInitials } from '@/lib/format-utils';
+import type { Post, Profile } from '@types';
+import { getRelativeTime, getInitials } from '@lib';
 import { toast } from 'sonner';
 
 interface PostCardProps {

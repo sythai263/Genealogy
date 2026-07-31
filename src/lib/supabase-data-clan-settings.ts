@@ -7,7 +7,7 @@
  */
 
 import { supabase } from './supabase';
-import type { ClanSettings, UpdateClanSettingsInput } from '@/types';
+import type { ClanSettings, UpdateClanSettingsInput } from '@types';
 
 /**
  * Get the clan settings (singleton row).

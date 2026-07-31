@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useResettablePage } from '@hooks/use-resettable-page';
+import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Pencil, Plus, Star, Trash2, Trophy } from 'lucide-react';
@@ -28,6 +28,7 @@ import {
   Input,
 } from '@components/ui';
 import {
+  getAchievementCategoryLabel,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
@@ -41,7 +42,6 @@ import {
 import type { AchievementFormData } from '@schemas';
 import type { Achievement, CreateAchievementInput, Person } from '@types';
 import { AchievementForm } from './achievement-form';
-import { getAchievementCategoryLabel } from './achievement-category';
 
 function toCreateInput(data: AchievementFormData): CreateAchievementInput {
   return {

@@ -39,33 +39,20 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage, Badge, Button, Card, CardContent, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from '@components/ui';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useTreeData } from "@/hooks/use-families";
-import { getExportWarning } from "@/lib/pdf-export";
-import type { TreeData } from "@/lib/supabase-data";
-import { cn } from "@/lib/utils";
-import type { Person } from "@/types";
-
-const NODE_WIDTH = 120;
-const NODE_HEIGHT = 80;
-const LEVEL_HEIGHT = 140;
-const SIBLING_GAP = 20;
-const BRANCH_GAP = 60;
-const MINIMAP_WIDTH = 160;
-const MINIMAP_HEIGHT = 100;
-const COUPLE_GAP = 16;
+  BRANCH_GAP,
+  COUPLE_GAP,
+  LEVEL_HEIGHT,
+  MINIMAP_HEIGHT,
+  MINIMAP_WIDTH,
+  NODE_HEIGHT,
+  NODE_WIDTH,
+  SIBLING_GAP,
+} from '@constants';
+import { useTreeData } from '@hooks';
+import { getExportWarning, type TreeData, cn } from '@lib';
+import type { Person } from '@types';
 
 type ViewMode = "all" | "ancestors" | "descendants";
 

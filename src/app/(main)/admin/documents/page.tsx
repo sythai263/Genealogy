@@ -9,43 +9,20 @@
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import { useDocuments, useCreateDocument, useUpdateDocument, useDeleteDocument, useUploadDocumentFile } from '@/hooks/use-documents';
-import { usePeople } from '@/hooks/use-people';
-import { ListPagination } from '@/components/shared';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useResettablePage, useDocuments, useCreateDocument, useUpdateDocument, useDeleteDocument, useUploadDocumentFile, usePeople } from '@hooks';
+import { ListPagination } from '@components/shared';
+import { Card, CardContent, Button, Input, Label, Textarea, Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@components/ui';
 import { Plus, Pencil, Trash2, Archive, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/components/auth/auth-provider';
+import { useAuth } from '@components/auth';
 import Link from 'next/link';
-import type { ClanDocument, DocumentCategory, CreateClanDocumentInput, Person } from '@/types';
+import type { ClanDocument, DocumentCategory, CreateClanDocumentInput, Person } from '@types';
 import {
   DOCUMENT_CATEGORY_LABELS,
+  DOCUMENT_CATEGORY_OPTIONS,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-
-const CATEGORY_OPTIONS: { value: DocumentCategory; label: string }[] = [
-  { value: 'anh_lich_su', label: 'Ảnh lịch sử' },
-  { value: 'giay_to', label: 'Giấy tờ' },
-  { value: 'ban_do', label: 'Bản đồ' },
-  { value: 'video', label: 'Video' },
-  { value: 'bai_viet', label: 'Bài viết' },
-  { value: 'khac', label: 'Khác' },
-];
 
 function formatFileSize(bytes?: number): string {
   if (!bytes) return '';
@@ -127,7 +104,7 @@ function DocumentForm({
           <Select value={category} onValueChange={v => setCategory(v as DocumentCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {CATEGORY_OPTIONS.map(opt => (
+              {DOCUMENT_CATEGORY_OPTIONS.map(opt => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>

@@ -38,7 +38,7 @@ import {
   EVENT_TYPE_ORDER,
   isEventType,
 } from '@constants';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { Event, Person } from '@types';
 
 interface EventsListPanelProps {

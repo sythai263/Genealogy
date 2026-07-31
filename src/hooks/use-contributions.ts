@@ -9,20 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getContributions,
-  getPendingContributionsCount,
-  getContribution,
-  createContribution,
-  reviewContribution,
-  getContributionsByPerson,
-  deleteContribution,
-} from '@/lib/supabase-data';
-import type {
-  Contribution,
-  ContributionsListFilters,
-  JsonObject,
-} from '@/types';
+import { getContributions, getPendingContributionsCount, getContribution, createContribution, reviewContribution, getContributionsByPerson, deleteContribution } from '@lib';
+import type { Contribution, ContributionsListFilters, JsonObject } from '@types';
 
 export const contributionKeys = {
   all: ['contributions'] as const,

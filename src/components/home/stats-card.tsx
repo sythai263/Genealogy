@@ -8,9 +8,8 @@
 
 'use client';
 
-import { useStats } from '@/hooks/use-people';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useStats } from '@hooks';
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@components/ui';
 
 export function StatsCard() {
   const { data: stats, isLoading } = useStats();

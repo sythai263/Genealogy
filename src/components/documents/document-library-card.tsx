@@ -6,41 +6,18 @@
  * @updated 2026-07-18
  */
 
-import {
-  Download,
-  ExternalLink,
-  File,
-  FileText,
-  Image,
-  Map,
-  PenLine,
-  Video,
-  type LucideIcon,
-} from 'lucide-react';
+import { Download, ExternalLink, File } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
 import {
+  DOCUMENT_CATEGORY_ICONS,
   DOCUMENT_CATEGORY_LABELS,
+  DOCUMENT_PRIVACY_BADGE_CLASSES,
   DOCUMENT_PRIVACY_LABELS,
   formatDocumentFileSize,
   isDocumentImageUrl,
 } from '@constants';
-import { cn } from '@lib/utils';
-import type { ClanDocument, DocumentCategory } from '@types';
-
-const CATEGORY_ICONS: Record<DocumentCategory, LucideIcon> = {
-  anh_lich_su: Image,
-  giay_to: FileText,
-  ban_do: Map,
-  video: Video,
-  bai_viet: PenLine,
-  khac: File,
-};
-
-const PRIVACY_BADGE_CLASSES: Record<0 | 1 | 2, string> = {
-  0: 'bg-green-100 text-green-800',
-  1: 'bg-blue-100 text-blue-800',
-  2: 'bg-red-100 text-red-800',
-};
+import { cn } from '@lib';
+import type { ClanDocument } from '@types';
 
 function resolvePrivacyLevel(level: number): 0 | 1 | 2 | null {
   if (level === 0 || level === 1 || level === 2) return level;
@@ -56,7 +33,7 @@ export function DocumentLibraryCard({
   document,
   personName,
 }: DocumentLibraryCardProps) {
-  const Icon = CATEGORY_ICONS[document.category] || File;
+  const Icon = DOCUMENT_CATEGORY_ICONS[document.category] || File;
   const isImage = isDocumentImageUrl(document.file_url, document.file_type);
   const privacyLevel = resolvePrivacyLevel(document.privacy_level);
 
@@ -86,7 +63,7 @@ export function DocumentLibraryCard({
             </Badge>
             {privacyLevel !== null && (
               <Badge
-                className={cn('text-xs', PRIVACY_BADGE_CLASSES[privacyLevel])}
+                className={cn('text-xs', DOCUMENT_PRIVACY_BADGE_CLASSES[privacyLevel])}
               >
                 {DOCUMENT_PRIVACY_LABELS[privacyLevel]}
               </Badge>

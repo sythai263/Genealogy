@@ -22,7 +22,7 @@ import {
   NOTIFICATION_TYPE_LABELS,
 } from '@constants';
 import { getRelativeTime } from '@lib';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { Notification } from '@types';
 
 interface NotificationListItemProps {

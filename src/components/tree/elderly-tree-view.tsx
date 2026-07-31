@@ -10,11 +10,9 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useTreeData } from '@/hooks/use-families';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Person } from '@/types';
+import { useTreeData } from '@hooks';
+import { Card, CardContent, Badge, Skeleton } from '@components/ui';
+import type { Person } from '@types';
 
 interface GenerationGroup {
   generation: number;

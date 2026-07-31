@@ -11,27 +11,9 @@
 
 import AdmZip from 'adm-zip';
 import { NextRequest, NextResponse } from 'next/server';
-
-/** All tables exported (profiles skipped — CTO Obs 3: UUID remapping) */
-const EXPORT_TABLES = [
-  'people',
-  'families',
-  'children',
-  'contributions',
-  'events',
-  'media',
-  'achievements',
-  'fund_transactions',
-  'scholarships',
-  'clan_articles',
-  'cau_duong_pools',
-  'cau_duong_assignments',
-  'clan_documents',
-] as const;
+import { APP_VERSION, BACKUP_EXPORT_TABLES } from '@constants';
 
 type IncludeMedia = 'skip' | 'reference' | 'inline';
-
-const APP_VERSION = process.env.npm_package_version || '2.2.1';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +35,7 @@ export async function POST(request: NextRequest) {
       mode: isDesktop ? 'desktop' : 'web',
       include_media: includeMedia,
       row_counts: Object.fromEntries(
-        EXPORT_TABLES.map(t => [t, exportedData[t].length])
+        BACKUP_EXPORT_TABLES.map(t => [t, exportedData[t].length])
       ),
       tables: exportedData,
     };

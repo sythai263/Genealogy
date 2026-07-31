@@ -32,9 +32,7 @@ import {
 } from '@components/ui';
 import { PROFILE_ROLE_LABELS } from '@constants';
 import { useUpdateProfile } from '@hooks';
-import { getInitials } from '@lib/format-utils';
-import { supabase } from '@lib/supabase';
-import { cn } from '@lib/utils';
+import { getInitials, supabase, cn } from '@lib';
 import {
   profileFormSchema,
   type ProfileFormData,

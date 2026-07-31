@@ -11,28 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import {
-  getPosts,
-  getPostsCount,
-  getPost,
-  createPost,
-  updatePost,
-  deletePost,
-  hidePost,
-  unhidePost,
-  getPostComments,
-  createComment,
-  deleteComment,
-  toggleLike,
-  getUserLikedPosts,
-} from '@/lib/supabase-data-feed';
-import type {
-  PostsListFilters,
-  CreatePostInput,
-  UpdatePostInput,
-  CreateCommentInput,
-  PostStatus,
-} from '@/types';
+import { getPosts, getPostsCount, getPost, createPost, updatePost, deletePost, hidePost, unhidePost, getPostComments, createComment, deleteComment, toggleLike, getUserLikedPosts } from '@lib';
+import type { PostsListFilters, CreatePostInput, UpdatePostInput, CreateCommentInput, PostStatus } from '@types';
 
 export const postKeys = {
   all: ['posts'] as const,

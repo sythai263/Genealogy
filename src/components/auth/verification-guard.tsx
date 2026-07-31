@@ -10,7 +10,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/components/auth/auth-provider';
+import { useAuth } from './auth-provider';
 
 export function VerificationGuard({ children }: { children: React.ReactNode }) {
   const { user, profile, isVerified, isLoading } = useAuth();

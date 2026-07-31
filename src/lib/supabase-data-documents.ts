@@ -9,13 +9,7 @@
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
 import { getPaginationRange } from '@constants';
-import type {
-  ClanDocument,
-  CreateClanDocumentInput,
-  DocumentsListFilters,
-  PaginatedResult,
-  UpdateClanDocumentInput,
-} from '@/types';
+import type { ClanDocument, CreateClanDocumentInput, DocumentsListFilters, PaginatedResult, UpdateClanDocumentInput } from '@types';
 
 export async function getDocuments(
   filters: DocumentsListFilters

@@ -6,12 +6,15 @@
  * @updated 2026-07-19
  */
 
-export const NODE_WIDTH = 100;
-export const NODE_HEIGHT = 64;
-export const LEVEL_HEIGHT = 80;
-export const SIBLING_GAP = 12;
-export const BRANCH_GAP = 30;
-export const COUPLE_GAP = 12;
+export const NODE_WIDTH = 120;
+export const NODE_HEIGHT = 80;
+export const LEVEL_HEIGHT = 140;
+export const SIBLING_GAP = 20;
+export const BRANCH_GAP = 60;
+export const COUPLE_GAP = 16;
+
+export const MINIMAP_WIDTH = 160;
+export const MINIMAP_HEIGHT = 100;
 
 /** Sibling spacing along Y for horizontal (LTR) tree nodeSize[0] */
 export const TREE_NODE_SIZE_Y = NODE_HEIGHT + 24;

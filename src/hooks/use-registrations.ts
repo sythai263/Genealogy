@@ -11,15 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import {
-  getRegistrations,
-  getPendingRegistrationCount,
-  submitRegistration,
-  approveRegistration,
-  rejectRegistration,
-  deleteRegistration,
-} from '@/lib/supabase-data-registrations';
-import type { CreateRegistrationInput, RegistrationsListFilters } from '@/types';
+import { getRegistrations, getPendingRegistrationCount, submitRegistration, approveRegistration, rejectRegistration, deleteRegistration } from '@lib';
+import type { CreateRegistrationInput, RegistrationsListFilters } from '@types';
 
 export const registrationKeys = {
   all: ['registrations'] as const,

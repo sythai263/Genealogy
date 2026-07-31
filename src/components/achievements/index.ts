@@ -1,4 +1,3 @@
-export * from './achievement-category';
 export * from './achievement-card';
 export * from './achievement-form';
 export * from './achievements-view';

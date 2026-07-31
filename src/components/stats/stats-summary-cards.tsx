@@ -8,7 +8,7 @@
 
 import { Heart, Layers, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui';
-import type { DetailedStats } from '@lib/stats-calculator';
+import type { DetailedStats } from '@lib';
 
 interface StatsSummaryCardsProps {
   stats: DetailedStats;

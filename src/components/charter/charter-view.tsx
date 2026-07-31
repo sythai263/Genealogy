@@ -9,7 +9,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, MessageCircle, ScrollText, type LucideIcon } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -25,17 +25,12 @@ import {
 import {
   CHARTER_CATEGORY_LABELS,
   CHARTER_CATEGORY_ORDER,
+  CHARTER_TAB_ICONS,
   isClanArticleCategory,
 } from '@constants';
 import { useClanArticles } from '@hooks';
 import type { ClanArticleCategory } from '@types';
 import { ArticleList } from './article-list';
-
-const CHARTER_TAB_ICONS: Record<ClanArticleCategory, LucideIcon> = {
-  gia_huan: BookOpen,
-  quy_uoc: ScrollText,
-  loi_dan: MessageCircle,
-};
 
 export function CharterView() {
   const [activeTab, setActiveTab] = useState<ClanArticleCategory>('gia_huan');

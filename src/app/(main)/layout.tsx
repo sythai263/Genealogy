@@ -6,15 +6,10 @@
  * @updated 2026-03-09
  */
 
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/layout/app-sidebar';
-import { HeaderUser } from '@/components/layout/header-user';
-import { NotificationBell } from '@/components/layout/notification-bell';
-import { ElderlyToggle } from '@/components/layout/elderly-toggle';
-import { ThemeToggle } from '@/components/layout/theme-toggle';
-import { Separator } from '@/components/ui/separator';
-import { VerificationGuard } from '@/components/auth/verification-guard';
-import { ElderlyProvider } from '@/contexts/elderly-context';
+import { AppSidebar, HeaderUser, NotificationBell, ElderlyToggle, ThemeToggle } from '@components/layout';
+import { SidebarProvider, SidebarInset, SidebarTrigger, Separator } from '@components/ui';
+import { VerificationGuard } from '@components/auth';
+import { ElderlyProvider } from '@contexts';
 
 
 export default function MainLayout({

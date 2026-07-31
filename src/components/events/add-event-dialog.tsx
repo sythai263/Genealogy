@@ -13,24 +13,10 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useCreateEvent } from "@/hooks/use-events";
-import { useSearchPeople } from "@/hooks/use-people";
-import { parseLunarString } from "@/lib/lunar-calendar";
-import { cn } from "@/lib/utils";
-import type { EventType, Person } from "@/types";
+import { Button, Checkbox, DialogFooter, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from '@components/ui';
+import { useCreateEvent, useSearchPeople } from '@hooks';
+import { parseLunarString, cn } from '@lib';
+import type { EventType, Person } from '@types';
 
 interface AddEventDialogProps {
   onClose: () => void;

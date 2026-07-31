@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { signUpAuth } from '@services/auth';
+import { signUpAuth } from '@services';
 
 interface SignUpInput {
   email: string;

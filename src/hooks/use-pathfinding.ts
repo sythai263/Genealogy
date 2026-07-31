@@ -8,8 +8,7 @@
 
 import { useMemo } from 'react';
 import { useTreeData } from './use-families';
-import { findRelationship } from '@/lib/pathfinding';
-import type { RelationshipResult } from '@/lib/pathfinding';
+import { findRelationship, type RelationshipResult } from '@lib';
 
 export function useRelationship(
   personAId: string | null,

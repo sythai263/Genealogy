@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { EyeOff, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
 import { Badge, TableCell, TableRow } from '@components/ui';
 import { DIRECTORY_GENDER_LABELS } from '@constants';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
 import type { DirectoryContactDisplay, Person } from '@types';
 
 interface DirectoryTableRowProps {

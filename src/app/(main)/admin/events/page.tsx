@@ -9,42 +9,23 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/hooks/use-events';
-import { usePeople } from '@/hooks/use-people';
-import { useSearchPeople } from '@/hooks/use-people';
-import { parseLunarString } from '@/lib/lunar-calendar';
+import { useResettablePage, useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, usePeople, useSearchPeople } from '@hooks';
+import { parseLunarString } from '@lib';
 import {
-  EVENT_TYPE_META as EVENT_TYPE_LABELS,
+  EVENT_TYPE_META,
+  EVENT_TYPE_OPTIONS,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-import { ListPagination } from '@/components/shared';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { ListPagination } from '@components/shared';
+import { Card, CardContent, Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@components/ui';
 import { Plus, Pencil, Trash2, Calendar, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/components/auth/auth-provider';
+import { useAuth } from '@components/auth';
 import Link from 'next/link';
-import type { Event, EventType, Person } from '@/types';
+import type { Event, EventType, Person } from '@types';
 
 type CreateEventInput = Omit<Event, 'id' | 'created_at'>;
-
-const EVENT_TYPE_OPTIONS = Object.entries(EVENT_TYPE_LABELS).map(([value, { label }]) => ({
-  value: value as EventType,
-  label,
-}));
 
 function EventForm({
   event,
@@ -401,7 +382,7 @@ export default function AdminEventsPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             {items.map(ev => {
-              const typeInfo = EVENT_TYPE_LABELS[ev.event_type];
+              const typeInfo = EVENT_TYPE_META[ev.event_type];
               const TypeIcon = typeInfo.icon;
               const person = ev.person_id ? peopleMap.get(ev.person_id) : undefined;
               return (

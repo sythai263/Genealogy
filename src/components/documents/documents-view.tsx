@@ -8,15 +8,9 @@
 
 'use client';
 
-import { Archive, BookOpen, type LucideIcon } from 'lucide-react';
-import { DOCUMENTS_HUB_LINKS } from '@constants';
+import { DOCUMENTS_HUB_LINK_ICONS, DOCUMENTS_HUB_LINKS } from '@constants';
 import { DocumentHubLinkCard } from './document-hub-link-card';
 import { GedcomExportCard } from './gedcom-export-card';
-
-const HUB_LINK_ICONS: Record<(typeof DOCUMENTS_HUB_LINKS)[number]['id'], LucideIcon> = {
-  book: BookOpen,
-  library: Archive,
-};
 
 export function DocumentsView() {
   return (
@@ -34,7 +28,7 @@ export function DocumentsView() {
           <DocumentHubLinkCard
             key={link.id}
             config={link}
-            icon={HUB_LINK_ICONS[link.id]}
+            icon={DOCUMENTS_HUB_LINK_ICONS[link.id]}
           />
         ))}
       </div>

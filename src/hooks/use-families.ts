@@ -9,19 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getFamilies,
-  getFamily,
-  getFamilyChildren,
-  createFamily,
-  addChildToFamily,
-  removeChildFromFamily,
-  getTreeData,
-  getPersonRelations,
-  addPersonToParentFamily,
-  createSpouseFamily,
-} from '@/lib/supabase-data';
-import type { Family } from '@/types';
+import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily } from '@lib';
+import type { Family } from '@types';
 
 // Query keys
 export const familyKeys = {

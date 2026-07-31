@@ -12,7 +12,7 @@
 
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
-import { createServiceRoleClient } from '@/lib/supabase';
+import { createServiceRoleClient } from '@lib';
 
 /**
  * Permanently delete a user account from Supabase Auth.

@@ -9,9 +9,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { parseLunarString, getNextLunarOccurrence, solarToLunar } from '@/lib/lunar-calendar';
+import { parseLunarString, getNextLunarOccurrence, solarToLunar } from '@lib';
 import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
-import type { Event, Person } from '@/types';
+import type { Event, Person } from '@types';
 
 interface CalendarGridProps {
   month: number;

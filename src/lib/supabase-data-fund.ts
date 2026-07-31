@@ -7,10 +7,7 @@
  */
 
 import { supabase } from './supabase';
-import type {
-  FundTransaction, CreateFundTransactionInput, FundBalance,
-  Scholarship, CreateScholarshipInput, ScholarshipStatus,
-} from '@/types';
+import type { FundTransaction, CreateFundTransactionInput, FundBalance, Scholarship, CreateScholarshipInput, ScholarshipStatus } from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Fund Transactions

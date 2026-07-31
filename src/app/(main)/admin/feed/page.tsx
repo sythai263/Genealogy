@@ -9,34 +9,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useResettablePage } from '@/hooks/use-resettable-page';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Input, Avatar, AvatarFallback, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@components/ui';
 import { Eye, EyeOff, Trash2, Search, Shield, Loader2 } from 'lucide-react';
-import { useAuth } from '@/components/auth/auth-provider';
-import { usePosts, usePostsCount, useDeletePost, useHidePost } from '@/hooks/use-feed';
-import { useProfiles } from '@/hooks/use-profiles';
-import { ListPagination } from '@/components/shared';
+import { useAuth } from '@components/auth';
+import { useResettablePage, usePosts, usePostsCount, useDeletePost, useHidePost, useProfiles } from '@hooks';
+import { ListPagination } from '@components/shared';
 import {
   LIST_DEFAULT_PAGE_SIZE,
   POST_TYPE_LABELS,
   type ListPageSize,
 } from '@constants';
-import type { Post, Profile } from '@/types';
-import { getInitials } from '@/lib/format-utils';
+import type { Post, Profile } from '@types';
+import { getInitials } from '@lib';
 import { toast } from 'sonner';
 import Link from 'next/link';
 

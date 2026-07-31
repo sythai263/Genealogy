@@ -10,14 +10,7 @@
  */
 
 import { supabase } from './supabase';
-import type {
-  CauDuongPool,
-  CauDuongAssignment,
-  CauDuongAssignmentWithPeople,
-  CauDuongEligibleMember,
-  CauDuongCeremonyType,
-  Person,
-} from '@/types';
+import type { CauDuongPool, CauDuongAssignment, CauDuongAssignmentWithPeople, CauDuongEligibleMember, CauDuongCeremonyType, Person } from '@types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

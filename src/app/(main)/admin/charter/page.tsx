@@ -9,32 +9,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useClanArticles, useCreateClanArticle, useUpdateClanArticle, useDeleteClanArticle } from '@/hooks/use-clan-articles';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useClanArticles, useCreateClanArticle, useUpdateClanArticle, useDeleteClanArticle } from '@hooks';
+import { CHARTER_CATEGORY_OPTIONS } from '@constants';
+import { Card, CardContent, Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@components/ui';
 import { Plus, Pencil, Trash2, ScrollText, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/components/auth/auth-provider';
+import { useAuth } from '@components/auth';
 import Link from 'next/link';
-import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput } from '@/types';
-
-const CATEGORY_OPTIONS: { value: ClanArticleCategory; label: string }[] = [
-  { value: 'gia_huan', label: 'Gia huấn' },
-  { value: 'quy_uoc', label: 'Quy ước' },
-  { value: 'loi_dan', label: 'Lời dặn con cháu' },
-];
+import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput } from '@types';
 
 function ArticleForm({
   article,
@@ -78,7 +60,7 @@ function ArticleForm({
           <Select value={category} onValueChange={v => setCategory(v as ClanArticleCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {CATEGORY_OPTIONS.map(opt => (
+              {CHARTER_CATEGORY_OPTIONS.map(opt => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
@@ -190,7 +172,7 @@ export default function AdminCharterPage() {
         <Button variant={filterCat === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setFilterCat('all')}>
           Tất cả
         </Button>
-        {CATEGORY_OPTIONS.map(opt => (
+        {CHARTER_CATEGORY_OPTIONS.map(opt => (
           <Button
             key={opt.value}
             variant={filterCat === opt.value ? 'default' : 'outline'}
@@ -223,7 +205,7 @@ export default function AdminCharterPage() {
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{a.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {CATEGORY_OPTIONS.find(c => c.value === a.category)?.label} · Thứ tự: {a.sort_order}
+                      {CHARTER_CATEGORY_OPTIONS.find(c => c.value === a.category)?.label} · Thứ tự: {a.sort_order}
                     </p>
                   </div>
                 </div>

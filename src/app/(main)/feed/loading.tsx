@@ -6,7 +6,7 @@
  * @updated 2026-03-09
  */
 
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@components/ui';
 
 export default function FeedLoading() {
   return (

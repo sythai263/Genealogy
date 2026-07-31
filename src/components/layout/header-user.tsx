@@ -10,15 +10,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/components/auth/auth-provider';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@components/auth';
+import { Avatar, AvatarFallback, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@components/ui';
 import { UserCircle, ShieldCheck, LogOut } from 'lucide-react';
 
 function getInitials(name?: string | null, email?: string | null): string {

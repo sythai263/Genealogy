@@ -8,7 +8,7 @@
 
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import type { Person, Family, ClanSettings } from '@/types';
+import type { Person, Family, ClanSettings } from '@types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

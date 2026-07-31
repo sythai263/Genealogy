@@ -7,7 +7,7 @@
  */
 
 import type { TreeData } from './supabase-data';
-import type { Person, Family } from '@/types';
+import type { Person, Family } from '@types';
 
 const GEDCOM_MONTHS = [
   'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
