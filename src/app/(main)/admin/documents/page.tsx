@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { useResettablePage } from '@/hooks/use-resettable-page';
 import { useDocuments, useCreateDocument, useUpdateDocument, useDeleteDocument, useUploadDocumentFile } from '@/hooks/use-documents';
 import { usePeople } from '@/hooks/use-people';
 import { ListPagination } from '@/components/shared';
@@ -176,8 +177,8 @@ export default function AdminDocumentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ClanDocument | undefined>();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${search}|${pageSize}`);
 
   const { data, isLoading } = useDocuments({
     search: search || undefined,
@@ -198,10 +199,6 @@ export default function AdminDocumentsPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, pageSize]);
 
   if (!isEditor) {
     return (

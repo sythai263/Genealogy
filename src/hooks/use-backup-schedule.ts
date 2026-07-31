@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { BACKUP_INTERVAL_LABELS } from '@constants';
 import type { BackupInterval, BackupSchedule } from '@types';
 
@@ -62,12 +62,9 @@ function nextDueDate(schedule: BackupSchedule): Date | null {
 }
 
 export function useBackupSchedule() {
-  const [schedule, setScheduleState] =
-    useState<BackupSchedule>(DEFAULT_SCHEDULE);
-
-  useEffect(() => {
-    setScheduleState(loadFromStorage());
-  }, []);
+  const [schedule, setScheduleState] = useState<BackupSchedule>(() =>
+    loadFromStorage()
+  );
 
   const setSchedule = useCallback((updates: Partial<BackupSchedule>) => {
     setScheduleState((prev) => {

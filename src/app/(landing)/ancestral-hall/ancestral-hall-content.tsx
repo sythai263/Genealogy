@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CLAN_FULL_NAME } from '@lib';
 import { Landmark, ImageIcon, Calendar, MapPin, BookOpen } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { CeremonyScheduleItem } from '@/types';
 
@@ -59,9 +60,16 @@ export function AncestralHallContent() {
               <button
                 key={i}
                 onClick={() => setSelectedImage(url)}
-                className="aspect-[4/3] rounded-lg overflow-hidden border hover:opacity-90 transition-opacity"
+                className="relative aspect-[4/3] rounded-lg overflow-hidden border hover:opacity-90 transition-opacity"
               >
-                <img src={url} alt={`Nhà thờ họ ${i + 1}`} className="w-full h-full object-cover" />
+                <Image
+                  src={url}
+                  alt={`Nhà thờ họ ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                  unoptimized
+                />
               </button>
             ))}
           </div>
@@ -74,10 +82,13 @@ export function AncestralHallContent() {
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <img
+          <Image
             src={selectedImage}
             alt="Nhà thờ họ"
-            className="max-w-full max-h-[85vh] rounded-lg"
+            width={1200}
+            height={900}
+            className="max-w-full max-h-[85vh] w-auto h-auto rounded-lg"
+            unoptimized
             onClick={e => e.stopPropagation()}
           />
         </div>

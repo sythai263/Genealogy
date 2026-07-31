@@ -7,7 +7,7 @@
  */
 
 import type { TreeData } from './supabase-data';
-import type { BookBranch, BookChapter, BookPerson, Person } from '@/types';
+import type { BookBranch, BookChapter, Person } from '@/types';
 import { getZodiacYear } from '@/types';
 
 export function generateBookData(data: TreeData): BookChapter[] {

@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useAuth } from '@components/auth';
@@ -38,10 +39,9 @@ import { ContributionListItem } from './contribution-list-item';
 export function ContributionsView() {
   const { user, profile, isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
-
   const authorId = isAdmin ? undefined : profile?.id;
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${authorId}|${pageSize}`);
   const { data, isLoading } = useContributions(
     {
       authorId,
@@ -54,10 +54,6 @@ export function ContributionsView() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [authorId, pageSize]);
 
   if (!user) {
     return (

@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import Link from 'next/link';
 import { Plus, Users } from 'lucide-react';
 import { useAuth } from '@components/auth';
@@ -51,9 +52,11 @@ export function PeopleListView() {
   const [chiFilter, setChiFilter] = useState('all');
   const [statusFilter, setStatusFilter] =
     useState<PeopleStatusFilter>('all');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PeoplePageSize>(
     PEOPLE_DEFAULT_PAGE_SIZE
+  );
+  const [page, setPage] = useResettablePage(
+    `${search}|${generationFilter}|${chiFilter}|${statusFilter}|${pageSize}`
   );
 
   const listFilters: PeopleListFilters = useMemo(
@@ -82,10 +85,6 @@ export function PeopleListView() {
     generationFilter !== 'all' ||
     chiFilter !== 'all' ||
     statusFilter !== 'all';
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, generationFilter, chiFilter, statusFilter, pageSize]);
 
   function clearFilters() {
     setSearch('');

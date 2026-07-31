@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Pencil, Plus, Star, Trash2, Trophy } from 'lucide-react';
@@ -59,8 +60,8 @@ export function AdminAchievementsView() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Achievement | undefined>();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${search}|${pageSize}`);
 
   const { data, isLoading } = useAchievements({
     search: search || undefined,
@@ -79,10 +80,6 @@ export function AdminAchievementsView() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, pageSize]);
 
   if (!isEditor) {
     return (

@@ -30,19 +30,6 @@ export default function AdminImportPage() {
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -71,6 +58,19 @@ export default function AdminImportPage() {
       setIsProcessing(false);
     }
   }, [treeData]);
+
+  if (!isEditor) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
+            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Prototype: DB insert not yet implemented (XL effort — planned for future sprint)
   const isImportReady = false;

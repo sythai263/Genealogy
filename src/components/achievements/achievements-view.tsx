@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import { Search, Star, Trophy } from 'lucide-react';
 import {
   Button,
@@ -30,8 +31,8 @@ export function AchievementsView() {
     AchievementCategory | 'all'
   >('all');
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${search}|${activeCategory}|${pageSize}`);
 
   const { data, isLoading } = useAchievements({
     category: activeCategory === 'all' ? undefined : activeCategory,
@@ -49,10 +50,6 @@ export function AchievementsView() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, activeCategory, pageSize]);
 
   if (isLoading) {
     return (

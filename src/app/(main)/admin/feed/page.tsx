@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@/hooks/use-resettable-page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,8 +47,8 @@ export default function AdminFeedPage() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${filter}|${search}|${pageSize}`);
 
   const { data, isLoading } = usePosts({
     status: filter === 'hidden' ? 'hidden' : 'all',
@@ -63,10 +64,6 @@ export default function AdminFeedPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [filter, search, pageSize]);
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();

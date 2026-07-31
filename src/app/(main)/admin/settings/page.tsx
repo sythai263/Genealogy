@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClanSettings, useUpdateClanSettings } from '@/hooks/use-clan-settings';
 import { useAuth } from '@/components/auth/auth-provider';
@@ -61,25 +61,29 @@ export default function AdminSettingsPage() {
   // Login config
   const [loginMethods, setLoginMethods] = useState<LoginMethod[]>(['email_password', 'email_otp']);
   const [isSavingLogin, setIsSavingLogin] = useState(false);
+  const [formSyncKey, setFormSyncKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!clanSettings) return;
-    setClanName(clanSettings.clan_name);
-    setClanFullName(clanSettings.clan_full_name);
-    setFoundingYear(clanSettings.clan_founding_year?.toString() ?? '');
-    setOrigin(clanSettings.clan_origin ?? '');
-    setPatriarch(clanSettings.clan_patriarch ?? '');
-    setDescription(clanSettings.clan_description ?? '');
-    setContactEmail(clanSettings.contact_email ?? '');
-    setContactPhone(clanSettings.contact_phone ?? '');
-    setCouncilMembers((clanSettings.council_members as CouncilMember[]) ?? []);
-    setClanHistory(clanSettings.clan_history ?? '');
-    setClanMission(clanSettings.clan_mission ?? '');
-    setHallAddress(clanSettings.ancestral_hall_address ?? '');
-    setHallHistory(clanSettings.ancestral_hall_history ?? '');
-    setCeremonies((clanSettings.ceremony_schedule as CeremonyScheduleItem[]) ?? []);
-    setLoginMethods(clanSettings.login_config?.methods ?? ['email_password', 'email_otp']);
-  }, [clanSettings]);
+  if (clanSettings) {
+    const nextKey = `${clanSettings.id}:${clanSettings.updated_at}`;
+    if (formSyncKey !== nextKey) {
+      setFormSyncKey(nextKey);
+      setClanName(clanSettings.clan_name);
+      setClanFullName(clanSettings.clan_full_name);
+      setFoundingYear(clanSettings.clan_founding_year?.toString() ?? '');
+      setOrigin(clanSettings.clan_origin ?? '');
+      setPatriarch(clanSettings.clan_patriarch ?? '');
+      setDescription(clanSettings.clan_description ?? '');
+      setContactEmail(clanSettings.contact_email ?? '');
+      setContactPhone(clanSettings.contact_phone ?? '');
+      setCouncilMembers((clanSettings.council_members as CouncilMember[]) ?? []);
+      setClanHistory(clanSettings.clan_history ?? '');
+      setClanMission(clanSettings.clan_mission ?? '');
+      setHallAddress(clanSettings.ancestral_hall_address ?? '');
+      setHallHistory(clanSettings.ancestral_hall_history ?? '');
+      setCeremonies((clanSettings.ceremony_schedule as CeremonyScheduleItem[]) ?? []);
+      setLoginMethods(clanSettings.login_config?.methods ?? ['email_password', 'email_otp']);
+    }
+  }
 
   if (!isEditor) {
     return (

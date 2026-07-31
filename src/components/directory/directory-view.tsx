@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import { BookUser } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { Card, CardContent } from '@components/ui';
@@ -59,9 +60,11 @@ export function DirectoryView() {
     useState<DirectoryGenderFilter>('all');
   const [statusFilter, setStatusFilter] =
     useState<DirectoryStatusFilter>('all');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PeoplePageSize>(
     PEOPLE_DEFAULT_PAGE_SIZE
+  );
+  const [page, setPage] = useResettablePage(
+    `${search}|${generationFilter}|${genderFilter}|${statusFilter}|${pageSize}`
   );
 
   const listFilters: PeopleListFilters = useMemo(
@@ -84,10 +87,6 @@ export function DirectoryView() {
   const generations = filterOptions?.generations ?? [];
   const people = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, generationFilter, genderFilter, statusFilter, pageSize]);
 
   function handlePageSizeChange(nextSize: PeoplePageSize) {
     setPageSize(nextSize);

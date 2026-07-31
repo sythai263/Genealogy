@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useResettablePage } from '@/hooks/use-resettable-page';
 import {
   useProfilesPage,
   useUnverifiedProfilesCount,
@@ -333,8 +334,8 @@ function TreeMappingDialog({ user, open, onOpenChange }: TreeMappingDialogProps)
 export default function UsersPage() {
   const { profile: currentProfile } = useAuth();
   const [showUnverifiedOnly, setShowUnverifiedOnly] = useState(false);
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${showUnverifiedOnly}|${pageSize}`);
 
   const { data, isLoading, error } = useProfilesPage({
     unverifiedOnly: showUnverifiedOnly,
@@ -359,16 +360,16 @@ export default function UsersPage() {
   const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
-  const displayedProfiles = data?.items ?? [];
-  const total = data?.total ?? 0;
+  const selectionResetKey = `${showUnverifiedOnly}|${page}|${pageSize}`;
+  const [prevSelectionKey, setPrevSelectionKey] = useState(selectionResetKey);
 
-  useEffect(() => {
-    setPage(1);
-  }, [showUnverifiedOnly, pageSize]);
-
-  useEffect(() => {
+  if (prevSelectionKey !== selectionResetKey) {
+    setPrevSelectionKey(selectionResetKey);
     setSelectedUsers(new Set());
-  }, [showUnverifiedOnly, page, pageSize]);
+  }
+
+  const displayedProfiles = useMemo(() => data?.items ?? [], [data?.items]);
+  const total = data?.total ?? 0;
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -445,9 +446,11 @@ export default function UsersPage() {
 
   // Selectable users = displayed profiles minus self
   const selectableUsers = useMemo(
-    () => displayedProfiles.filter((u) => !isSelf(u)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [displayedProfiles, currentProfile],
+    () =>
+      displayedProfiles.filter(
+        (u) => u.user_id !== currentProfile?.user_id
+      ),
+    [displayedProfiles, currentProfile?.user_id],
   );
 
   const allSelected = selectableUsers.length > 0 && selectableUsers.every((u) => selectedUsers.has(u.user_id));

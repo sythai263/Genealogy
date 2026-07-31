@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ListPagination } from '@components/shared';
@@ -28,8 +29,8 @@ import { PostCard } from './post-card';
 export function FeedView() {
   const { user, isAdmin, isEditor } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilterKey>('all');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${activeFilter}|${pageSize}`);
 
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
   const { data, isLoading: postsLoading } = usePosts({
@@ -42,10 +43,6 @@ export function FeedView() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [activeFilter, pageSize]);
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();

@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -40,40 +41,27 @@ import { mapTotpFactors } from './map-totp-factors';
 import { MfaEnrollPanel } from './mfa-enroll-panel';
 import { MfaUnenrollDialog } from './mfa-unenroll-dialog';
 
-export function SecuritySettingsView() {
-  const [factors, setFactors] = useState<TotpFactor[]>([]);
-  const [isLoadingFactors, setIsLoadingFactors] = useState(true);
-  const [enrollState, setEnrollState] = useState<MfaEnrollState | null>(null);
-  const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [unenrollId, setUnenrollId] = useState<string | null>(null);
-  const [isUnenrolling, setIsUnenrolling] = useState(false);
+const MFA_FACTORS_QUERY_KEY = ['mfa-totp-factors'] as const;
 
-  async function loadFactors() {
-    setIsLoadingFactors(true);
-    try {
-      // Use getUser() (live server call) instead of mfa.listFactors() (reads cached session).
-      // This guarantees fresh factor status immediately after challengeAndVerify().
+export function SecuritySettingsView() {
+  const queryClient = useQueryClient();
+  const { data: factors = [], isLoading: isLoadingFactors } = useQuery({
+    queryKey: MFA_FACTORS_QUERY_KEY,
+    queryFn: async () => {
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
       if (error) throw error;
-      setFactors(mapTotpFactors(user?.factors));
-    } catch {
-      console.error('Failed to load MFA factors');
-    } finally {
-      setIsLoadingFactors(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!IS_DESKTOP_MODE) {
-      void loadFactors();
-    } else {
-      setIsLoadingFactors(false);
-    }
-  }, []);
+      return mapTotpFactors(user?.factors);
+    },
+    enabled: !IS_DESKTOP_MODE,
+  });
+  const [enrollState, setEnrollState] = useState<MfaEnrollState | null>(null);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [unenrollId, setUnenrollId] = useState<string | null>(null);
+  const [isUnenrolling, setIsUnenrolling] = useState(false);
 
   async function handleEnroll() {
     setIsEnrolling(true);
@@ -110,7 +98,8 @@ export function SecuritySettingsView() {
       // getUser() immediately after verify, which would deadlock against the auth lock
       // still held by the concurrent onAuthStateChange handler.
       const totp = mapTotpFactors(data.user.factors);
-      setFactors(
+      queryClient.setQueryData(
+        MFA_FACTORS_QUERY_KEY,
         totp.length > 0
           ? totp
           : [
@@ -148,7 +137,9 @@ export function SecuritySettingsView() {
       if (error) throw error;
       toast.success('Đã tắt xác thực 2 bước.');
       // Optimistic update — avoids a getUser() call while the auth lock may still be held
-      setFactors((prev) => prev.filter((factor) => factor.id !== unenrollId));
+      queryClient.setQueryData<TotpFactor[]>(MFA_FACTORS_QUERY_KEY, (prev) =>
+        (prev ?? []).filter((factor) => factor.id !== unenrollId)
+      );
       setUnenrollId(null);
     } catch {
       toast.error('Lỗi khi tắt xác thực');

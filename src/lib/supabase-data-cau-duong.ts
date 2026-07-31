@@ -16,7 +16,6 @@ import type {
   CauDuongAssignmentWithPeople,
   CauDuongEligibleMember,
   CauDuongCeremonyType,
-  CauDuongStatus,
   Person,
 } from '@/types';
 

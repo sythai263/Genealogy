@@ -20,19 +20,18 @@ export const ACHIEVEMENT_CATEGORIES: AchievementCategoryOption[] = [
   { value: 'cong_hien', label: 'Cống hiến', icon: Heart },
 ];
 
+export const ACHIEVEMENT_CATEGORY_ICONS: Record<AchievementCategory, LucideIcon> =
+  {
+    hoc_tap: GraduationCap,
+    su_nghiep: Briefcase,
+    cong_hien: Heart,
+    other: Trophy,
+  };
+
 export function getAchievementCategoryIcon(
   category: AchievementCategory
 ): LucideIcon {
-  switch (category) {
-    case 'hoc_tap':
-      return GraduationCap;
-    case 'su_nghiep':
-      return Briefcase;
-    case 'cong_hien':
-      return Heart;
-    default:
-      return Trophy;
-  }
+  return ACHIEVEMENT_CATEGORY_ICONS[category] ?? Trophy;
 }
 
 export function getAchievementCategoryLabel(

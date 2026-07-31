@@ -30,7 +30,6 @@ import {
 import Link from "next/link";
 import {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -701,13 +700,11 @@ export function FamilyTree() {
   });
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
-  const autoCollapseApplied = useRef(false);
+  const [autoCollapseApplied, setAutoCollapseApplied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!data || autoCollapseApplied.current) return;
-    if (data.people.length <= 50) return;
-    autoCollapseApplied.current = true;
+  if (data && !autoCollapseApplied && data.people.length > 50) {
+    setAutoCollapseApplied(true);
 
     const minGeneration = Math.min(
       ...data.people.map((person) => person.generation || 1),
@@ -737,7 +734,7 @@ export function FamilyTree() {
     if (toCollapse.size > 0) {
       setCollapsedNodes(toCollapse);
     }
-  }, [data]);
+  }
 
   const handleSetFilterRoot = useCallback((person: Person | null) => {
     setFilterRootId(person?.id ?? null);

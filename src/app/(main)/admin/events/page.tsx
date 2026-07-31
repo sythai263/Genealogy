@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useResettablePage } from '@/hooks/use-resettable-page';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/hooks/use-events';
 import { usePeople } from '@/hooks/use-people';
 import { useSearchPeople } from '@/hooks/use-people';
@@ -71,7 +72,7 @@ function EventForm({
   const initialPerson = useMemo(() => {
     if (!event?.person_id || !people) return null;
     return people.find(p => p.id === event.person_id) || null;
-  }, [event?.person_id, people]);
+  }, [event, people]);
 
   const resolvedPerson = selectedPerson ?? initialPerson;
 
@@ -273,8 +274,8 @@ export default function AdminEventsPage() {
   const [editingItem, setEditingItem] = useState<Event | undefined>();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<EventType | 'all'>('all');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${search}|${typeFilter}|${pageSize}`);
 
   const { data, isLoading } = useEvents({
     type: typeFilter === 'all' ? undefined : typeFilter,
@@ -295,10 +296,6 @@ export default function AdminEventsPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, typeFilter, pageSize]);
 
   if (!isEditor) {
     return (

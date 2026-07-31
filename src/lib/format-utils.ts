@@ -23,7 +23,7 @@ export function getRelativeTime(dateStr: string): string {
 }
 
 export function getInitials(name: string): string {
-  let normalizedName = removeVietnameseTones(name);
+  const normalizedName = removeVietnameseTones(name);
 
   const parts = normalizedName.trim().split(' ');
   return parts.length > 1

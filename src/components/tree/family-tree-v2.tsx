@@ -42,7 +42,6 @@ import {
 import Link from 'next/link';
 import React, {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -284,11 +283,10 @@ export function FamilyTreeV2() {
   const [filterSearch, setFilterSearch] = useState('');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
 
-  const autoCollapseApplied = useRef(false);
-  useEffect(() => {
-    if (!data || autoCollapseApplied.current) return;
-    if (data.people.length <= 50) return;
-    autoCollapseApplied.current = true;
+  const [autoCollapseApplied, setAutoCollapseApplied] = useState(false);
+
+  if (data && !autoCollapseApplied && data.people.length > 50) {
+    setAutoCollapseApplied(true);
 
     const minGen = Math.min(...data.people.map(p => p.generation || 1));
     const collapseFromGen = minGen + 2;
@@ -314,7 +312,7 @@ export function FamilyTreeV2() {
     }
 
     if (toCollapse.size > 0) setCollapsedNodes(toCollapse);
-  }, [data]);
+  }
 
   const handleSetFilterRoot = useCallback((person: Person | null) => {
     setFilterRootId(person?.id ?? null);

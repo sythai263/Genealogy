@@ -22,7 +22,6 @@ import type {
 } from '@/types';
 
 // Security: allowlist for mass-assignment protection
-const ALLOWED_POST_FIELDS = ['content', 'post_type', 'images'] as const;
 const ALLOWED_UPDATE_FIELDS = ['content', 'post_type', 'images', 'status'] as const;
 const MAX_IMAGES = 5;
 

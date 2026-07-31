@@ -69,10 +69,6 @@ export function getExportWarning(nodeCount: number): string | null {
   return null;
 }
 
-function fmt(v: string | number | undefined | null): string {
-  return v != null && String(v).trim() !== '' ? String(v).trim() : '—';
-}
-
 function fmtDate(date?: string, year?: number): string {
   if (date && date.trim()) return date.trim();
   if (year) return `${year}`;

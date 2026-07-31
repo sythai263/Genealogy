@@ -66,7 +66,7 @@ export function LoginForm() {
     return () => clearInterval(id);
   }, [lockedUntil]);
 
-  const isLocked = lockedUntil > Date.now();
+  const isLocked = remainingSec > 0;
 
   useEffect(() => {
     if (searchParams.get('error') === 'suspended') {
@@ -84,6 +84,7 @@ export function LoginForm() {
       await signIn(data.email, data.password);
       setFailCount(0);
       setLockedUntil(0);
+      setRemainingSec(0);
 
       const totpId = await verifiedTotp.mutateAsync();
       if (totpId) {
@@ -102,6 +103,7 @@ export function LoginForm() {
       const lockSec = getLoginLockoutSec(newFails);
       if (lockSec > 0) {
         setLockedUntil(Date.now() + lockSec * 1000);
+        setRemainingSec(lockSec);
         toast.error(
           `Sai thông tin đăng nhập nhiều lần. Thử lại sau ${lockSec} giây.`
         );

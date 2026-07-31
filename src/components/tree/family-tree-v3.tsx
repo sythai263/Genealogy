@@ -22,7 +22,6 @@ import {
   expandAllNodes,
 } from '@lib';
 import type {
-  HierarchyPersonNode,
   Person,
   TreeOrientation,
   TreeSvgDatum,
@@ -80,7 +79,6 @@ export function FamilyTreeV3({
     SVGSVGElement,
     TreeSvgDatum
   > | null>(null);
-  const hierarchyRef = useRef<HierarchyPersonNode | null>(null);
 
   const orientation =
     orientationOverride ?? getDefaultOrientation(isMobile);
@@ -158,7 +156,7 @@ export function FamilyTreeV3({
         person.display_name.toLowerCase().includes(query)
       )
       .slice(0, 20);
-  }, [isPublic, remoteSearchResults, debouncedSearch, data?.people]);
+  }, [isPublic, remoteSearchResults, debouncedSearch, data]);
 
   const isSearching = isPublic ? false : isRemoteSearching;
 
@@ -173,10 +171,11 @@ export function FamilyTreeV3({
     });
   }, [data, filterChi, focusRootId, chiFilter]);
 
-  useEffect(() => {
-    hierarchyRef.current = hierarchyRoot;
+  const [prevHierarchyRoot, setPrevHierarchyRoot] = useState(hierarchyRoot);
+  if (prevHierarchyRoot !== hierarchyRoot) {
+    setPrevHierarchyRoot(hierarchyRoot);
     setLayoutVersion((v) => v + 1);
-  }, [hierarchyRoot]);
+  }
 
   const focusRootPerson = useMemo(() => {
     if (!focusRootId || !data) return null;
@@ -188,10 +187,10 @@ export function FamilyTreeV3({
   }, []);
 
   const handleExpandAll = useCallback(() => {
-    if (!hierarchyRef.current) return;
-    expandAllNodes(hierarchyRef.current);
+    if (!hierarchyRoot) return;
+    expandAllNodes(hierarchyRoot);
     bumpLayout();
-  }, [bumpLayout]);
+  }, [hierarchyRoot, bumpLayout]);
 
   const handleFocusPerson = useCallback(
     (person: Person) => {

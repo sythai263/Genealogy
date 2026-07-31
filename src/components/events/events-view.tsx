@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
@@ -62,8 +63,8 @@ export function EventsView() {
     new Date().getMonth() + 1
   );
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${typeFilter}|${pageSize}`);
 
   const listType =
     typeFilter === 'all' ? undefined : (typeFilter as EventType);
@@ -75,10 +76,6 @@ export function EventsView() {
 
   const listItems = listData?.items ?? [];
   const listTotal = listData?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [typeFilter, pageSize]);
 
   const isLoading = eventsLoading || peopleLoading;
 

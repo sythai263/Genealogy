@@ -9,6 +9,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -140,7 +141,14 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           <div className="flex flex-wrap gap-2">
             {imageUrls.map((url, i) => (
               <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <Image
+                  src={url}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                  unoptimized
+                />
                 <button
                   type="button"
                   onClick={() => removeImage(i)}

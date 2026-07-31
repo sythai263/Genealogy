@@ -2,7 +2,7 @@ import { Star } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
 import type { Achievement, Person } from '@types';
 import {
-  getAchievementCategoryIcon,
+  ACHIEVEMENT_CATEGORY_ICONS,
   getAchievementCategoryLabel,
 } from './achievement-category';
 
@@ -12,7 +12,8 @@ interface AchievementCardProps {
 }
 
 export function AchievementCard({ achievement, person }: AchievementCardProps) {
-  const CategoryIcon = getAchievementCategoryIcon(achievement.category);
+  const CategoryIcon =
+    ACHIEVEMENT_CATEGORY_ICONS[achievement.category] ?? ACHIEVEMENT_CATEGORY_ICONS.other;
 
   return (
     <Card className="transition-shadow hover:shadow-md">

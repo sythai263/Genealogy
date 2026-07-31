@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResettablePage } from '@/hooks/use-resettable-page';
 import { useAuth } from '@/components/auth/auth-provider';
 import { useRegistrations, useApproveRegistration, useRejectRegistration, useDeleteRegistration } from '@/hooks/use-registrations';
 import { ListPagination } from '@/components/shared';
@@ -49,8 +50,8 @@ export default function AdminRegistrationsPage() {
   const { isEditor, isAdmin } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${statusFilter}|${search}|${pageSize}`);
 
   const { data, isLoading } = useRegistrations({
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -68,10 +69,6 @@ export default function AdminRegistrationsPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [statusFilter, search, pageSize]);
 
   if (!isEditor) {
     return (

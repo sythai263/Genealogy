@@ -14,7 +14,6 @@ import {
   getCauDuongPool,
   createCauDuongPool,
   updateCauDuongPool,
-  getCauDuongAssignments,
   getCauDuongAssignmentsWithPeople,
   createCauDuongAssignment,
   updateCauDuongAssignment,
@@ -117,7 +116,6 @@ export function useUpdateCauDuongAssignment() {
     mutationFn: ({
       id,
       input,
-      poolId,
     }: {
       id: string;
       input: Partial<Omit<CauDuongAssignment, 'id' | 'created_at' | 'updated_at'>>;
@@ -159,7 +157,6 @@ export function useDelegateCauDuong() {
       assignmentId,
       actualHostPersonId,
       reason,
-      poolId,
     }: {
       assignmentId: string;
       actualHostPersonId: string;
@@ -179,7 +176,6 @@ export function useRescheduleCauDuong() {
       assignmentId,
       actualDate,
       reason,
-      poolId,
     }: {
       assignmentId: string;
       actualDate: string;
@@ -199,7 +195,6 @@ export function useCompleteCauDuong() {
       assignmentId,
       actualDate,
       notes,
-      poolId,
     }: {
       assignmentId: string;
       actualDate?: string;

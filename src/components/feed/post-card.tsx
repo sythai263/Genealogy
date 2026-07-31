@@ -9,6 +9,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -100,7 +101,14 @@ export function PostCard({
     if (images.length === 1) {
       return (
         <div className="rounded-md overflow-hidden">
-          <img src={images[0]} alt="" className="w-full max-h-96 object-cover" />
+          <Image
+            src={images[0]}
+            alt=""
+            width={800}
+            height={384}
+            className="w-full max-h-96 object-cover"
+            unoptimized
+          />
         </div>
       );
     }
@@ -112,10 +120,17 @@ export function PostCard({
         'grid-cols-2'
       }`}>
         {images.slice(0, 4).map((url, i) => (
-          <div key={i} className={`relative ${
+          <div key={i} className={`relative h-40 ${
             images.length === 3 && i === 0 ? 'col-span-2' : ''
           }`}>
-            <img src={url} alt="" className="w-full h-40 object-cover" />
+            <Image
+              src={url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 50vw, 33vw"
+              unoptimized
+            />
             {i === 3 && images.length > 4 && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-bold">
                 +{images.length - 4}

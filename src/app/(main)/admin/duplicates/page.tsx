@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,11 +76,9 @@ function PersonCard({ person }: { person: DuplicatePair['personA'] }) {
 export default function AdminDuplicatesPage() {
   const { isEditor } = useAuth();
   const { data: duplicates, isLoading } = useDuplicates();
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    setDismissed(getDismissedPairs());
-  }, []);
+  const [dismissed, setDismissed] = useState<Set<string>>(() =>
+    getDismissedPairs()
+  );
 
   const handleDismiss = useCallback((pair: DuplicatePair) => {
     const key = pairKey(pair);

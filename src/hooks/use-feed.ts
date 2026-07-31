@@ -165,7 +165,7 @@ export function useCreateComment() {
 export function useDeleteComment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, postId }: { id: string; postId: string }) => deleteComment(id),
+    mutationFn: ({ id }: { id: string; postId: string }) => deleteComment(id),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: postKeys.comments(variables.postId) });
       queryClient.invalidateQueries({ queryKey: postKeys.all });

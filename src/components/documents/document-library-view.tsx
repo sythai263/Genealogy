@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResettablePage } from '@hooks/use-resettable-page';
 import Link from 'next/link';
 import { Archive, ArrowLeft, Info } from 'lucide-react';
 import { useAuth } from '@components/auth';
@@ -28,8 +29,8 @@ export function DocumentLibraryView() {
     DocumentCategory | undefined
   >();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(`${categoryFilter}|${search}|${pageSize}`);
 
   const { data, isLoading } = useDocuments({
     category: categoryFilter,
@@ -43,10 +44,6 @@ export function DocumentLibraryView() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
-
-  useEffect(() => {
-    setPage(1);
-  }, [categoryFilter, search, pageSize]);
 
   const peopleMap = useMemo(() => {
     const map = new Map<string, string>();
