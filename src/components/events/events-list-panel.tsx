@@ -8,8 +8,6 @@
 
 'use client';
 
-import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,13 +31,11 @@ import {
   SelectValue,
   Skeleton,
 } from '@components/ui';
-import {
-  EVENT_TYPE_META,
-  EVENT_TYPE_ORDER,
-  isEventType,
-} from '@constants';
+import { EVENT_TYPE_META, EVENT_TYPE_ORDER, isEventType } from '@constants';
 import { cn } from '@lib';
 import type { Event, Person } from '@types';
+import { Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface EventsListPanelProps {
   events: Event[];
@@ -62,25 +58,24 @@ export function EventsListPanel({
 }: EventsListPanelProps) {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+      <CardHeader className='pb-3'>
+        <div className='flex items-center justify-between'>
           <CardDescription>
             {isLoading ? 'Đang tải...' : `${events.length} sự kiện`}
           </CardDescription>
           <Select
             value={typeFilter}
-            onValueChange={(value) => {
+            onValueChange={value => {
               if (value === 'all' || isEventType(value)) {
                 onTypeFilterChange(value);
               }
-            }}
-          >
-            <SelectTrigger className="w-[160px]">
+            }}>
+            <SelectTrigger className='w-40'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              {EVENT_TYPE_ORDER.map((eventType) => (
+              <SelectItem value='all'>Tất cả</SelectItem>
+              {EVENT_TYPE_ORDER.map(eventType => (
                 <SelectItem key={eventType} value={eventType}>
                   {EVENT_TYPE_META[eventType].label}
                 </SelectItem>
@@ -91,39 +86,37 @@ export function EventsListPanel({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="space-y-3">
+          <div className='space-y-3'>
             {Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton key={index} className="h-16 w-full" />
+              <Skeleton key={index} className='h-16 w-full' />
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
+          <div className='py-12 text-center text-muted-foreground'>
             Chưa có sự kiện nào
           </div>
         ) : (
-          <div className="space-y-3">
-            {events.map((event) => {
+          <div className='space-y-3'>
+            {events.map(event => {
               const typeInfo = EVENT_TYPE_META[event.event_type];
               const TypeIcon = typeInfo.icon;
               const person = event.person_id
-                ? people.find((item) => item.id === event.person_id)
+                ? people.find(item => item.id === event.person_id)
                 : undefined;
               return (
                 <div
                   key={event.id}
-                  className="flex items-center gap-3 rounded-lg border p-3"
-                >
+                  className='flex items-center gap-3 rounded-lg border p-3'>
                   <div
                     className={cn(
                       'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
                       typeInfo.color
-                    )}
-                  >
-                    <TypeIcon className="h-5 w-5" />
+                    )}>
+                    <TypeIcon className='h-5 w-5' />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium">{event.title}</div>
-                    <div className="text-sm text-muted-foreground">
+                  <div className='min-w-0 flex-1'>
+                    <div className='font-medium'>{event.title}</div>
+                    <div className='text-sm text-muted-foreground'>
                       {event.event_lunar && (
                         <span>{event.event_lunar} (ÂL)</span>
                       )}
@@ -141,18 +134,17 @@ export function EventsListPanel({
                           {' · '}
                           <Link
                             href={`/people/${person.id}`}
-                            className="hover:underline"
-                          >
+                            className='hover:underline'>
                             {person.display_name}
                           </Link>
                         </>
                       )}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="outline">{typeInfo.label}</Badge>
+                  <div className='flex shrink-0 items-center gap-2'>
+                    <Badge variant='outline'>{typeInfo.label}</Badge>
                     {event.recurring && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant='secondary' className='text-xs'>
                         Hàng năm
                       </Badge>
                     )}
@@ -160,11 +152,10 @@ export function EventsListPanel({
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-destructive'>
+                            <Trash2 className='h-4 w-4' />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -179,8 +170,7 @@ export function EventsListPanel({
                             <AlertDialogCancel>Hủy</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => onDelete(event.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
+                              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
                               Xóa
                             </AlertDialogAction>
                           </AlertDialogFooter>

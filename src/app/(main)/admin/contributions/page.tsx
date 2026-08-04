@@ -10,9 +10,31 @@
 
 import { useAuth } from '@components/auth';
 import { ListPagination } from '@components/shared';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton, Textarea } from '@components/ui';
-import { useContributions, useDeleteContribution, usePendingContributionsCount, useReviewContribution, usePeople, useProfiles, useResettablePage } from '@hooks';
-import type { Contribution, ContributionStatus } from '@types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Skeleton,
+  Textarea,
+} from '@components/ui';
 import {
   CONTRIBUTION_CHANGE_TYPE_LABELS,
   CONTRIBUTION_STATUS_CONFIG,
@@ -20,6 +42,16 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
+import {
+  useContributions,
+  useDeleteContribution,
+  usePendingContributionsCount,
+  usePeople,
+  useProfiles,
+  useResettablePage,
+  useReviewContribution,
+} from '@hooks';
+import type { Contribution, ContributionStatus } from '@types';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -255,7 +287,7 @@ export default function AdminContributionsPage() {
                         <div
                           key={key}
                           className='flex items-center gap-2 text-sm'>
-                          <span className='font-medium min-w-[120px]'>
+                          <span className='font-medium min-w-30'>
                             {getContributionFieldLabel(key)}:
                           </span>
                           <span className='text-green-700 bg-green-50 px-2 py-0.5 rounded'>

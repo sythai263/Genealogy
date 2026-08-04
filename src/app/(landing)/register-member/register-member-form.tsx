@@ -8,12 +8,27 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui';
-import { UserPlus, CheckCircle, Loader2 } from 'lucide-react';
-import { useSubmitRegistration, useClanSettings } from '@hooks';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+} from '@components/ui';
+import { useClanSettings, useSubmitRegistration } from '@hooks';
 import { CLAN_NAME } from '@lib';
+import { CheckCircle, Loader2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export function RegisterMemberForm() {
   const { data: cs } = useClanSettings();
@@ -62,19 +77,23 @@ export function RegisterMemberForm() {
 
   if (submitted) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-6">
-        <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-        <h1 className="text-2xl font-bold text-gray-900">Ghi danh thành công!</h1>
-        <p className="text-gray-600">
-          Thông tin của bạn đã được gửi đến ban quản trị {clanName}.
-          Sau khi được xét duyệt, bạn sẽ được thêm vào gia phả.
+      <div className='max-w-lg mx-auto px-4 py-16 text-center space-y-6'>
+        <CheckCircle className='h-16 w-16 text-green-500 mx-auto' />
+        <h1 className='text-2xl font-bold text-gray-900'>
+          Ghi danh thành công!
+        </h1>
+        <p className='text-gray-600'>
+          Thông tin của bạn đã được gửi đến ban quản trị {clanName}. Sau khi
+          được xét duyệt, bạn sẽ được thêm vào gia phả.
         </p>
-        <div className="flex gap-3 justify-center">
-          <Link href="/" className="text-sm text-primary hover:underline">
+        <div className='flex gap-3 justify-center'>
+          <Link href='/' className='text-sm text-primary hover:underline'>
             Về trang chủ
           </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/council" className="text-sm text-primary hover:underline">
+          <span className='text-gray-300'>|</span>
+          <Link
+            href='/council'
+            className='text-sm text-primary hover:underline'>
             Xem hội đồng gia tộc
           </Link>
         </div>
@@ -83,77 +102,77 @@ export function RegisterMemberForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12 space-y-8">
-      <div className="text-center space-y-3">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
-          <UserPlus className="h-7 w-7" />
+    <div className='max-w-2xl mx-auto px-4 py-12 space-y-8'>
+      <div className='text-center space-y-3'>
+        <h1 className='text-3xl font-bold text-gray-900 flex items-center justify-center gap-2'>
+          <UserPlus className='h-7 w-7' />
           Đăng ký thành viên
         </h1>
-        <p className="text-gray-600">
+        <p className='text-gray-600'>
           Dành cho con cháu {clanName} sống xa muốn ghi danh vào gia phả
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Thông tin ghi danh</CardTitle>
+          <CardTitle className='text-base'>Thông tin ghi danh</CardTitle>
           <CardDescription>
             Điền thông tin bên dưới. Ban quản trị sẽ xét duyệt và liên hệ lại.
             Trường có dấu (*) là bắt buộc.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className='space-y-5'>
             {/* Honeypot — hidden from real users */}
-            <div className="absolute -left-[9999px]" aria-hidden="true">
-              <label htmlFor="website">Website</label>
+            <div className='absolute left-[-9999px]' aria-hidden='true'>
+              <label htmlFor='website'>Website</label>
               <input
-                id="website"
-                name="website"
-                type="text"
+                id='website'
+                name='website'
+                type='text'
                 tabIndex={-1}
-                autoComplete="off"
+                autoComplete='off'
                 value={honeypot}
                 onChange={e => setHoneypot(e.target.value)}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div>
                 <Label>Họ và tên *</Label>
                 <Input
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
-                  placeholder="Nguyễn Văn A"
+                  placeholder='Nguyễn Văn A'
                   required
-                  className="mt-1"
+                  className='mt-1'
                 />
               </div>
               <div>
                 <Label>Giới tính *</Label>
                 <Select value={gender} onValueChange={setGender} required>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Chọn giới tính" />
+                  <SelectTrigger className='mt-1'>
+                    <SelectValue placeholder='Chọn giới tính' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Nam</SelectItem>
-                    <SelectItem value="2">Nữ</SelectItem>
+                    <SelectItem value='1'>Nam</SelectItem>
+                    <SelectItem value='2'>Nữ</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div>
                 <Label>Năm sinh</Label>
                 <Input
-                  type="number"
+                  type='number'
                   value={birthYear}
                   onChange={e => setBirthYear(e.target.value)}
-                  placeholder="1990"
+                  placeholder='1990'
                   min={1900}
                   max={2030}
-                  className="mt-1"
+                  className='mt-1'
                 />
               </div>
               <div>
@@ -161,30 +180,30 @@ export function RegisterMemberForm() {
                 <Input
                   value={birthPlace}
                   onChange={e => setBirthPlace(e.target.value)}
-                  placeholder="Hà Nội"
-                  className="mt-1"
+                  placeholder='Hà Nội'
+                  className='mt-1'
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div>
                 <Label>Điện thoại</Label>
                 <Input
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="0912 345 678"
-                  className="mt-1"
+                  placeholder='0912 345 678'
+                  className='mt-1'
                 />
               </div>
               <div>
                 <Label>Email</Label>
                 <Input
-                  type="email"
+                  type='email'
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="mt-1"
+                  placeholder='email@example.com'
+                  className='mt-1'
                 />
               </div>
             </div>
@@ -194,34 +213,34 @@ export function RegisterMemberForm() {
               <Input
                 value={parentName}
                 onChange={e => setParentName(e.target.value)}
-                placeholder="Họ tên cha/mẹ để đối chiếu"
-                className="mt-1"
+                placeholder='Họ tên cha/mẹ để đối chiếu'
+                className='mt-1'
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
               <div>
                 <Label>Đời (tự khai)</Label>
                 <Input
-                  type="number"
+                  type='number'
                   value={generation}
                   onChange={e => setGeneration(e.target.value)}
-                  placeholder="5"
+                  placeholder='5'
                   min={1}
                   max={30}
-                  className="mt-1"
+                  className='mt-1'
                 />
               </div>
               <div>
                 <Label>Chi (tự khai)</Label>
                 <Input
-                  type="number"
+                  type='number'
                   value={chi}
                   onChange={e => setChi(e.target.value)}
-                  placeholder="1"
+                  placeholder='1'
                   min={1}
                   max={20}
-                  className="mt-1"
+                  className='mt-1'
                 />
               </div>
               <div>
@@ -229,8 +248,8 @@ export function RegisterMemberForm() {
                 <Input
                   value={relationship}
                   onChange={e => setRelationship(e.target.value)}
-                  placeholder="Cháu ông X"
-                  className="mt-1"
+                  placeholder='Cháu ông X'
+                  className='mt-1'
                 />
               </div>
             </div>
@@ -241,34 +260,45 @@ export function RegisterMemberForm() {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={3}
-                placeholder="Thông tin bổ sung..."
-                className="mt-1"
+                placeholder='Thông tin bổ sung...'
+                className='mt-1'
               />
             </div>
 
             {submitMutation.isError && (
-              <p className="text-sm text-red-500">
+              <p className='text-sm text-red-500'>
                 Lỗi khi gửi đơn. Vui lòng thử lại.
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={submitMutation.isPending || !fullName.trim() || !gender}>
+            <Button
+              type='submit'
+              className='w-full'
+              disabled={
+                submitMutation.isPending || !fullName.trim() || !gender
+              }>
               {submitMutation.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Đang gửi...</>
+                <>
+                  <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                  Đang gửi...
+                </>
               ) : (
-                <><UserPlus className="h-4 w-4 mr-2" />Gửi đơn ghi danh</>
+                <>
+                  <UserPlus className='h-4 w-4 mr-2' />
+                  Gửi đơn ghi danh
+                </>
               )}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap gap-3 justify-center">
-        <Link href="/" className="text-sm text-primary hover:underline">
+      <div className='flex flex-wrap gap-3 justify-center'>
+        <Link href='/' className='text-sm text-primary hover:underline'>
           Trang chủ
         </Link>
-        <span className="text-gray-300">|</span>
-        <Link href="/council" className="text-sm text-primary hover:underline">
+        <span className='text-gray-300'>|</span>
+        <Link href='/council' className='text-sm text-primary hover:underline'>
           Hội đồng gia tộc
         </Link>
       </div>

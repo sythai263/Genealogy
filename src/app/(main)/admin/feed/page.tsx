@@ -8,21 +8,46 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Input, Avatar, AvatarFallback, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@components/ui';
-import { Eye, EyeOff, Trash2, Search, Shield, Loader2 } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { useResettablePage, usePosts, usePostsCount, useDeletePost, useHidePost, useProfiles } from '@hooks';
 import { ListPagination } from '@components/shared';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Avatar,
+  AvatarFallback,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+} from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
   POST_TYPE_LABELS,
   type ListPageSize,
 } from '@constants';
-import type { Post, Profile } from '@types';
+import {
+  useDeletePost,
+  useHidePost,
+  usePosts,
+  usePostsCount,
+  useProfiles,
+  useResettablePage,
+} from '@hooks';
 import { getInitials } from '@lib';
-import { toast } from 'sonner';
+import type { Post, Profile } from '@types';
+import { Eye, EyeOff, Loader2, Search, Shield, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 type FilterTab = 'all' | 'hidden';
 
@@ -31,7 +56,9 @@ export default function AdminFeedPage() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
-  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [pageSize, setPageSize] = useState<ListPageSize>(
+    LIST_DEFAULT_PAGE_SIZE
+  );
   const [page, setPage] = useResettablePage(`${filter}|${search}|${pageSize}`);
 
   const { data, isLoading } = usePosts({
@@ -59,11 +86,15 @@ export default function AdminFeedPage() {
 
   if (!isEditor) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className='container mx-auto px-4 py-8'>
         <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
+          <CardContent className='py-12 text-center'>
+            <p className='text-muted-foreground'>
+              Bạn cần quyền biên tập viên để truy cập trang này
+            </p>
+            <Button asChild className='mt-4'>
+              <Link href='/admin'>Về trang chủ</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -77,7 +108,8 @@ export default function AdminFeedPage() {
     hidePost.mutate(
       { id: post.id, hide: !isHidden },
       {
-        onSuccess: () => toast.success(isHidden ? 'Đã hiện bài viết' : 'Đã ẩn bài viết'),
+        onSuccess: () =>
+          toast.success(isHidden ? 'Đã hiện bài viết' : 'Đã ẩn bài viết'),
         onError: () => toast.error('Lỗi'),
       }
     );
@@ -95,115 +127,128 @@ export default function AdminFeedPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className='container mx-auto px-4 py-8 space-y-6'>
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Shield className="h-6 w-6" />
+        <h1 className='text-2xl font-bold flex items-center gap-2'>
+          <Shield className='h-6 w-6' />
           Quản lý bài viết
         </h1>
-        <p className="text-muted-foreground">Duyệt, ẩn/hiện và xóa bài viết trong Góc giao lưu</p>
+        <p className='text-muted-foreground'>
+          Duyệt, ẩn/hiện và xóa bài viết trong Góc giao lưu
+        </p>
       </div>
 
       {/* Filter + Search */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex gap-1.5">
+      <div className='flex flex-wrap gap-3 items-center'>
+        <div className='flex gap-1.5'>
           <Badge
             variant={filter === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => setFilter('all')}
-          >
+            className='cursor-pointer'
+            onClick={() => setFilter('all')}>
             Tất cả ({allCount})
           </Badge>
           <Badge
             variant={filter === 'hidden' ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => setFilter('hidden')}
-          >
+            className='cursor-pointer'
+            onClick={() => setFilter('hidden')}>
             Đã ẩn ({hiddenCount})
           </Badge>
         </div>
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className='relative flex-1 min-w-50 max-w-sm'>
+          <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
           <Input
-            placeholder="Tìm theo nội dung hoặc tác giả..."
+            placeholder='Tìm theo nội dung hoặc tác giả...'
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-8"
+            className='pl-8'
           />
         </div>
       </div>
 
       {/* Posts list */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className='flex justify-center py-12'>
+          <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
         </div>
       ) : filteredPosts.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
+          <CardContent className='py-12 text-center text-muted-foreground'>
             {search ? 'Không tìm thấy bài viết' : 'Chưa có bài viết nào'}
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-3">
+        <div className='space-y-4'>
+          <div className='space-y-3'>
             {filteredPosts.map(post => {
               const author = profileMap.get(post.author_id);
               const authorName = author?.full_name || 'Ẩn danh';
               const isHidden = post.status === 'hidden';
 
               return (
-                <Card key={post.id} className={isHidden ? 'border-dashed opacity-70' : ''}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">{getInitials(authorName)}</AvatarFallback>
+                <Card
+                  key={post.id}
+                  className={isHidden ? 'border-dashed opacity-70' : ''}>
+                  <CardHeader className='pb-2'>
+                    <div className='flex items-center gap-3'>
+                      <Avatar className='h-8 w-8'>
+                        <AvatarFallback className='text-xs'>
+                          {getInitials(authorName)}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <div className='flex-1 min-w-0'>
+                        <CardTitle className='text-sm font-medium flex items-center gap-2'>
                           {authorName}
                           {post.post_type !== 'general' && (
-                            <Badge variant="secondary" className="text-[10px]">
+                            <Badge variant='secondary' className='text-[10px]'>
                               {POST_TYPE_LABELS[post.post_type]}
                             </Badge>
                           )}
                           {isHidden && (
-                            <Badge variant="outline" className="text-[10px] text-amber-600">Đã ẩn</Badge>
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] text-amber-600'>
+                              Đã ẩn
+                            </Badge>
                           )}
                         </CardTitle>
-                        <p className="text-xs text-muted-foreground">
+                        <p className='text-xs text-muted-foreground'>
                           {new Date(post.created_at).toLocaleString('vi-VN')}
                           {' · '}
-                          {post.likes_count} tim · {post.comments_count} bình luận
+                          {post.likes_count} tim · {post.comments_count} bình
+                          luận
                         </p>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-1">
+                      <div className='flex gap-1'>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => handleToggleHide(post)}
-                          title={isHidden ? 'Hiện bài viết' : 'Ẩn bài viết'}
-                        >
-                          {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          title={isHidden ? 'Hiện bài viết' : 'Ẩn bài viết'}>
+                          {isHidden ? (
+                            <Eye className='h-4 w-4' />
+                          ) : (
+                            <EyeOff className='h-4 w-4' />
+                          )}
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => setDeleteTarget(post)}
-                          className="text-destructive hover:text-destructive"
-                          title="Xóa bài viết"
-                        >
-                          <Trash2 className="h-4 w-4" />
+                          className='text-destructive hover:text-destructive'
+                          title='Xóa bài viết'>
+                          <Trash2 className='h-4 w-4' />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm line-clamp-3 whitespace-pre-wrap">{post.content}</p>
+                  <CardContent className='pt-0'>
+                    <p className='text-sm line-clamp-3 whitespace-pre-wrap'>
+                      {post.content}
+                    </p>
                     {post.images && post.images.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className='text-xs text-muted-foreground mt-1'>
                         {post.images.length} ảnh đính kèm
                       </p>
                     )}
@@ -218,26 +263,32 @@ export default function AdminFeedPage() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="bài viết"
+            itemLabel='bài viết'
           />
         </div>
       )}
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={open => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa bài viết?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bài viết của <strong>{deleteTarget && profileMap.get(deleteTarget.author_id)?.full_name}</strong> sẽ bị xóa vĩnh viễn cùng tất cả bình luận và lượt thích.
+              Bài viết của{' '}
+              <strong>
+                {deleteTarget &&
+                  profileMap.get(deleteTarget.author_id)?.full_name}
+              </strong>{' '}
+              sẽ bị xóa vĩnh viễn cùng tất cả bình luận và lượt thích.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
               Xóa
             </AlertDialogAction>
           </AlertDialogFooter>

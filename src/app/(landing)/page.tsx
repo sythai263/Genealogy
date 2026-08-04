@@ -6,7 +6,14 @@
  * @updated 2026-07-28
  */
 
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@components/ui';
 import { CLAN_FULL_NAME, CLAN_NAME } from '@lib';
 import {
   Award,
@@ -190,7 +197,7 @@ export default function WelcomePage() {
   return (
     <div className='flex flex-col'>
       {/* ───── 1. Hero ───── */}
-      <section className='relative bg-gradient-to-br from-emerald-800 to-emerald-950 text-white overflow-hidden'>
+      <section className='relative bg-linear-to-br from-emerald-800 to-emerald-950 text-white overflow-hidden'>
         <div className='absolute inset-0 opacity-10'>
           <div className='absolute top-20 left-10 w-72 h-72 bg-emerald-400 rounded-full blur-3xl' />
           <div className='absolute bottom-10 right-20 w-96 h-96 bg-emerald-300 rounded-full blur-3xl' />
@@ -324,7 +331,7 @@ export default function WelcomePage() {
                   className='w-full h-full object-cover'
                   loading='lazy'
                 />
-                <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
+                <div className='absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
                 <span className='absolute bottom-3 left-4 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity'>
                   {img.label}
                 </span>
@@ -429,8 +436,10 @@ export default function WelcomePage() {
                 <CardContent>
                   <ol className='space-y-2'>
                     {workflow.steps.map((step, i) => (
-                      <li key={i} className='flex gap-3 text-sm text-muted-foreground'>
-                        <span className='flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 text-xs flex items-center justify-center font-medium'>
+                      <li
+                        key={i}
+                        className='flex gap-3 text-sm text-muted-foreground'>
+                        <span className='shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 text-xs flex items-center justify-center font-medium'>
                           {i + 1}
                         </span>
                         {step}
@@ -458,7 +467,7 @@ export default function WelcomePage() {
                 <div
                   key={i}
                   className='flex gap-3 bg-card rounded-lg px-4 py-3 border shadow-sm'>
-                  <span className='flex-shrink-0 text-emerald-600 dark:text-emerald-400 font-semibold text-sm'>
+                  <span className='shrink-0 text-emerald-600 dark:text-emerald-400 font-semibold text-sm'>
                     #{i + 1}
                   </span>
                   <p className='text-sm text-muted-foreground'>{tip}</p>
@@ -546,7 +555,9 @@ export default function WelcomePage() {
             <h2 className='text-3xl font-bold text-foreground mb-3'>
               Câu hỏi thường gặp
             </h2>
-            <p className='text-muted-foreground'>Giải đáp các thắc mắc phổ biến.</p>
+            <p className='text-muted-foreground'>
+              Giải đáp các thắc mắc phổ biến.
+            </p>
           </div>
 
           {/* Desktop vs Web comparison */}
@@ -634,7 +645,9 @@ export default function WelcomePage() {
             ].map(item => (
               <Card key={item.q}>
                 <CardContent className='pt-6'>
-                  <h4 className='font-semibold text-foreground mb-2'>{item.q}</h4>
+                  <h4 className='font-semibold text-foreground mb-2'>
+                    {item.q}
+                  </h4>
                   <p className='text-sm text-muted-foreground'>{item.a}</p>
                 </CardContent>
               </Card>
@@ -647,7 +660,9 @@ export default function WelcomePage() {
       <section className='py-20'>
         <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-14'>
-            <h2 className='text-3xl font-bold text-foreground mb-3'>Cộng đồng</h2>
+            <h2 className='text-3xl font-bold text-foreground mb-3'>
+              Cộng đồng
+            </h2>
             <p className='text-muted-foreground'>
               Góp ý, báo lỗi, hoặc đề xuất tính năng mới.
             </p>
@@ -706,7 +721,9 @@ export default function WelcomePage() {
       </section>
 
       {/* ───── 8. Liên hệ ───── */}
-      <section id='contact' className='py-20 bg-emerald-50 dark:bg-emerald-950/30'>
+      <section
+        id='contact'
+        className='py-20 bg-emerald-50 dark:bg-emerald-950/30'>
         <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-14'>
             <h2 className='text-3xl font-bold text-foreground mb-3'>Liên hệ</h2>
@@ -760,8 +777,10 @@ export default function WelcomePage() {
                     'Cung cấp họ tên, quan hệ trong dòng họ',
                     'Admin xác nhận — bạn có thể truy cập đầy đủ',
                   ].map((step, i) => (
-                    <li key={i} className='flex gap-3 text-sm text-muted-foreground'>
-                      <span className='flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 text-xs flex items-center justify-center font-medium'>
+                    <li
+                      key={i}
+                      className='flex gap-3 text-sm text-muted-foreground'>
+                      <span className='shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 text-xs flex items-center justify-center font-medium'>
                         {i + 1}
                       </span>
                       {step}
@@ -824,7 +843,9 @@ export default function WelcomePage() {
           <div className='flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground'>
             <div className='flex items-center gap-2'>
               <span className='text-lg'>🌳</span>
-              <span className='font-semibold text-foreground/80'>{CLAN_NAME}</span>
+              <span className='font-semibold text-foreground/80'>
+                {CLAN_NAME}
+              </span>
             </div>
             <div className='flex items-center gap-4'>
               <Link href='/family-tree' className='hover:text-foreground/80'>
