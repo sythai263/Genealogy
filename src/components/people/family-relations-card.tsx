@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { usePersonRelations, useCreateSpouseFamily, useAddChildToFamilyMutation, useSearchPeople, useCreatePerson } from '@hooks';
 import { Card, CardContent, CardHeader, CardTitle, Button, Separator, Skeleton, Input, Label, Dialog, DialogContent, DialogHeader, DialogTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui';
 import { Users, Plus, Search, UserPlus } from 'lucide-react';
+import { buildPersonHandle, buildSpousePersonInput, splitVietnameseName } from '@lib';
 import type { Person, PersonRelations } from '@types';
 
 // ─── PersonLink ───────────────────────────────────────────────────────────────
@@ -243,23 +244,30 @@ function AddRelationDialog({
     ? currentPerson.generation
     : currentPerson.generation + 1;
 
-  const generateHandle = (name: string) => {
-    return `${name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Date.now()}`;
-  };
-
   const handleCreateNew = async (data: QuickPersonData) => {
     setIsSaving(true);
     try {
-      const newPerson = await createPersonMutation.mutateAsync({
-        handle: generateHandle(data.display_name),
-        display_name: data.display_name,
-        gender: data.gender,
-        generation: data.generation,
-        birth_year: data.birth_year ? Number(data.birth_year) : undefined,
-        is_living: true,
-        is_patrilineal: data.gender === 1,
-        privacy_level: 0,
-      });
+      const birthYear = data.birth_year ? Number(data.birth_year) : undefined;
+      const newPerson = await createPersonMutation.mutateAsync(
+        mode === 'spouse'
+          ? buildSpousePersonInput({
+              fullName: data.display_name,
+              birthYear,
+              marriedTo: currentPerson,
+            })
+          : {
+              handle: buildPersonHandle(data.display_name),
+              display_name: data.display_name,
+              ...splitVietnameseName(data.display_name),
+              gender: data.gender,
+              generation: data.generation,
+              chi: currentPerson.chi,
+              birth_year: birthYear,
+              is_living: true,
+              is_patrilineal: data.gender === 1,
+              privacy_level: currentPerson.privacy_level,
+            }
+      );
 
       if (mode === 'spouse') {
         await createSpouseFamilyMutation.mutateAsync({

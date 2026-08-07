@@ -11,14 +11,17 @@
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
 import {
+  COUPLE_GAP,
   NODE_HEIGHT,
   NODE_WIDTH,
   TREE_COLLAPSE_BTN_RADIUS,
+  TREE_DEPTH_GAP,
   TREE_EXIT_TRANSITION_MS,
   TREE_FOCUS_TRANSITION_MS,
   TREE_MOBILE_BREAKPOINT,
   TREE_NODE_SIZE_X,
   TREE_NODE_SIZE_Y,
+  TREE_SIBLING_GAP,
   TREE_TRANSITION_MS,
   TREE_VERTICAL_NODE_SIZE_X,
   TREE_VERTICAL_NODE_SIZE_Y,
@@ -65,42 +68,76 @@ interface FamilyTreeCanvasProps {
 
 type HierarchyPoint = d3.HierarchyPointNode<HierarchyPersonNode>;
 
-function buildNodeCardClass(gender: number, isSelected: boolean): string {
-  const genderColor = gender === 1 ? 'border-blue-400' : 'border-pink-400';
-  const selectedRing = isSelected
-    ? 'ring-2 ring-primary ring-offset-2'
-    : '';
-  return `h-full bg-card border ${genderColor} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
+interface LinkPoint {
+  x: number;
+  y: number;
 }
 
-function buildNodeHtml(
-  data: HierarchyPersonNode,
-  isSelected: boolean
-): string {
-  const { person, spouse } = data;
+interface LinkShape {
+  source: LinkPoint;
+  target: LinkPoint;
+}
+
+/**
+ * Total width of a node: the person plus every spouse placed beside them,
+ * separated by the couple connector.
+ */
+function cardWidth(data: HierarchyPersonNode): number {
+  const spouseCount = data.spouses.length;
+  return NODE_WIDTH * (spouseCount + 1) + COUPLE_GAP * spouseCount;
+}
+
+/** Names come from user input and are interpolated into a raw HTML string. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildNodeCardClass(gender: number, isSelected: boolean): string {
+  const genderColor = gender === 1 ? 'border-blue-400' : 'border-pink-400';
+  const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
+  return `h-full flex-1 min-w-0 bg-card border ${genderColor} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
+}
+
+function buildPersonCardHtml(person: Person, isSelected: boolean): string {
   const { givenName, familyLine } = getPersonTreeNameParts(person);
   const isDead = !person.is_living
     ? `<span class="text-xs text-muted-foreground pointer-events-none absolute top-0.5 right-1.5">†</span>`
     : '';
   const avatarHtml = person.avatar_url
-    ? `<img src="${person.avatar_url}" class="h-5 w-5 mb-0.5 rounded-full object-cover pointer-events-none border border-muted shadow-sm" loading="lazy" />`
-    : `<div class="h-5 w-5 mb-0.5 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-bold border border-muted shadow-sm pointer-events-none">${getInitials(givenName)}</div>`;
+    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-5 w-5 mb-0.5 rounded-full object-cover pointer-events-none border border-muted shadow-sm" loading="lazy" />`
+    : `<div class="h-5 w-5 mb-0.5 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-bold border border-muted shadow-sm pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
   const familyHtml = familyLine
-    ? `<span class="text-[10px] text-muted-foreground text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${familyLine}</span>`
-    : '';
-  const spouseHtml = spouse
-    ? `<span class="text-[10px] text-muted-foreground/80 text-center line-clamp-1 leading-tight pointer-events-none px-0.5">· ${getPersonTreeNameParts(spouse).givenName}</span>`
+    ? `<span class="text-[10px] text-muted-foreground text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${escapeHtml(familyLine)}</span>`
     : '';
 
   return `
-    <div class="${buildNodeCardClass(person.gender, isSelected)}">
+    <div data-person-id="${escapeHtml(person.id)}" class="${buildNodeCardClass(person.gender, isSelected)}">
       ${avatarHtml}
-      <span class="text-xs font-semibold text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${givenName}</span>
+      <span class="text-xs font-semibold text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${escapeHtml(givenName)}</span>
       ${familyHtml}
-      ${spouseHtml}
       ${isDead}
     </div>
   `;
+}
+
+/** Marriage link between two cards of the same couple. `w-4` must equal COUPLE_GAP. */
+const COUPLE_CONNECTOR_HTML =
+  '<div class="h-0.5 w-4 shrink-0 self-center bg-pink-400 pointer-events-none"></div>';
+
+function buildNodeHtml(
+  data: HierarchyPersonNode,
+  selectedPersonId: string | null
+): string {
+  const cards = [buildPersonCardHtml(data.person, selectedPersonId === data.person.id)];
+  for (const spouse of data.spouses) {
+    cards.push(COUPLE_CONNECTOR_HTML);
+    cards.push(buildPersonCardHtml(spouse, selectedPersonId === spouse.id));
+  }
+  return `<div class="flex h-full w-full items-stretch">${cards.join('')}</div>`;
 }
 
 /** Screen X: depth along X when horizontal, sibling along X when vertical */
@@ -113,29 +150,54 @@ function pointY(d: HierarchyPoint, orientation: TreeOrientation): number {
   return orientation === 'horizontal' ? d.x : d.y;
 }
 
-function collapseBtnTransform(orientation: TreeOrientation): string {
+function collapseBtnTransform(
+  orientation: TreeOrientation,
+  width: number
+): string {
   return orientation === 'horizontal'
-    ? `translate(${NODE_WIDTH}, ${NODE_HEIGHT / 2})`
-    : `translate(${NODE_WIDTH / 2}, ${NODE_HEIGHT})`;
+    ? `translate(${width}, ${NODE_HEIGHT / 2})`
+    : `translate(${width / 2}, ${NODE_HEIGHT})`;
 }
 
 function createLinkPath(orientation: TreeOrientation) {
+  const link =
+    orientation === 'horizontal'
+      ? d3.linkHorizontal<LinkShape, LinkPoint>()
+      : d3.linkVertical<LinkShape, LinkPoint>();
+  return link.x((p) => p.x).y((p) => p.y);
+}
+
+/**
+ * Anchor parent-child links to the card edges rather than the layout point, so
+ * the line leaves the outer edge of a couple instead of starting under a card.
+ */
+function linkEndpoints(
+  link: d3.HierarchyPointLink<HierarchyPersonNode>,
+  orientation: TreeOrientation
+): LinkShape {
+  const { source, target } = link;
   if (orientation === 'horizontal') {
-    return d3
-      .linkHorizontal<
-        d3.HierarchyPointLink<HierarchyPersonNode>,
-        HierarchyPoint
-      >()
-      .x((d) => pointX(d, orientation))
-      .y((d) => pointY(d, orientation));
+    return {
+      source: {
+        x: pointX(source, orientation) + cardWidth(source.data) / 2,
+        y: pointY(source, orientation),
+      },
+      target: {
+        x: pointX(target, orientation) - cardWidth(target.data) / 2,
+        y: pointY(target, orientation),
+      },
+    };
   }
-  return d3
-    .linkVertical<
-      d3.HierarchyPointLink<HierarchyPersonNode>,
-      HierarchyPoint
-    >()
-    .x((d) => pointX(d, orientation))
-    .y((d) => pointY(d, orientation));
+  return {
+    source: {
+      x: pointX(source, orientation),
+      y: pointY(source, orientation) + NODE_HEIGHT / 2,
+    },
+    target: {
+      x: pointX(target, orientation),
+      y: pointY(target, orientation) - NODE_HEIGHT / 2,
+    },
+  };
 }
 
 function appendCollapseButton(
@@ -147,7 +209,7 @@ function appendCollapseButton(
   const btn = g
     .append('g')
     .attr('class', 'collapse-btn cursor-pointer')
-    .attr('transform', collapseBtnTransform(orientation))
+    .attr('transform', collapseBtnTransform(orientation, cardWidth(d.data)))
     .on('click', (event) => {
       event.stopPropagation();
       onToggle();
@@ -248,10 +310,43 @@ export function FamilyTreeCanvas({
 
     const treeLayout = d3.tree<HierarchyPersonNode>().nodeSize(nodeSize);
 
+    if (orientation === 'vertical') {
+      // Siblings run along X here, so a couple needs room for both cards.
+      treeLayout.separation((a, b) => {
+        const needed =
+          (cardWidth(a.data) + cardWidth(b.data)) / 2 + TREE_SIBLING_GAP;
+        const units = needed / nodeSize[0];
+        return a.parent === b.parent ? units : units * 1.5;
+      });
+    }
+
     const root = d3.hierarchy(hierarchyRoot, (d) => d.children);
     const treeRoot = treeLayout(root) as HierarchyPoint;
 
     const descendants = treeRoot.descendants();
+
+    if (orientation === 'horizontal') {
+      // Depth runs along X here. d3.tree spaces every generation equally, which
+      // would either clip couples or pad the whole tree to the widest one, so
+      // each generation column is sized to its own widest card.
+      const widthByDepth = new Map<number, number>();
+      for (const node of descendants) {
+        widthByDepth.set(
+          node.depth,
+          Math.max(widthByDepth.get(node.depth) ?? NODE_WIDTH, cardWidth(node.data))
+        );
+      }
+      const offsetByDepth = new Map<number, number>();
+      let offset = 0;
+      for (const depth of [...widthByDepth.keys()].sort((a, b) => a - b)) {
+        offsetByDepth.set(depth, offset);
+        offset += (widthByDepth.get(depth) ?? NODE_WIDTH) + TREE_DEPTH_GAP;
+      }
+      for (const node of descendants) {
+        node.y = offsetByDepth.get(node.depth) ?? node.y;
+      }
+    }
+
     const links = treeRoot.links();
 
     const nodesLayer = mainContainer.select<SVGGElement>('g.nodes-layer');
@@ -273,19 +368,15 @@ export function FamilyTreeCanvas({
       .attr('class', 'link fill-none stroke-current text-muted-foreground')
       .attr('stroke-width', 1.5)
       .attr('d', (d) => {
-        const o: HierarchyPoint = {
-          ...d.source,
-          x: d.source.x,
-          y: d.source.y,
-        } as HierarchyPoint;
-        return linkPath({ source: o, target: o });
+        const { source } = linkEndpoints(d, orientation);
+        return linkPath({ source, target: source });
       })
       .style('opacity', 0)
       .merge(linkBinding)
       .transition()
       .duration(TREE_TRANSITION_MS)
       .style('opacity', 1)
-      .attr('d', (d) => linkPath(d));
+      .attr('d', (d) => linkPath(linkEndpoints(d, orientation)));
 
     linkBinding
       .exit()
@@ -305,24 +396,32 @@ export function FamilyTreeCanvas({
       .attr(
         'transform',
         (d) =>
-          `translate(${px(d.parent ?? d) - NODE_WIDTH / 2}, ${py(d.parent ?? d) - NODE_HEIGHT / 2})`
+          `translate(${px(d.parent ?? d) - cardWidth(d.data) / 2}, ${py(d.parent ?? d) - NODE_HEIGHT / 2})`
       )
       .style('opacity', 0)
       .on('click', (event, d) => {
         event.stopPropagation();
-        if (d.data.id !== TREE_VIRTUAL_ROOT_ID) {
-          onSelectPersonRef.current(d.data.person);
+        if (d.data.id === TREE_VIRTUAL_ROOT_ID) {
+          toggleNode(d.data);
+          return;
         }
-        toggleNode(d.data);
+        const cell = (event.target as Element | null)?.closest?.(
+          '[data-person-id]'
+        );
+        const clickedId = cell?.getAttribute('data-person-id');
+        const clickedSpouse = clickedId
+          ? d.data.spouses.find((s) => s.id === clickedId)
+          : undefined;
+        onSelectPersonRef.current(clickedSpouse ?? d.data.person);
+        // A spouse carries no branch of her own — only the main card collapses.
+        if (!clickedSpouse) toggleNode(d.data);
       });
 
     nodeEnter
       .append('foreignObject')
-      .attr('width', NODE_WIDTH)
+      .attr('width', (d) => cardWidth(d.data))
       .attr('height', NODE_HEIGHT)
-      .html((d) =>
-        buildNodeHtml(d.data, selectedPersonId === d.data.person.id)
-      );
+      .html((d) => buildNodeHtml(d.data, selectedPersonId));
 
     nodeEnter.each(function (d) {
       if (!hierarchyHasKids(d.data)) return;
@@ -339,21 +438,22 @@ export function FamilyTreeCanvas({
       .attr(
         'transform',
         (d) =>
-          `translate(${px(d) - NODE_WIDTH / 2}, ${py(d) - NODE_HEIGHT / 2})`
+          `translate(${px(d) - cardWidth(d.data) / 2}, ${py(d) - NODE_HEIGHT / 2})`
       )
       .style('opacity', 1);
 
     nodesLayer
       .selectAll<SVGGElement, HierarchyPoint>('g.node')
       .select('foreignObject')
-      .html((d) =>
-        buildNodeHtml(d.data, selectedPersonId === d.data.person.id)
-      );
+      .attr('width', (d) => cardWidth(d.data))
+      .html((d) => buildNodeHtml(d.data, selectedPersonId));
 
     nodesLayer
       .selectAll<SVGGElement, HierarchyPoint>('g.node')
       .select('g.collapse-btn')
-      .attr('transform', collapseBtnTransform(orientation));
+      .attr('transform', (d) =>
+        collapseBtnTransform(orientation, cardWidth(d.data))
+      );
 
     nodesLayer
       .selectAll<SVGGElement, HierarchyPoint>('g.node')

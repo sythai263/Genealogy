@@ -17,7 +17,8 @@ export type TreeOrientation = 'horizontal' | 'vertical';
 export interface HierarchyPersonNode {
   id: string;
   person: Person;
-  spouse?: Person | null;
+  /** Spouses in marriage order — rendered beside `person` on the same card. */
+  spouses: Person[];
   children?: HierarchyPersonNode[];
   _children?: HierarchyPersonNode[];
 }

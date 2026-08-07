@@ -43,6 +43,7 @@ import {
   MessageSquare,
   Bell,
   Landmark,
+  Heart,
 } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ELDERLY_ADMIN_URLS, ELDERLY_NAV_URLS } from '@constants';
@@ -97,6 +98,7 @@ const adminNavItems = [
   { title: 'QL Bài viết', url: '/admin/feed', icon: MessageSquare },
   { title: 'Xuất dữ liệu', url: '/admin/export', icon: Download },
   { title: 'Nhập GEDCOM', url: '/admin/import', icon: Upload },
+  { title: 'Nhập vợ/chồng', url: '/admin/spouses', icon: Heart },
   { title: 'Trùng lặp', url: '/admin/duplicates', icon: Copy },
   { title: 'Đơn ghi danh', url: '/admin/registrations', icon: Landmark },
   { title: 'Cài đặt', url: '/admin/settings', icon: Settings },

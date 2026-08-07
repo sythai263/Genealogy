@@ -21,6 +21,7 @@ export {
   type FullGiaPhaOptions,
   type TreeData as PdfTreeData,
 } from './pdf-export';
+export * from './spouse-utils';
 export * from './stats-calculator';
 export * from './supabase';
 export * from './supabase-data';

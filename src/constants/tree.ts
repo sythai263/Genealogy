@@ -16,15 +16,20 @@ export const COUPLE_GAP = 16;
 export const MINIMAP_WIDTH = 160;
 export const MINIMAP_HEIGHT = 100;
 
+/** Empty space between a generation column and the next one */
+export const TREE_DEPTH_GAP = 80;
+/** Empty space between two sibling cards */
+export const TREE_SIBLING_GAP = 24;
+
 /** Sibling spacing along Y for horizontal (LTR) tree nodeSize[0] */
-export const TREE_NODE_SIZE_Y = NODE_HEIGHT + 24;
+export const TREE_NODE_SIZE_Y = NODE_HEIGHT + TREE_SIBLING_GAP;
 /** Depth spacing along X for horizontal (LTR) tree nodeSize[1] */
-export const TREE_NODE_SIZE_X = NODE_WIDTH + 80;
+export const TREE_NODE_SIZE_X = NODE_WIDTH + TREE_DEPTH_GAP;
 
 /** Sibling spacing along X for vertical (TTB) tree nodeSize[0] */
-export const TREE_VERTICAL_NODE_SIZE_X = NODE_WIDTH + 24;
+export const TREE_VERTICAL_NODE_SIZE_X = NODE_WIDTH + TREE_SIBLING_GAP;
 /** Depth spacing along Y for vertical (TTB) tree nodeSize[1] */
-export const TREE_VERTICAL_NODE_SIZE_Y = NODE_HEIGHT + 80;
+export const TREE_VERTICAL_NODE_SIZE_Y = NODE_HEIGHT + TREE_DEPTH_GAP;
 
 /**
  * Collapse nodes at depth >= this value on initial load.

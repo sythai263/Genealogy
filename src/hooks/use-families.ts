@@ -9,7 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily } from '@lib';
+import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse } from '@lib';
 import type { Family } from '@types';
 
 // Query keys
@@ -20,6 +20,7 @@ export const familyKeys = {
   detail: (id: string) => [...familyKeys.details(), id] as const,
   children: (id: string) => [...familyKeys.all, 'children', id] as const,
   relations: (id: string) => [...familyKeys.all, 'relations', id] as const,
+  missingSpouse: () => [...familyKeys.all, 'missing-spouse'] as const,
   tree: () => ['tree'] as const,
 };
 
@@ -53,6 +54,13 @@ export function useTreeData() {
     queryKey: familyKeys.tree(),
     queryFn: getTreeData,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useFamiliesMissingSpouse() {
+  return useQuery({
+    queryKey: familyKeys.missingSpouse(),
+    queryFn: getFamiliesMissingSpouse,
   });
 }
 
@@ -140,9 +148,10 @@ export function useCreateSpouseFamily() {
       personGender: 1 | 2;
       spouseId: string;
     }) => createSpouseFamily(personId, personGender, spouseId),
-    onSuccess: () => {
+    onSuccess: (_, { personId }) => {
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
       queryClient.invalidateQueries({ queryKey: familyKeys.tree() });
+      queryClient.invalidateQueries({ queryKey: familyKeys.relations(personId) });
     },
   });
 }

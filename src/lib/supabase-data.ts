@@ -252,6 +252,67 @@ export async function getFamilyChildren(familyId: string): Promise<Person[]> {
   );
 }
 
+export interface FamilyMissingSpouse {
+  family_id: string;
+  /** The parent already recorded on the family. */
+  person: Person;
+  /** Which side is filled in — the opposite side is the one to enter. */
+  knownRole: 'father' | 'mother';
+  childrenCount: number;
+}
+
+/** Families that record one parent but not the other, for bulk spouse entry. */
+export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]> {
+  const { data: families, error } = await supabase
+    .from('families')
+    .select('id, father_id, mother_id')
+    .or(
+      'and(father_id.not.is.null,mother_id.is.null),and(mother_id.not.is.null,father_id.is.null)'
+    );
+
+  if (error) throw error;
+  if (!families || families.length === 0) return [];
+
+  const personIds = families.map((f) => f.father_id ?? f.mother_id).filter((id): id is string => Boolean(id));
+
+  const [peopleRes, childrenRes] = await Promise.all([
+    supabase.from('people').select('*').in('id', personIds),
+    supabase
+      .from('children')
+      .select('family_id')
+      .in('family_id', families.map((f) => f.id)),
+  ]);
+
+  if (peopleRes.error) throw peopleRes.error;
+  if (childrenRes.error) throw childrenRes.error;
+
+  const peopleById = new Map((peopleRes.data || []).map((p: Person) => [p.id, p]));
+  const childCounts = new Map<string, number>();
+  for (const row of childrenRes.data || []) {
+    childCounts.set(row.family_id, (childCounts.get(row.family_id) || 0) + 1);
+  }
+
+  return families
+    .map((family) => {
+      const knownRole: 'father' | 'mother' = family.father_id ? 'father' : 'mother';
+      const person = peopleById.get(family.father_id ?? family.mother_id);
+      if (!person) return null;
+      return {
+        family_id: family.id,
+        person,
+        knownRole,
+        childrenCount: childCounts.get(family.id) || 0,
+      };
+    })
+    .filter((entry): entry is FamilyMissingSpouse => entry != null)
+    .sort(
+      (a, b) =>
+        a.person.generation - b.person.generation ||
+        (a.person.chi ?? 0) - (b.person.chi ?? 0) ||
+        a.person.display_name.localeCompare(b.person.display_name, 'vi')
+    );
+}
+
 export async function createFamily(input: Omit<Family, 'id' | 'created_at' | 'updated_at'>): Promise<Family> {
   const { data, error } = await supabase
     .from('families')
@@ -441,7 +502,10 @@ export async function addPersonToParentFamily(
   await addChildToFamily(familyId, childPersonId, nextSortOrder);
 }
 
-// Create a new family linking personId (as father if gender=1, mother if gender=2) with spouseId.
+// Link personId (as father if gender=1, mother if gender=2) with spouseId.
+// Prefers filling the missing parent on an existing family so the couple stays
+// attached to the children already recorded under it; only creates a new family
+// row for a second marriage.
 export async function createSpouseFamily(
   personId: string,
   personGender: 1 | 2,
@@ -459,10 +523,42 @@ export async function createSpouseFamily(
     .maybeSingle();
   if (existing) return existing as Family;
 
+  const { data: halfFamilies } = await supabase
+    .from('families')
+    .select('*')
+    .eq(personGender === 1 ? 'father_id' : 'mother_id', personId)
+    .is(personGender === 1 ? 'mother_id' : 'father_id', null)
+    .order('sort_order', { ascending: true })
+    .limit(1);
+
+  if (halfFamilies?.length) {
+    const { data: updated, error: updateError } = await supabase
+      .from('families')
+      .update(personGender === 1 ? { mother_id: motherId } : { father_id: fatherId })
+      .eq('id', halfFamilies[0].id)
+      .select()
+      .single();
+    if (updateError) throw updateError;
+    return updated as Family;
+  }
+
+  const { data: lastFamily } = await supabase
+    .from('families')
+    .select('sort_order')
+    .eq(personGender === 1 ? 'father_id' : 'mother_id', personId)
+    .order('sort_order', { ascending: false })
+    .limit(1);
+  const nextSortOrder = lastFamily?.length ? lastFamily[0].sort_order + 1 : 0;
+
   const handle = `fam-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const { data, error } = await supabase
     .from('families')
-    .insert({ handle, father_id: fatherId, mother_id: motherId, sort_order: 0 })
+    .insert({
+      handle,
+      father_id: fatherId,
+      mother_id: motherId,
+      sort_order: nextSortOrder,
+    })
     .select()
     .single();
   if (error) throw error;

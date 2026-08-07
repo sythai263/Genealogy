@@ -72,15 +72,21 @@ export function buildPersonHierarchy(
     }
   }
 
-  function getSpouse(fatherId: string): Person | null {
-    const fams = fatherToFamilies.get(fatherId) || [];
+  /** All wives of a patrilineal node, in marriage order. */
+  function getSpouses(fatherId: string): Person[] {
+    const fams = [...(fatherToFamilies.get(fatherId) || [])].sort(
+      (a, b) => a.sort_order - b.sort_order
+    );
+    const result: Person[] = [];
+    const seen = new Set<string>();
     for (const fam of fams) {
-      if (fam.mother_id) {
-        const mother = peopleById.get(fam.mother_id);
-        if (mother) return mother;
-      }
+      if (!fam.mother_id || seen.has(fam.mother_id)) continue;
+      const mother = peopleById.get(fam.mother_id);
+      if (!mother) continue;
+      seen.add(fam.mother_id);
+      result.push(mother);
     }
-    return null;
+    return result;
   }
 
   function getChildIds(fatherId: string): string[] {
@@ -131,18 +137,9 @@ export function buildPersonHierarchy(
     return {
       id: personId,
       person,
-      spouse: getSpouse(personId),
+      spouses: getSpouses(personId),
       children: childNodes.length > 0 ? childNodes : undefined,
     };
-  }
-
-  // Search focus: root at selected person + descendants only
-  if (focusRootId) {
-    if (!peopleById.has(focusRootId)) return null;
-    const focused = buildNode(focusRootId);
-    if (!focused) return null;
-    collapseBelowDepth(focused, collapseDepth);
-    return focused;
   }
 
   const fatherIds = new Set(
@@ -154,6 +151,29 @@ export function buildPersonHierarchy(
 
   function isSpouseOnly(personId: string): boolean {
     return motherIds.has(personId) && !fatherIds.has(personId);
+  }
+
+  const motherToFather = new Map<string, string>();
+  for (const family of families) {
+    if (!family.mother_id || !family.father_id) continue;
+    if (!motherToFather.has(family.mother_id)) {
+      motherToFather.set(family.mother_id, family.father_id);
+    }
+  }
+
+  // Search focus: root at selected person + descendants only
+  if (focusRootId) {
+    if (!peopleById.has(focusRootId)) return null;
+    // A wife has no branch of her own in a patrilineal tree, so focusing her
+    // directly yields a lone card. Focus her husband instead — she is rendered
+    // on his card, keeping her visible together with their children.
+    const husbandId = isSpouseOnly(focusRootId)
+      ? motherToFather.get(focusRootId)
+      : undefined;
+    const focused = buildNode(husbandId ?? focusRootId);
+    if (!focused) return null;
+    collapseBelowDepth(focused, collapseDepth);
+    return focused;
   }
 
   let rootIds: string[] = [];
@@ -263,6 +283,7 @@ export function buildPersonHierarchy(
       created_at: '',
       updated_at: '',
     },
+    spouses: [],
     children: roots,
   };
   collapseBelowDepth(virtualRoot, collapseDepth);
