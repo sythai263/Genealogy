@@ -62,7 +62,7 @@ export function NotificationBell() {
           aria-label={`Thông báo${unreadCount > 0 ? ` (${unreadCount} chưa đọc)` : ''}`}>
           <Bell className='h-5 w-5' />
           {unreadCount > 0 && (
-            <span className='absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white'>
+            <span className='absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white'>
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -87,7 +87,7 @@ export function NotificationBell() {
         </div>
 
         {/* List */}
-        <div className='max-h-[360px] overflow-y-auto'>
+        <div className='max-h-90 overflow-y-auto'>
           {isLoading ? (
             <div className='flex justify-center py-8'>
               <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />

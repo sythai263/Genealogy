@@ -8,10 +8,10 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { parseLunarString, getNextLunarOccurrence, solarToLunar } from '@lib';
 import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
+import { getNextLunarOccurrence, parseLunarString, solarToLunar } from '@lib';
 import type { Event, Person } from '@types';
+import { useMemo } from 'react';
 
 interface CalendarGridProps {
   month: number;
@@ -20,7 +20,12 @@ interface CalendarGridProps {
   people: Person[];
 }
 
-export function CalendarGrid({ month, year, events, people }: CalendarGridProps) {
+export function CalendarGrid({
+  month,
+  year,
+  events,
+  people,
+}: CalendarGridProps) {
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0=Sun
   const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -47,7 +52,9 @@ export function CalendarGrid({ month, year, events, people }: CalendarGridProps)
           const next = getNextLunarOccurrence(parsed.day, parsed.month);
           if (next.getMonth() + 1 === month && next.getFullYear() === year) {
             const dayEvents = map.get(next.getDate()) || [];
-            const person = event.person_id ? people.find(p => p.id === event.person_id) : undefined;
+            const person = event.person_id
+              ? people.find(p => p.id === event.person_id)
+              : undefined;
             dayEvents.push({ event, person });
             map.set(next.getDate(), dayEvents);
           }
@@ -58,7 +65,9 @@ export function CalendarGrid({ month, year, events, people }: CalendarGridProps)
         const d = new Date(event.event_date);
         if (d.getMonth() + 1 === month && d.getFullYear() === year) {
           const dayEvents = map.get(d.getDate()) || [];
-          const person = event.person_id ? people.find(p => p.id === event.person_id) : undefined;
+          const person = event.person_id
+            ? people.find(p => p.id === event.person_id)
+            : undefined;
           dayEvents.push({ event, person });
           map.set(d.getDate(), dayEvents);
         }
@@ -69,20 +78,23 @@ export function CalendarGrid({ month, year, events, people }: CalendarGridProps)
   }, [events, people, month, year]);
 
   const today = new Date();
-  const isCurrentMonth = today.getMonth() + 1 === month && today.getFullYear() === year;
+  const isCurrentMonth =
+    today.getMonth() + 1 === month && today.getFullYear() === year;
   const todayDate = today.getDate();
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-px bg-muted rounded-lg overflow-hidden border">
+      <div className='grid grid-cols-7 gap-px bg-muted rounded-lg overflow-hidden border'>
         {dayNames.map(d => (
-          <div key={d} className="bg-muted-foreground/5 p-2 text-center text-xs font-medium text-muted-foreground">
+          <div
+            key={d}
+            className='bg-muted-foreground/5 p-2 text-center text-xs font-medium text-muted-foreground'>
             {d}
           </div>
         ))}
         {/* Empty cells before first day */}
         {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-          <div key={`empty-${i}`} className="bg-background p-2 min-h-[80px]" />
+          <div key={`empty-${i}`} className='bg-background p-2 min-h-20' />
         ))}
         {/* Day cells */}
         {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -94,15 +106,15 @@ export function CalendarGrid({ month, year, events, people }: CalendarGridProps)
           return (
             <div
               key={day}
-              className={`bg-background p-1.5 min-h-[80px] ${
+              className={`bg-background p-1.5 min-h-20 ${
                 isToday ? 'ring-2 ring-primary ring-inset' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className={`text-sm font-medium ${isToday ? 'text-primary' : ''}`}>
+              }`}>
+              <div className='flex items-center justify-between mb-1'>
+                <span
+                  className={`text-sm font-medium ${isToday ? 'text-primary' : ''}`}>
                   {day}
                 </span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className='text-[10px] text-muted-foreground'>
                   {lunar.day}/{lunar.month}
                 </span>
               </div>
@@ -112,8 +124,7 @@ export function CalendarGrid({ month, year, events, people }: CalendarGridProps)
                   <div
                     key={event.id}
                     className={`text-[10px] px-1 py-0.5 rounded mb-0.5 truncate ${typeInfo.color}`}
-                    title={event.title}
-                  >
+                    title={event.title}>
                     {event.title}
                   </div>
                 );

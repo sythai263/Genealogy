@@ -8,10 +8,6 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useResettablePage } from '@hooks';
-import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
 import { ListPagination } from '@components/shared';
 import {
@@ -38,7 +34,13 @@ import {
   UPCOMING_EVENTS_WINDOW_DAYS,
   type ListPageSize,
 } from '@constants';
-import { useDeleteEvent, useEvents, useEventsCalendar, usePeople } from '@hooks';
+import {
+  useDeleteEvent,
+  useEvents,
+  useEventsCalendar,
+  usePeople,
+  useResettablePage,
+} from '@hooks';
 import {
   formatLunarDate,
   getNextLunarOccurrence,
@@ -46,6 +48,9 @@ import {
   solarToLunar,
 } from '@lib';
 import type { EventType, UpcomingEvent } from '@types';
+import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { AddEventDialog } from './add-event-dialog';
 import { CalendarGrid } from './calendar-grid';
 import { EventsListPanel } from './events-list-panel';
@@ -59,15 +64,14 @@ export function EventsView() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
-  const [calendarMonth, setCalendarMonth] = useState(
-    new Date().getMonth() + 1
-  );
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1);
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
-  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [pageSize, setPageSize] = useState<ListPageSize>(
+    LIST_DEFAULT_PAGE_SIZE
+  );
   const [page, setPage] = useResettablePage(`${typeFilter}|${pageSize}`);
 
-  const listType =
-    typeFilter === 'all' ? undefined : (typeFilter as EventType);
+  const listType = typeFilter === 'all' ? undefined : (typeFilter as EventType);
   const { data: listData, isLoading: listLoading } = useEvents({
     type: listType,
     page,
@@ -114,7 +118,7 @@ export function EventsView() {
       if (daysUntil > UPCOMING_EVENTS_WINDOW_DAYS) continue;
 
       const person = event.person_id
-        ? people.find((item) => item.id === event.person_id)
+        ? people.find(item => item.id === event.person_id)
         : undefined;
       results.push({
         event,
@@ -135,7 +139,7 @@ export function EventsView() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const existingPersonIds = new Set(
-      events.filter((event) => event.person_id).map((event) => event.person_id)
+      events.filter(event => event.person_id).map(event => event.person_id)
     );
     const results: UpcomingEvent[] = [];
 
@@ -211,15 +215,15 @@ export function EventsView() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-            <Calendar className="h-5 w-5 text-amber-600" />
+    <div className='container mx-auto px-4 py-8'>
+      <div className='mb-8 flex items-start justify-between'>
+        <div className='flex items-center gap-3'>
+          <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50'>
+            <Calendar className='h-5 w-5 text-amber-600' />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Lịch cúng lễ</h1>
-            <p className="text-muted-foreground">
+            <h1 className='text-2xl font-bold'>Lịch cúng lễ</h1>
+            <p className='text-muted-foreground'>
               Quản lý ngày giỗ, lễ tết và sự kiện dòng họ
             </p>
           </div>
@@ -227,11 +231,11 @@ export function EventsView() {
         {isEditor && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" /> Thêm sự kiện
+              <Button className='gap-2'>
+                <Plus className='h-4 w-4' /> Thêm sự kiện
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className='max-w-md'>
               <DialogHeader>
                 <DialogTitle>Thêm sự kiện mới</DialogTitle>
                 <DialogDescription>
@@ -246,38 +250,36 @@ export function EventsView() {
 
       <UpcomingEventsBanner events={allUpcoming} />
 
-      <Tabs defaultValue="calendar">
-        <TabsList className="mb-4">
-          <TabsTrigger value="calendar">Lịch</TabsTrigger>
-          <TabsTrigger value="list">Danh sách</TabsTrigger>
+      <Tabs defaultValue='calendar'>
+        <TabsList className='mb-4'>
+          <TabsTrigger value='calendar'>Lịch</TabsTrigger>
+          <TabsTrigger value='list'>Danh sách</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="calendar">
+        <TabsContent value='calendar'>
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+            <CardHeader className='pb-3'>
+              <div className='flex items-center justify-between'>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigateMonth(-1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => navigateMonth(-1)}>
+                  <ChevronLeft className='h-4 w-4' />
                 </Button>
-                <CardTitle className="text-base">
+                <CardTitle className='text-base'>
                   {MONTHS_VI[calendarMonth - 1]} {calendarYear}
                 </CardTitle>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigateMonth(1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => navigateMonth(1)}>
+                  <ChevronRight className='h-4 w-4' />
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <Skeleton className="h-[400px] w-full" />
+                <Skeleton className='h-100 w-full' />
               ) : (
                 <CalendarGrid
                   month={calendarMonth}
@@ -290,7 +292,7 @@ export function EventsView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="list" className="space-y-4">
+        <TabsContent value='list' className='space-y-4'>
           <EventsListPanel
             events={listItems}
             people={people || []}
@@ -306,7 +308,7 @@ export function EventsView() {
             total={listTotal}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="sự kiện"
+            itemLabel='sự kiện'
             disabled={listLoading}
           />
         </TabsContent>

@@ -8,21 +8,20 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import dynamic from 'next/dynamic';
-import { BarChart3 } from 'lucide-react';
 import { Skeleton } from '@components/ui';
 import { useTreeData } from '@hooks';
 import { calculateDetailedStats } from '@lib';
+import { BarChart3 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 import { StatsSummaryCards } from './stats-summary-cards';
 
 // Dynamic import recharts to avoid SSR hydration issues (R-04)
 const StatsCharts = dynamic(
-  () =>
-    import('./stats-charts').then((mod) => ({ default: mod.StatsCharts })),
+  () => import('./stats-charts').then(mod => ({ default: mod.StatsCharts })),
   {
     ssr: false,
-    loading: () => <Skeleton className="h-[400px] w-full rounded-lg" />,
+    loading: () => <Skeleton className='h-100 w-full rounded-lg' />,
   }
 );
 
@@ -36,14 +35,14 @@ export function StatsView() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto space-y-6 p-4">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
+      <div className='container mx-auto space-y-6 p-4'>
+        <Skeleton className='h-8 w-48' />
+        <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className='h-24 rounded-lg' />
           ))}
         </div>
-        <Skeleton className="h-[300px] rounded-lg" />
+        <Skeleton className='h-75 rounded-lg' />
       </div>
     );
   }
@@ -51,13 +50,13 @@ export function StatsView() {
   if (!stats) return null;
 
   return (
-    <div className="container mx-auto space-y-6 p-4">
+    <div className='container mx-auto space-y-6 p-4'>
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <BarChart3 className="h-6 w-6" />
+        <h1 className='flex items-center gap-2 text-2xl font-bold'>
+          <BarChart3 className='h-6 w-6' />
           Thống kê gia phả
         </h1>
-        <p className="text-muted-foreground">
+        <p className='text-muted-foreground'>
           Biểu đồ phân bố và số liệu tổng hợp
         </p>
       </div>

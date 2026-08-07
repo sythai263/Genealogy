@@ -8,14 +8,28 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, Button, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui';
-import { FEED_MAX_CONTENT_LENGTH, FEED_MAX_IMAGES, POST_TYPE_LABELS } from '@constants';
-import { ImagePlus, X, Loader2, Send } from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardContent,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+} from '@components/ui';
+import {
+  FEED_MAX_CONTENT_LENGTH,
+  FEED_MAX_IMAGES,
+  POST_TYPE_LABELS,
+} from '@constants';
 import { useCreatePost } from '@hooks';
 import { supabase } from '@lib';
 import type { PostType } from '@types';
+import { ImagePlus, Loader2, Send, X } from 'lucide-react';
+import Image from 'next/image';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ComposeBoxProps {
@@ -62,7 +76,10 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           // Desktop: upload via /api/media/
           const formData = new FormData();
           formData.append('file', file);
-          const res = await fetch('/api/media/feed', { method: 'POST', body: formData });
+          const res = await fetch('/api/media/feed', {
+            method: 'POST',
+            body: formData,
+          });
           if (!res.ok) throw new Error('Upload failed');
           const data = await res.json();
           newUrls.push(data.url || `/api/media/feed/${file.name}`);
@@ -70,9 +87,13 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           // Web: upload to Supabase Storage
           const ext = file.name.split('.').pop() || 'jpg';
           const path = `feed/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-          const { error } = await supabase.storage.from('media').upload(path, file);
+          const { error } = await supabase.storage
+            .from('media')
+            .upload(path, file);
           if (error) throw error;
-          const { data: urlData } = supabase.storage.from('media').getPublicUrl(path);
+          const { data: urlData } = supabase.storage
+            .from('media')
+            .getPublicUrl(path);
           newUrls.push(urlData.publicUrl);
         }
       }
@@ -115,34 +136,35 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
 
   return (
     <Card>
-      <CardContent className="pt-4 space-y-3">
+      <CardContent className='pt-4 space-y-3'>
         <Textarea
-          placeholder="Chia sẻ điều gì đó với gia đình..."
+          placeholder='Chia sẻ điều gì đó với gia đình...'
           value={content}
           onChange={e => setContent(e.target.value)}
-          className="min-h-[80px] resize-none"
+          className='min-h-20 resize-none'
           maxLength={FEED_MAX_CONTENT_LENGTH}
         />
 
         {/* Image previews */}
         {imageUrls.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className='flex flex-wrap gap-2'>
             {imageUrls.map((url, i) => (
-              <div key={i} className="relative w-20 h-20 rounded-md overflow-hidden border">
+              <div
+                key={i}
+                className='relative w-20 h-20 rounded-md overflow-hidden border'>
                 <Image
                   src={url}
-                  alt=""
+                  alt=''
                   fill
-                  className="object-cover"
-                  sizes="80px"
+                  className='object-cover'
+                  sizes='80px'
                   unoptimized
                 />
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => removeImage(i)}
-                  className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5"
-                >
-                  <X className="h-3 w-3" />
+                  className='absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5'>
+                  <X className='h-3 w-3' />
                 </button>
               </div>
             ))}
@@ -150,56 +172,58 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
         )}
 
         {/* Actions bar */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className='flex items-center gap-2 flex-wrap'>
           <input
             ref={fileInputRef}
-            type="file"
-            accept="image/*"
+            type='file'
+            accept='image/*'
             multiple
             onChange={handleImageUpload}
-            className="hidden"
+            className='hidden'
           />
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
+            type='button'
+            variant='outline'
+            size='sm'
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || imageUrls.length >= FEED_MAX_IMAGES}
-          >
+            disabled={isUploading || imageUrls.length >= FEED_MAX_IMAGES}>
             {isUploading ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              <Loader2 className='h-4 w-4 mr-1.5 animate-spin' />
             ) : (
-              <ImagePlus className="h-4 w-4 mr-1.5" />
+              <ImagePlus className='h-4 w-4 mr-1.5' />
             )}
             Ảnh ({imageUrls.length}/{FEED_MAX_IMAGES})
           </Button>
 
-          <Select value={postType} onValueChange={v => setPostType(v as PostType)}>
-            <SelectTrigger className="w-[130px] h-8 text-xs">
+          <Select
+            value={postType}
+            onValueChange={v => setPostType(v as PostType)}>
+            <SelectTrigger className='w-32.5 h-8 text-xs'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {Object.entries(POST_TYPE_LABELS).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <div className="flex-1" />
+          <div className='flex-1' />
 
-          <span className="text-xs text-muted-foreground">
+          <span className='text-xs text-muted-foreground'>
             {content.length}/{FEED_MAX_CONTENT_LENGTH}
           </span>
 
           <Button
-            size="sm"
+            size='sm'
             onClick={handleSubmit}
-            disabled={createPost.isPending || !content.trim()}
-          >
+            disabled={createPost.isPending || !content.trim()}>
             {createPost.isPending ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              <Loader2 className='h-4 w-4 mr-1.5 animate-spin' />
             ) : (
-              <Send className="h-4 w-4 mr-1.5" />
+              <Send className='h-4 w-4 mr-1.5' />
             )}
             Đăng bài
           </Button>
