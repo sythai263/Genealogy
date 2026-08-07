@@ -8,6 +8,7 @@
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import "./globals.css";
 import { AuthProvider } from '@components/auth';
 import { QueryProvider, ThemeProvider } from '@components/providers';
 import { TooltipProvider, Toaster } from '@components/ui';
