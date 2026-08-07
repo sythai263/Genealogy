@@ -4,6 +4,7 @@
  * @description Error boundary for GEDCOM import page
  */
 
+'use client';
 import { Button, Card, CardContent } from '@components/ui';
 
 interface ImportErrorProps {
@@ -12,13 +13,13 @@ interface ImportErrorProps {
 
 export default function ImportError({ reset }: ImportErrorProps) {
   return (
-    <div className="container mx-auto p-4">
+    <div className='container mx-auto p-4'>
       <Card>
-        <CardContent className="py-12 text-center space-y-4">
-          <p className="text-muted-foreground">
+        <CardContent className='py-12 text-center space-y-4'>
+          <p className='text-muted-foreground'>
             Đã xảy ra lỗi khi tải trang nhập dữ liệu.
           </p>
-          <Button onClick={reset} variant="outline">
+          <Button onClick={reset} variant='outline'>
             Thử lại
           </Button>
         </CardContent>
