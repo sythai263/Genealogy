@@ -2,10 +2,11 @@
  * @project AncestorTree
  * @file src/app/api/debug/auth/route.ts
  * @description Debug endpoint: inspect auth state, env vars, Supabase connectivity.
- *              Only active when DEBUG_AUTH=true env var is set.
- *              Usage: GET /api/debug/auth
- * @version 2.0.0
+ *              Never served in production; outside production it also requires
+ *              DEBUG_AUTH=true. Usage: GET /api/debug/auth
+ * @version 3.0.0
  * @updated 2026-08-09
+ * @security Leaks session and env details — must stay unreachable in production.
  */
 
 import { API_STATUS } from '@constants';
@@ -16,6 +17,7 @@ import {
   getAuthCookieName,
   getSupabaseCookieUrl,
   getSupabaseNetworkUrl,
+  guardDevelopmentOnly,
   toErrorMessage,
   withApiHandler,
 } from '@lib/api';
@@ -53,6 +55,9 @@ async function probeSupabase(
 }
 
 export const GET = withApiHandler('debug/auth', async (request) => {
+  const productionGuard = guardDevelopmentOnly();
+  if (productionGuard) return productionGuard;
+
   if (process.env.DEBUG_AUTH !== 'true') {
     return apiError(
       'Debug endpoint disabled. Set DEBUG_AUTH=true to enable.',

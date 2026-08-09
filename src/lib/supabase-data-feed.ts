@@ -15,9 +15,7 @@ import type { ListPageSize, Post, PostComment, PostLike, PostsListFilters, Pagin
 const ALLOWED_UPDATE_FIELDS = ['content', 'post_type', 'images', 'status'] as const;
 
 function isValidImageUrl(url: string): boolean {
-  const isSupabase = url.includes('/storage/v1/object/');
-  const isDesktop = url.startsWith('/api/media/');
-  return isSupabase || isDesktop;
+  return url.includes('/storage/v1/object/');
 }
 
 // ─── Posts ───────────────────────────────────────────────────────────────────

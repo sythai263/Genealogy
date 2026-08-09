@@ -11,7 +11,6 @@ import {
   apiError,
   apiFile,
   createServiceRoleClient,
-  guardWebOnly,
   requireRole,
   withApiHandler,
 } from '@lib/api';
@@ -20,10 +19,6 @@ import { generateGedcom, type TreeData } from '@lib';
 export const GET = withApiHandler(
   'export/gedcom',
   async (request) => {
-    // Desktop mode: export is handled client-side via generateGedcom()
-    const desktopGuard = guardWebOnly();
-    if (desktopGuard) return desktopGuard;
-
     const requester = await requireRole(request);
     if (requester instanceof Response) return requester;
 

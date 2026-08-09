@@ -1,4 +1,4 @@
-import type { BackupInterval, IncludeMedia } from '@types';
+import type { BackupInterval } from '@types';
 
 export const BACKUP_TABLE_NAMES: Record<string, string> = {
   people: 'Thành viên',
@@ -22,27 +22,6 @@ export const BACKUP_INTERVAL_LABELS: Record<BackupInterval, string> = {
   weekly: 'Hàng tuần',
   monthly: 'Hàng tháng',
 };
-
-export const BACKUP_MEDIA_OPTIONS: {
-  value: IncludeMedia;
-  label: string;
-  description: string;
-}[] = [
-  { value: 'skip', label: 'Bỏ qua', description: 'Chỉ dữ liệu, không có ảnh' },
-  {
-    value: 'reference',
-    label: 'Liên kết',
-    description: 'Lưu đường dẫn ảnh (khuyến nghị)',
-  },
-  {
-    value: 'inline',
-    label: 'Nhúng ảnh',
-    description: 'Đính kèm toàn bộ ảnh vào ZIP',
-  },
-];
-
-export const IS_DESKTOP_MODE =
-  process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true';
 
 /** 500 MB max backup import file */
 export const BACKUP_MAX_IMPORT_SIZE = 500 * 1024 * 1024;

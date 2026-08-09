@@ -1,5 +1,3 @@
-export type IncludeMedia = 'skip' | 'reference' | 'inline';
-
 export type BackupInterval = 'off' | 'daily' | 'weekly' | 'monthly';
 
 export interface BackupSchedule {
@@ -14,9 +12,4 @@ export interface RestoreResult {
   total_inserted: number;
   tables: Record<string, number>;
   errors?: string[];
-  mode?: string;
-}
-
-export interface BackupExportOptions {
-  includeMedia: IncludeMedia;
 }

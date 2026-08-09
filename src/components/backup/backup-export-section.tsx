@@ -2,24 +2,15 @@
 
 import { Download, Info, RefreshCw } from 'lucide-react';
 import { Button } from '@components/ui';
-import {
-  BACKUP_MEDIA_OPTIONS,
-  IS_DESKTOP_MODE,
-} from '@constants';
-import { cn, formatBackupDate } from '@lib';
-import type { IncludeMedia } from '@types';
+import { formatBackupDate } from '@lib';
 
 interface BackupExportSectionProps {
-  includeMedia: IncludeMedia;
-  onIncludeMediaChange: (value: IncludeMedia) => void;
   exporting: boolean;
   onExport: () => void;
   lastBackupAt: string | null;
 }
 
 export function BackupExportSection({
-  includeMedia,
-  onIncludeMediaChange,
   exporting,
   onExport,
   lastBackupAt,
@@ -38,41 +29,12 @@ export function BackupExportSection({
         </div>
       </div>
 
-      {IS_DESKTOP_MODE && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Tùy chọn hình ảnh:</p>
-          <div className="grid grid-cols-3 gap-2">
-            {BACKUP_MEDIA_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => onIncludeMediaChange(option.value)}
-                className={cn(
-                  'flex flex-col rounded-lg border-2 p-3 text-left transition-all',
-                  includeMedia === option.value
-                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-muted hover:border-muted-foreground/40'
-                )}
-              >
-                <span className="text-sm font-medium">{option.label}</span>
-                <span className="mt-0.5 text-xs text-muted-foreground">
-                  {option.description}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!IS_DESKTOP_MODE && (
-        <div className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            Chế độ Web: ảnh được lưu dưới dạng đường dẫn (liên kết Supabase
-            Storage).
-          </span>
-        </div>
-      )}
+      <div className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <span>
+          Ảnh được lưu dưới dạng đường dẫn (liên kết Supabase Storage).
+        </span>
+      </div>
 
       <Button
         onClick={onExport}

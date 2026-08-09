@@ -6,11 +6,7 @@
  * @updated 2026-07-18
  */
 
-import {
-  HELP_DESKTOP_BACKUP_WORKFLOW,
-  HELP_WORKFLOWS,
-  IS_DESKTOP_MODE,
-} from '@constants';
+import { HELP_WORKFLOWS } from '@constants';
 import { HelpFaqSection } from './help-faq-section';
 import { HelpNavSection } from './help-nav-section';
 import { HelpRolesSection } from './help-roles-section';
@@ -18,10 +14,6 @@ import { HelpTipsSection } from './help-tips-section';
 import { HelpWorkflowsSection } from './help-workflows-section';
 
 export function HelpView() {
-  const workflows = IS_DESKTOP_MODE
-    ? [...HELP_WORKFLOWS, HELP_DESKTOP_BACKUP_WORKFLOW]
-    : HELP_WORKFLOWS;
-
   return (
     <div className="container mx-auto max-w-6xl space-y-16 px-4 py-8">
       <div className="text-center">
@@ -34,10 +26,10 @@ export function HelpView() {
       </div>
 
       <HelpNavSection />
-      <HelpWorkflowsSection workflows={workflows} />
-      <HelpRolesSection isDesktop={IS_DESKTOP_MODE} />
+      <HelpWorkflowsSection workflows={HELP_WORKFLOWS} />
+      <HelpRolesSection />
       <HelpTipsSection />
-      <HelpFaqSection isDesktop={IS_DESKTOP_MODE} />
+      <HelpFaqSection />
     </div>
   );
 }

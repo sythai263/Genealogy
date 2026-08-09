@@ -1,10 +1,10 @@
 /**
  * @project AncestorTree
  * @file src/app/api/backup/restore/route.ts
- * @description Unified restore API — imports a ZIP backup file into the database.
- *              Works in both Desktop (SQLite) and Web (Supabase service-role) modes.
+ * @description Restore API — imports a ZIP backup file into the database via the
+ *              Supabase service-role client.
  *              DESTRUCTIVE: clears all table data before restoring from manifest.
- * @version 2.0.0
+ * @version 3.0.0
  * @updated 2026-08-09
  * @security SEC-CRIT-03: column names whitelisted per table (prevents SQL injection)
  * @security SEC-WARN-04: ZIP file size limited to 500 MB

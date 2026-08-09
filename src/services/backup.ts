@@ -7,17 +7,13 @@
  */
 
 import { API_ERROR_MESSAGES } from '@constants';
-import type { IncludeMedia, RestoreResult } from '@types';
+import type { RestoreResult } from '@types';
 import { downloadBlob, requestBlob, requestJson } from './http';
 
-export async function exportBackup(includeMedia: IncludeMedia): Promise<Blob> {
+export async function exportBackup(): Promise<Blob> {
   return requestBlob(
     '/api/backup',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ include_media: includeMedia }),
-    },
+    { method: 'POST' },
     API_ERROR_MESSAGES.backupFailed
   );
 }

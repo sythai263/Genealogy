@@ -1,11 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/app/api/backup/route.ts
- * @description Unified backup API — exports all 13 tables to a single ZIP file.
- *              Works in both Desktop (SQLite via sql.js) and Web (Supabase) modes.
- *              Desktop: queries SQLite directly + optional media embedding.
- *              Web:     uses service-role client to bypass RLS; inline media skipped.
- * @version 2.0.0
+ * @description Backup API — exports all 13 tables to a single ZIP file using the
+ *              service-role client to bypass RLS.
+ * @version 3.0.0
  * @updated 2026-08-09
  */
 
@@ -15,12 +13,7 @@ import {
   API_ERROR_MESSAGES,
   BACKUP_EXPORT_TABLES,
 } from '@constants';
-import { apiFile, isDesktopMode, withApiHandler } from '@lib/api';
-import type { IncludeMedia } from '@types';
-
-interface BackupRequestBody {
-  include_media?: IncludeMedia;
-}
+import { apiFile, withApiHandler } from '@lib/api';
 
 /**
  * Docker volume persistence: when BACKUP_DIR is mounted, keep a copy of the ZIP
@@ -44,10 +37,7 @@ async function persistToBackupDir(filename: string, zipBuffer: Buffer): Promise<
 
 export const POST = withApiHandler(
   'backup/export',
-  async (request) => {
-    const body = (await request.json().catch(() => ({}))) as BackupRequestBody;
-    const includeMedia: IncludeMedia = body.include_media ?? 'reference';
-
+  async () => {
     const zip = new AdmZip();
     const exportedData: Record<string, unknown[]> = {};
 
@@ -55,8 +45,6 @@ export const POST = withApiHandler(
       version: '1.0',
       app_version: APP_VERSION,
       exported_at: new Date().toISOString(),
-      mode: isDesktopMode() ? 'desktop' : 'web',
-      include_media: includeMedia,
       row_counts: Object.fromEntries(
         BACKUP_EXPORT_TABLES.map((table) => [table, exportedData[table].length])
       ),

@@ -8,15 +8,13 @@ import {
   useBackupRestore,
   useBackupSchedule,
 } from '@hooks';
-import type { IncludeMedia, RestoreResult } from '@types';
+import type { RestoreResult } from '@types';
 import { BackupDueBanner } from './backup-due-banner';
 import { BackupExportSection } from './backup-export-section';
 import { BackupRestoreSection } from './backup-restore-section';
 import { BackupScheduleSection } from './backup-schedule-section';
 
 export function BackupView() {
-  const [includeMedia, setIncludeMedia] =
-    useState<IncludeMedia>('reference');
   const [restoreResult, setRestoreResult] = useState<RestoreResult | null>(
     null
   );
@@ -34,26 +32,23 @@ export function BackupView() {
   const exportMutation = useBackupExport();
   const restoreMutation = useBackupRestore();
 
-  function runExport(media: IncludeMedia = includeMedia) {
-    exportMutation.mutate(
-      { includeMedia: media },
-      {
-        onSuccess: () => {
-          recordBackup();
-          toast.success('Sao lưu thành công! File đã được tải xuống.');
-        },
-        onError: (error: Error) => {
-          toast.error(error.message || 'Sao lưu thất bại');
-        },
-      }
-    );
+  function runExport() {
+    exportMutation.mutate(undefined, {
+      onSuccess: () => {
+        recordBackup();
+        toast.success('Sao lưu thành công! File đã được tải xuống.');
+      },
+      onError: (error: Error) => {
+        toast.error(error.message || 'Sao lưu thất bại');
+      },
+    });
   }
 
   useEffect(() => {
     if (isDue && schedule.autoDownload && !autoBackupTriggered.current) {
       autoBackupTriggered.current = true;
       toast.info('Đã đến lịch sao lưu tự động, đang tải xuống…');
-      runExport('reference');
+      runExport();
     }
     // Intentionally run once when due — export mutation is stable enough for this UX.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,8 +98,6 @@ export function BackupView() {
       )}
 
       <BackupExportSection
-        includeMedia={includeMedia}
-        onIncludeMediaChange={setIncludeMedia}
         exporting={exportMutation.isPending}
         onExport={() => runExport()}
         lastBackupAt={schedule.lastBackupAt}

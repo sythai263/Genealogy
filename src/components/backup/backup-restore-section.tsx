@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { AlertTriangle, CheckCircle2, RefreshCw, Upload } from 'lucide-react';
-import { Badge, Button } from '@components/ui';
+import { Button } from '@components/ui';
 import { BACKUP_TABLE_NAMES } from '@constants';
 import type { RestoreResult } from '@types';
 
@@ -82,11 +82,6 @@ export function BackupRestoreSection({
           <div className="flex items-center gap-2 font-medium text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-4 w-4" />
             Khôi phục thành công — {restoreResult.total_inserted} bản ghi
-            {restoreResult.mode && (
-              <Badge variant="outline" className="ml-auto text-xs">
-                {restoreResult.mode === 'desktop' ? 'Desktop' : 'Web'}
-              </Badge>
-            )}
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
             {Object.entries(restoreResult.tables).map(([table, count]) => (

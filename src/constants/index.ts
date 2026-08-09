@@ -20,7 +20,6 @@ export * from './people';
 export * from './registrations';
 export * from './route-boundaries';
 export * from './settings';
-export * from './setup';
 export * from './spouses';
 export * from './stats';
 export * from './ui-states';

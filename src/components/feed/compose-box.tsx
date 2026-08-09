@@ -58,8 +58,6 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
     setIsUploading(true);
 
     try {
-      const isDesktop = process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true';
-
       const newUrls: string[] = [];
 
       for (const file of filesToUpload) {
@@ -72,30 +70,16 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
           continue;
         }
 
-        if (isDesktop) {
-          // Desktop: upload via /api/media/
-          const formData = new FormData();
-          formData.append('file', file);
-          const res = await fetch('/api/media/feed', {
-            method: 'POST',
-            body: formData,
-          });
-          if (!res.ok) throw new Error('Upload failed');
-          const data = await res.json();
-          newUrls.push(data.url || `/api/media/feed/${file.name}`);
-        } else {
-          // Web: upload to Supabase Storage
-          const ext = file.name.split('.').pop() || 'jpg';
-          const path = `feed/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-          const { error } = await supabase.storage
-            .from('media')
-            .upload(path, file);
-          if (error) throw error;
-          const { data: urlData } = supabase.storage
-            .from('media')
-            .getPublicUrl(path);
-          newUrls.push(urlData.publicUrl);
-        }
+        const ext = file.name.split('.').pop() || 'jpg';
+        const path = `feed/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage
+          .from('media')
+          .upload(path, file);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage
+          .from('media')
+          .getPublicUrl(path);
+        newUrls.push(urlData.publicUrl);
       }
 
       setImageUrls(prev => [...prev, ...newUrls]);

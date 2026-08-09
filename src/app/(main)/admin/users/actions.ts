@@ -22,7 +22,6 @@ import { createServiceRoleClient } from '@lib';
  * - Only callable server-side (Next.js Server Action)
  * - Uses SUPABASE_SERVICE_ROLE_KEY — never exposed to browser
  * - Caller must be admin (ISS-02: authorization check)
- * - Desktop mode: not applicable (no real Supabase Auth in desktop)
  */
 export async function deleteUserAccount(userId: string): Promise<void> {
   if (!userId) throw new Error('userId is required');

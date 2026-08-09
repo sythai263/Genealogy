@@ -23,7 +23,6 @@ import {
   Bug,
   Calendar,
   ChevronRight,
-  Clock,
   FileDown,
   GitBranch,
   Heart,
@@ -188,7 +187,6 @@ const techStack = [
   'Tailwind CSS 4',
   'Supabase (PostgreSQL)',
   'shadcn/ui',
-  'Electron',
 ];
 
 // -- Page --
@@ -420,11 +418,11 @@ export default function WelcomePage() {
                 ],
               },
               {
-                title: 'Sao lưu dữ liệu (Desktop)',
+                title: 'Sao lưu dữ liệu',
                 steps: [
-                  'Dữ liệu lưu tại ~/AncestorTree/',
-                  'Copy thư mục ra USB hoặc Google Drive',
-                  'Khôi phục: copy ngược về ~/AncestorTree/',
+                  'Vào Quản trị → Sao lưu & Khôi phục',
+                  'Nhấn "Xuất sao lưu" để tải file ZIP về máy',
+                  'Khôi phục: tải lên chính file ZIP đã xuất',
                   'Nên sao lưu ít nhất 1 lần/tháng',
                 ],
               },
@@ -486,7 +484,7 @@ export default function WelcomePage() {
               Bắt đầu nhanh
             </h2>
             <p className='text-muted-foreground'>
-              Chạy ngay trên máy tính — chỉ cần Docker Desktop và 10 phút.
+              Chạy ngay trên máy của bạn — chỉ cần Docker và 10 phút.
             </p>
           </div>
 
@@ -501,7 +499,7 @@ export default function WelcomePage() {
               <CardContent className='space-y-4'>
                 <div className='bg-zinc-900 text-zinc-100 rounded-lg p-4 font-mono text-sm leading-relaxed'>
                   <p className='text-zinc-400'>
-                    # Chạy local (cần Docker Desktop + pnpm)
+                    # Chạy local (cần Docker + pnpm)
                   </p>
                   <p>cd frontend</p>
                   <p>
@@ -527,24 +525,6 @@ export default function WelcomePage() {
             </Card>
           </div>
 
-          {/* Desktop notice */}
-          <div className='max-w-2xl mx-auto'>
-            <Card className='border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30'>
-              <CardContent className='pt-6 text-center space-y-3'>
-                <div className='mx-auto w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center'>
-                  <Clock className='h-5 w-5 text-amber-600 dark:text-amber-400' />
-                </div>
-                <h3 className='font-semibold text-foreground'>
-                  Desktop App — Code Signing Pending
-                </h3>
-                <p className='text-sm text-muted-foreground'>
-                  Bản Desktop (offline, không cần Docker) đang chờ Apple
-                  Developer Certificate. Khi code signing sẵn sàng, bản cài đặt
-                  sẽ được thông báo trên trang này.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </section>
 
@@ -560,79 +540,16 @@ export default function WelcomePage() {
             </p>
           </div>
 
-          {/* Desktop vs Web comparison */}
-          <div className='max-w-3xl mx-auto mb-12'>
-            <h3 className='text-lg font-semibold text-foreground mb-4 text-center'>
-              Desktop vs Web
-            </h3>
-            <div className='overflow-x-auto'>
-              <table className='w-full border-collapse bg-card rounded-lg overflow-hidden shadow-sm'>
-                <thead>
-                  <tr className='bg-emerald-50 dark:bg-emerald-950/40'>
-                    <th className='px-4 py-3 text-left text-sm font-semibold text-foreground' />
-                    <th className='px-4 py-3 text-left text-sm font-semibold text-foreground'>
-                      Desktop
-                    </th>
-                    <th className='px-4 py-3 text-left text-sm font-semibold text-foreground'>
-                      Web
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className='divide-y'>
-                  {[
-                    {
-                      label: 'Dữ liệu',
-                      desktop: 'Lưu trên máy (SQLite)',
-                      web: 'Cloud (Supabase)',
-                    },
-                    {
-                      label: 'Internet',
-                      desktop: 'Không cần',
-                      web: 'Cần kết nối',
-                    },
-                    {
-                      label: 'Người dùng',
-                      desktop: '1 người (admin)',
-                      web: 'Nhiều người, phân quyền',
-                    },
-                    {
-                      label: 'Cài đặt',
-                      desktop: 'Tải file, click cài',
-                      web: 'Cần Node.js, Docker',
-                    },
-                    {
-                      label: 'Chức năng',
-                      desktop: 'Giống nhau 100%',
-                      web: 'Giống nhau 100%',
-                    },
-                  ].map(row => (
-                    <tr key={row.label}>
-                      <td className='px-4 py-3 text-sm font-medium text-foreground'>
-                        {row.label}
-                      </td>
-                      <td className='px-4 py-3 text-sm text-muted-foreground'>
-                        {row.desktop}
-                      </td>
-                      <td className='px-4 py-3 text-sm text-muted-foreground'>
-                        {row.web}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           {/* FAQ items */}
           <div className='max-w-3xl mx-auto space-y-4'>
             {[
               {
                 q: 'Dữ liệu có mất khi cập nhật ứng dụng không?',
-                a: 'Không. Dữ liệu được lưu riêng trong thư mục ~/AncestorTree/, không bị ảnh hưởng khi cập nhật.',
+                a: 'Không. Dữ liệu được lưu trên Supabase cloud, tách biệt với mã nguồn nên không bị ảnh hưởng khi cập nhật.',
               },
               {
-                q: 'Có thể chuyển dữ liệu từ Desktop sang Web không?',
-                a: 'Có. Sử dụng tính năng Export/Import (sẽ có trong phiên bản tương lai).',
+                q: 'Làm sao để sao lưu toàn bộ dữ liệu?',
+                a: 'Admin vào Quản trị → Sao lưu & Khôi phục để tải về file ZIP chứa toàn bộ dữ liệu, và khôi phục lại từ chính file đó khi cần.',
               },
               {
                 q: 'Ứng dụng hỗ trợ bao nhiêu thành viên?',
@@ -640,7 +557,7 @@ export default function WelcomePage() {
               },
               {
                 q: 'Ai có quyền chỉnh sửa dữ liệu?',
-                a: 'Bản Web: Admin toàn quyền, Editor thêm/sửa/xóa, Viewer chỉ xem, Guest xem công khai. Bản Desktop: bạn tự động là Admin.',
+                a: 'Admin toàn quyền, Editor thêm/sửa/xóa, Viewer chỉ xem, Guest chỉ xem thông tin công khai.',
               },
             ].map(item => (
               <Card key={item.q}>

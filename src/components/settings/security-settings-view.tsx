@@ -31,7 +31,6 @@ import {
   Skeleton,
 } from '@components/ui';
 import {
-  IS_DESKTOP_MODE,
   MFA_FACTORS_QUERY_KEY,
   MFA_FRIENDLY_NAME,
   MFA_ISSUER,
@@ -54,7 +53,6 @@ export function SecuritySettingsView() {
       if (error) throw error;
       return mapTotpFactors(user?.factors);
     },
-    enabled: !IS_DESKTOP_MODE,
   });
   const [enrollState, setEnrollState] = useState<MfaEnrollState | null>(null);
   const [isEnrolling, setIsEnrolling] = useState(false);
@@ -172,119 +170,102 @@ export function SecuritySettingsView() {
         </div>
       </div>
 
-      {IS_DESKTOP_MODE ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Info className="h-4 w-4" />
-              Không khả dụng ở chế độ offline
-            </CardTitle>
-            <CardDescription>
-              Xác thực 2 bước yêu cầu kết nối đến máy chủ Supabase. Tính năng
-              này không áp dụng cho chế độ desktop offline.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Smartphone className="h-4 w-4" />
-                Xác thực 2 bước (TOTP)
-              </CardTitle>
-              <CardDescription>
-                Bảo vệ tài khoản bằng mã xác thực từ Google Authenticator hoặc
-                ứng dụng tương tự.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingFactors ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-9 w-40" />
-                </div>
-              ) : enrollState ? (
-                <MfaEnrollPanel
-                  enrollState={enrollState}
-                  isVerifying={isVerifying}
-                  onVerify={handleVerifyEnroll}
-                  onCancel={handleCancelEnroll}
-                />
-              ) : hasVerifiedMfa ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Badge className="border-green-200 bg-green-100 text-green-800">
-                      <ShieldCheck className="mr-1 h-3 w-3" />
-                      Đang hoạt động
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Xác thực 2 bước đã được bật
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {verifiedFactors.map((factor) => (
-                      <div
-                        key={factor.id}
-                        className="flex items-center justify-between rounded-lg border bg-muted/30 p-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Smartphone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">
-                            {factor.friendly_name || MFA_FRIENDLY_NAME}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => setUnenrollId(factor.id)}
-                        >
-                          <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                          Tắt
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Xác thực 2 bước chưa được bật. Bật ngay để bảo vệ tài khoản
-                    tốt hơn.
-                  </p>
-                  <Button onClick={handleEnroll} disabled={isEnrolling}>
-                    {isEnrolling ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Đang khởi tạo...
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        Bật xác thực 2 bước
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-dashed">
-            <CardContent className="pt-4">
-              <div className="flex gap-3 text-sm text-muted-foreground">
-                <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>
-                  Khi bật xác thực 2 bước, mỗi lần đăng nhập bạn sẽ cần nhập mã
-                  6 chữ số từ ứng dụng xác thực (Google Authenticator, Authy,
-                  ...) ngoài mật khẩu.
-                </p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Smartphone className="h-4 w-4" />
+            Xác thực 2 bước (TOTP)
+          </CardTitle>
+          <CardDescription>
+            Bảo vệ tài khoản bằng mã xác thực từ Google Authenticator hoặc ứng
+            dụng tương tự.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingFactors ? (
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-9 w-40" />
+            </div>
+          ) : enrollState ? (
+            <MfaEnrollPanel
+              enrollState={enrollState}
+              isVerifying={isVerifying}
+              onVerify={handleVerifyEnroll}
+              onCancel={handleCancelEnroll}
+            />
+          ) : hasVerifiedMfa ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge className="border-green-200 bg-green-100 text-green-800">
+                  <ShieldCheck className="mr-1 h-3 w-3" />
+                  Đang hoạt động
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Xác thực 2 bước đã được bật
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+              <div className="space-y-2">
+                {verifiedFactors.map((factor) => (
+                  <div
+                    key={factor.id}
+                    className="flex items-center justify-between rounded-lg border bg-muted/30 p-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {factor.friendly_name || MFA_FRIENDLY_NAME}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setUnenrollId(factor.id)}
+                    >
+                      <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
+                      Tắt
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Xác thực 2 bước chưa được bật. Bật ngay để bảo vệ tài khoản tốt
+                hơn.
+              </p>
+              <Button onClick={handleEnroll} disabled={isEnrolling}>
+                {isEnrolling ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang khởi tạo...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Bật xác thực 2 bước
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-dashed">
+        <CardContent className="pt-4">
+          <div className="flex gap-3 text-sm text-muted-foreground">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Khi bật xác thực 2 bước, mỗi lần đăng nhập bạn sẽ cần nhập mã 6
+              chữ số từ ứng dụng xác thực (Google Authenticator, Authy, ...)
+              ngoài mật khẩu.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <MfaUnenrollDialog
         open={!!unenrollId}

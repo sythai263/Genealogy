@@ -9,11 +9,7 @@
 import { Badge } from '@components/ui';
 import { HELP_ROLES } from '@constants';
 
-interface HelpRolesSectionProps {
-  isDesktop: boolean;
-}
-
-export function HelpRolesSection({ isDesktop }: HelpRolesSectionProps) {
+export function HelpRolesSection() {
   return (
     <section>
       <h2 className="mb-6 text-center text-xl font-semibold text-foreground">
@@ -46,12 +42,6 @@ export function HelpRolesSection({ isDesktop }: HelpRolesSectionProps) {
             </tbody>
           </table>
         </div>
-        {isDesktop && (
-          <p className="mt-3 text-center text-sm text-muted-foreground">
-            Bản Desktop: bạn tự động là Admin — toàn quyền quản lý dữ liệu trên
-            máy.
-          </p>
-        )}
       </div>
     </section>
   );

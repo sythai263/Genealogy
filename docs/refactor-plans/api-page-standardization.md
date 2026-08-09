@@ -32,20 +32,20 @@ the client bundle; `eslint.config.mjs` carries a matching `!@lib/api` exemption.
 |---|---|
 | `responses.ts` | `apiOk`, `apiError`, `apiFile`, `toErrorMessage` |
 | `handler.ts` | `withApiHandler(name, handler, clientMessage?)` |
-| `guards.ts` | `isDesktopMode`, `guardDesktopOnly`, `guardWebOnly`, `requireCronSecret`, `requireRole` |
-| `files.ts` | `resolveSafePath`, `mimeTypeForPath`, `validateUpload` |
+| `guards.ts` | `guardDevelopmentOnly`, `requireCronSecret`, `requireRole` |
+| `files.ts` | `validateUpload` |
 | `supabase-admin.ts` | `createServiceRoleClient` |
 | `supabase-fetch.ts` | `makeDockerAwareFetch`, `createRequestScopedClient`, `getAuthCookieName`, URL getters |
 
 Backed by `src/constants/api.ts` (`API_STATUS`, `API_ERROR_MESSAGES`,
-`MEDIA_EXT_MIME_TYPES`, `API_ADMIN_ROLES`) and `src/types/api.ts`
-(`ApiErrorBody`, `ApiHandler`, `ApiRouteContext`, `AuthorizedRequester`,
-`UploadValidationOptions`, `ApiFileOptions`).
+`API_ADMIN_ROLES`) and `src/types/api.ts` (`ApiErrorBody`, `ApiHandler`,
+`ApiRouteContext`, `AuthorizedRequester`, `UploadValidationOptions`,
+`ApiFileOptions`).
 
-All 6 routes migrated: `backup`, `backup/restore`, `cron`, `debug/auth`,
-`export/gedcom`, `media/[...path]`. The media route's locally-defined
-`guardDesktopOnly()` / `resolveSafePath()` and its 3x-repeated preamble are gone;
-`/api/backup` no longer leaks raw error text to the client.
+All routes migrated: `backup`, `backup/restore`, `cron`, `debug/auth`,
+`export/gedcom`. `/api/backup` no longer leaks raw error text to the client.
+(The desktop-only `media/[...path]` route was migrated here and later removed
+together with the rest of the Electron code — see the Desktop removal note.)
 
 `src/proxy.ts` keeps its own `makeDockerAwareFetch` copy — middleware runs on a
 runtime that cannot import the node builtins reachable through `@lib/api`.
@@ -113,8 +113,6 @@ render `<AccessDenied />`, with `admin-contributions-view` passing
 
 - API error messages are now uniformly Vietnamese and sourced from
   `API_ERROR_MESSAGES`; previously they were a mix of Vietnamese and English.
-- `/api/export/gedcom` desktop-mode rejection keeps status 400 but returns the
-  shared `webOnly` message.
 - Unexpected throws inside any route now log server-side under `[route-name]`
   and return a generic message instead of `err.message`.
 

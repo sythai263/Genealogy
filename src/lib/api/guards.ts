@@ -16,29 +16,13 @@ import type { AuthorizedRequester, UserRole } from '@types';
 import { apiError } from './responses';
 import { createServiceRoleClient } from './supabase-admin';
 
-/** True when the server runs inside the Electron desktop shell */
-export function isDesktopMode(): boolean {
-  return (
-    process.env.DESKTOP_MODE === 'true' ||
-    process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true'
-  );
-}
-
 /**
- * Blocks the route in web mode. Returns 404 so the endpoint is indistinguishable
- * from a non-existent route when the app is deployed as a website.
+ * Blocks the route outside development. Returns 404 so the endpoint is
+ * indistinguishable from a non-existent route in production.
  */
-export function guardDesktopOnly(): NextResponse | null {
-  if (process.env.NEXT_PUBLIC_DESKTOP_MODE !== 'true') {
-    return apiError(API_ERROR_MESSAGES.desktopOnly, API_STATUS.notFound);
-  }
-  return null;
-}
-
-/** Blocks the route in desktop mode, where the work is done client-side */
-export function guardWebOnly(): NextResponse | null {
-  if (process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true') {
-    return apiError(API_ERROR_MESSAGES.webOnly, API_STATUS.badRequest);
+export function guardDevelopmentOnly(): NextResponse | null {
+  if (process.env.NODE_ENV === 'production') {
+    return apiError(API_ERROR_MESSAGES.notFound, API_STATUS.notFound);
   }
   return null;
 }

@@ -134,12 +134,6 @@ const dockerFetch = makeDockerAwareFetch();
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Desktop mode: bypass all auth — single-user admin, no Supabase Auth
-  if (process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true') {
-    mwLog('INFO', 'desktop_bypass', { pathname });
-    return NextResponse.next({ request: { headers: request.headers } });
-  }
-
   // Rate limiting — secondary layer for auth page enumeration protection.
   // Primary defense: GoTrue rate limits in supabase/config.toml [auth.rate_limit].
   if (pathname in RATE_LIMITS) {

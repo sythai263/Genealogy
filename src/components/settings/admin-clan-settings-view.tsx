@@ -22,7 +22,7 @@ import {
   Skeleton,
   Textarea,
 } from '@components/ui';
-import { APP_VERSION_DISPLAY, IS_DESKTOP_MODE } from '@constants';
+import { APP_VERSION_DISPLAY } from '@constants';
 import { useClanSettings, useUpdateClanSettings } from '@hooks';
 import {
   CLAN_FULL_NAME as ENV_CLAN_FULL_NAME,
@@ -49,7 +49,6 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -682,18 +681,10 @@ export function AdminClanSettingsView() {
               <Badge variant='outline'>{APP_VERSION_DISPLAY}</Badge>
             </div>
             <div className='flex justify-between items-center py-2 border-b'>
-              <span className='text-sm text-muted-foreground'>Chế độ</span>
-              <Badge variant={IS_DESKTOP_MODE ? 'default' : 'secondary'}>
-                {IS_DESKTOP_MODE ? 'Desktop (Offline)' : 'Web (Online)'}
-              </Badge>
-            </div>
-            <div className='flex justify-between items-center py-2 border-b'>
               <span className='text-sm text-muted-foreground'>
                 Cơ sở dữ liệu
               </span>
-              <Badge variant='outline'>
-                {IS_DESKTOP_MODE ? 'SQLite (local)' : 'PostgreSQL (Supabase)'}
-              </Badge>
+              <Badge variant='outline'>PostgreSQL (Supabase)</Badge>
             </div>
             {clanSettings?.updated_at && (
               <div className='flex justify-between items-center py-2'>

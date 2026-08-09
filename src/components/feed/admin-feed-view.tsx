@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import {
   Eye,
   EyeOff,
-  Loader2,
   MessagesSquare,
   Search,
   Shield,

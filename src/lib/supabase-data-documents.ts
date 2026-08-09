@@ -108,17 +108,6 @@ export async function deleteDocument(id: string): Promise<void> {
 }
 
 export async function uploadDocumentFile(file: File, path: string): Promise<string> {
-  const isDesktop = typeof window !== 'undefined' &&
-    process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true';
-
-  if (isDesktop) {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch(`/api/media/documents/${path}`, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Upload failed');
-    return `/api/media/documents/${path}`;
-  }
-
   const { error } = await supabase.storage
     .from('media')
     .upload(`documents/${path}`, file, { upsert: true });
@@ -133,15 +122,6 @@ export async function uploadDocumentFile(file: File, path: string): Promise<stri
 }
 
 export async function deleteDocumentFile(fileUrl: string): Promise<void> {
-  const isDesktop = typeof window !== 'undefined' &&
-    process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true';
-
-  if (isDesktop) {
-    const path = fileUrl.replace('/api/media/', '');
-    await fetch(`/api/media/${path}`, { method: 'DELETE' });
-    return;
-  }
-
   // SEC-WARN-02: Use indexOf to handle URLs that contain multiple '/media/' segments.
   // e.g. https://x.co/storage/v1/object/public/media/documents/media/file.pdf
   // → correct path: 'documents/media/file.pdf' (not 'file.pdf')

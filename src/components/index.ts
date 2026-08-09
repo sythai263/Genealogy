@@ -17,7 +17,6 @@ export * from './people';
 export * from './providers';
 export * from './relationship';
 export * from './settings';
-export * from './setup';
 export * from './shared';
 export * from './stats';
 export * from './tree';

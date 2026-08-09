@@ -27,12 +27,6 @@ export interface HelpFaqItem {
   a: string;
 }
 
-export interface HelpDesktopComparisonRow {
-  label: string;
-  desktop: string;
-  web: string;
-}
-
 export const HELP_NAV_ITEMS: HelpNavItem[] = [
   {
     name: 'Trang chủ',
@@ -116,18 +110,6 @@ export const HELP_WORKFLOWS: HelpWorkflow[] = [
   },
 ];
 
-export const HELP_DESKTOP_BACKUP_WORKFLOW: HelpWorkflow = {
-  title: 'Sao lưu dữ liệu (Desktop)',
-  steps: [
-    'Dữ liệu lưu tại ~/AncestorTree/ (data/ancestortree.db + media/people/)',
-    'Sao lưu: đóng app → copy thư mục ~/AncestorTree/ ra USB hoặc Google Drive',
-    'Khôi phục: đóng app → copy thư mục từ backup về ~/AncestorTree/ → mở app',
-    'Chuyển máy: sao lưu từ máy cũ → cài app trên máy mới → copy thư mục vào',
-    'Nên sao lưu ít nhất 1 lần/tháng',
-  ],
-  tip: 'Lưu ý: Sao lưu cả thư mục data/ (database) và media/ (ảnh thành viên).',
-};
-
 export const HELP_ROLES: HelpRole[] = [
   {
     role: 'Admin',
@@ -163,11 +145,11 @@ export const HELP_TIPS: string[] = [
 export const HELP_FAQ_ITEMS: HelpFaqItem[] = [
   {
     q: 'Dữ liệu có mất khi cập nhật ứng dụng không?',
-    a: 'Không. Dữ liệu được lưu riêng (Desktop: ~/AncestorTree/, Web: Supabase cloud), không bị ảnh hưởng khi cập nhật.',
+    a: 'Không. Dữ liệu được lưu trên Supabase cloud, không bị ảnh hưởng khi cập nhật ứng dụng.',
   },
   {
-    q: 'Có thể chuyển dữ liệu từ Desktop sang Web không?',
-    a: 'Có. Sử dụng tính năng Export/Import (sẽ có trong phiên bản tương lai v2.5.0).',
+    q: 'Làm sao để sao lưu toàn bộ dữ liệu?',
+    a: 'Admin vào Quản trị → Sao lưu & Khôi phục để tải về file ZIP chứa toàn bộ dữ liệu, và khôi phục lại khi cần.',
   },
   {
     q: 'Ứng dụng hỗ trợ bao nhiêu thành viên?',
@@ -180,25 +162,5 @@ export const HELP_FAQ_ITEMS: HelpFaqItem[] = [
   {
     q: 'Cầu đương hoạt động như thế nào?',
     a: 'Cầu đương là phong tục phân công lo việc cúng giỗ giữa các gia đình. Ứng dụng dùng thuật toán DFS (duyệt cây theo chiều sâu) để xoay vòng tự động, đảm bảo công bằng. Admin tạo đợt mới → hệ thống phân công → có thể điều chỉnh thủ công.',
-  },
-];
-
-export const HELP_DESKTOP_COMPARISON_ROWS: HelpDesktopComparisonRow[] = [
-  { label: 'Dữ liệu', desktop: 'Lưu trên máy (SQLite)', web: 'Cloud (Supabase)' },
-  { label: 'Internet', desktop: 'Không cần', web: 'Cần kết nối' },
-  {
-    label: 'Người dùng',
-    desktop: '1 người (admin)',
-    web: 'Nhiều người, phân quyền',
-  },
-  {
-    label: 'Cài đặt',
-    desktop: 'Tải file, click cài',
-    web: 'Cần Node.js, Docker',
-  },
-  {
-    label: 'Chức năng',
-    desktop: 'Giống nhau 100%',
-    web: 'Giống nhau 100%',
   },
 ];

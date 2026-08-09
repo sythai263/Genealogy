@@ -20,8 +20,6 @@ export function VerificationGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Skip during loading or if not logged in (middleware handles auth redirect)
     if (isLoading || !user) return;
-    // Desktop mode: always verified
-    if (process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true') return;
     // Admin and editor bypass verification — they ARE the verifiers
     if (profile?.role === 'admin' || profile?.role === 'editor') return;
     // Redirect unverified users to pending page

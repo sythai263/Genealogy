@@ -4,4 +4,3 @@ export * from './achievement';
 export * from './cau-duong';
 export * from './contribution';
 export * from './profile';
-export * from './setup';

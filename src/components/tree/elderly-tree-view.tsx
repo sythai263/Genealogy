@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { Users } from 'lucide-react';
 import { useTreeData } from '@hooks';
 import { EmptyState } from '@components/shared';
-import { Card, CardContent, Badge, Skeleton } from '@components/ui';
+import { Badge, Skeleton } from '@components/ui';
 import type { Person } from '@types';
 
 interface GenerationGroup {

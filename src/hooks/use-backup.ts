@@ -6,16 +6,11 @@ import {
   exportBackup,
   restoreBackup,
 } from '@services';
-import type { IncludeMedia } from '@types';
-
-interface ExportBackupInput {
-  includeMedia: IncludeMedia;
-}
 
 export function useBackupExport() {
   return useMutation({
-    mutationFn: async ({ includeMedia }: ExportBackupInput) => {
-      const blob = await exportBackup(includeMedia);
+    mutationFn: async () => {
+      const blob = await exportBackup();
       downloadBackupBlob(blob);
     },
   });
