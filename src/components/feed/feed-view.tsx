@@ -21,7 +21,7 @@ import {
   type FeedFilterKey,
   type ListPageSize,
 } from '@constants';
-import { usePosts, useProfiles, useUserLikedPosts } from '@hooks';
+import { useLikedPostIdsForPosts, usePosts, useProfilesByIds } from '@hooks';
 import type { Profile } from '@types';
 import { ComposeBox } from './compose-box';
 import { PostCard } from './post-card';
@@ -38,11 +38,19 @@ export function FeedView() {
     page,
     pageSize,
   });
-  const { data: profiles } = useProfiles();
-  const { data: likedPostIds } = useUserLikedPosts(user?.id);
-
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const authorIds = useMemo(
+    () => [...new Set(items.map((post) => post.author_id))],
+    [items]
+  );
+  const { data: profiles } = useProfilesByIds(authorIds);
+
+  const { data: likedPostIds } = useLikedPostIdsForPosts(
+    items.map((post) => post.id),
+    !!user
+  );
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();

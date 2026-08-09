@@ -33,9 +33,8 @@ export function CommentsSection({
 }: CommentsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const { data: comments, isLoading } = usePostComments(
-    isExpanded ? postId : undefined
-  );
+  const { data, isLoading } = usePostComments(isExpanded ? postId : undefined);
+  const comments = data?.items ?? [];
   const createComment = useCreateComment();
   const deleteComment = useDeleteComment();
 

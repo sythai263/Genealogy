@@ -2,27 +2,41 @@
  * @project AncestorTree
  * @file src/hooks/use-clan-articles.ts
  * @description React Query hooks for clan articles (hương ước)
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClanArticles, getFeaturedArticles, createClanArticle, updateClanArticle, deleteClanArticle } from '@lib';
-import type { ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@types';
+import type { ClanArticlesListFilters, CreateClanArticleInput, UpdateClanArticleInput } from '@types';
 
 export const clanArticleKeys = {
   all: ['clan-articles'] as const,
   lists: () => [...clanArticleKeys.all, 'list'] as const,
-  list: (category?: ClanArticleCategory) => [...clanArticleKeys.lists(), { category }] as const,
+  list: (filters: ClanArticlesListFilters) => [...clanArticleKeys.lists(), filters] as const,
   featured: () => [...clanArticleKeys.all, 'featured'] as const,
 };
 
-export function useClanArticles(category?: ClanArticleCategory) {
+/**
+ * Paginated clan articles list. `category` and `page`/`pageSize` are
+ * optional — omitted values default to "all categories" / a single page of
+ * `LIST_DEFAULT_PAGE_SIZE`-ish (50) records, which comfortably covers the
+ * current hương ước content volume while still bounding the query.
+ */
+export function useClanArticles(
+  filters?: Partial<ClanArticlesListFilters>
+) {
+  const resolvedFilters: ClanArticlesListFilters = {
+    category: filters?.category,
+    page: filters?.page ?? 1,
+    pageSize: filters?.pageSize ?? 50,
+  };
+
   return useQuery({
-    queryKey: clanArticleKeys.list(category),
-    queryFn: () => getClanArticles(category),
+    queryKey: clanArticleKeys.list(resolvedFilters),
+    queryFn: () => getClanArticles(resolvedFilters),
   });
 }
 

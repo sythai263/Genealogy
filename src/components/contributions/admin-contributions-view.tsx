@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -60,8 +60,8 @@ import {
   useContributions,
   useDeleteContribution,
   usePendingContributionsCount,
-  usePeople,
-  useProfiles,
+  usePeopleByIds,
+  useProfilesByIds,
   useResettablePage,
   useReviewContribution,
 } from '@hooks';
@@ -95,13 +95,26 @@ export function AdminContributionsView() {
     pageSize,
   });
   const { data: pendingCount = 0 } = usePendingContributionsCount();
-  const { data: people } = usePeople();
-  const { data: profiles } = useProfiles();
   const reviewContribution = useReviewContribution();
   const deleteContribution = useDeleteContribution();
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [...new Set(items.map((c) => c.target_person).filter(Boolean))],
+    [items]
+  );
+  const profileIds = useMemo(
+    () => [
+      ...new Set(
+        items.flatMap((c) => [c.author_id, c.reviewed_by].filter(Boolean))
+      ),
+    ],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
+  const { data: profiles } = useProfilesByIds(profileIds);
 
   if (!isAdmin) {
     return (

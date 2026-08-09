@@ -46,3 +46,17 @@ export type CreateScholarshipInput = Omit<
   Scholarship,
   'id' | 'approved_by' | 'approved_at' | 'created_at'
 >;
+
+export interface FundTransactionsListFilters {
+  academicYear?: string;
+  type?: FundTransactionType;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}
+
+export interface ScholarshipsListFilters {
+  academicYear?: string;
+  type?: ScholarshipType;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

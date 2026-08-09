@@ -6,7 +6,8 @@ import type {
   CreatePersonInput, UpdatePersonInput, CreateMediaInput, EventType,
   PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
   PeopleListResult, EventsListFilters, PaginatedResult, ContributionsListFilters,
-  ProfilesListFilters, FamilyMissingSpouse,
+  ProfilesListFilters, FamilyMissingSpouse, FamiliesMissingSpouseFilters,
+  MemorialPerson,
 } from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -19,6 +20,17 @@ import type {
 // NEVER expose these in public/unauthenticated queries.
 // ═══════════════════════════════════════════════════════════════════════════
 export const CONTACT_FIELDS = ['phone', 'email', 'zalo', 'facebook', 'address'] as const;
+
+/** Supabase `.in()` filters are chunked to stay well under URL/query limits. */
+const ID_LOOKUP_CHUNK_SIZE = 100;
+
+function chunkIds(ids: string[], size: number): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+  return chunks;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // People CRUD
@@ -199,6 +211,40 @@ export async function getPeopleByGeneration(generation: number): Promise<Person[
   return data || [];
 }
 
+/**
+ * Batch-fetch people by id for name-lookup maps (e.g. list rows referencing
+ * a person). Dedupes input and chunks `.in()` calls to avoid huge queries.
+ */
+export async function getPeopleByIds(ids: string[]): Promise<Person[]> {
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length === 0) return [];
+
+  const results = await Promise.all(
+    chunkIds(uniqueIds, ID_LOOKUP_CHUNK_SIZE).map(async (chunk) => {
+      const { data, error } = await supabase.from('people').select('*').in('id', chunk);
+      if (error) throw error;
+      return data || [];
+    })
+  );
+
+  return results.flat();
+}
+
+/**
+ * Deceased people with a lunar death date — for auto-giỗ (memorial) scans only.
+ * Bounded, lightweight select — never loads the full people table.
+ */
+export async function getUpcomingMemorialPeople(): Promise<MemorialPerson[]> {
+  const { data, error } = await supabase
+    .from('people')
+    .select('id, display_name, death_lunar, is_living')
+    .eq('is_living', false)
+    .not('death_lunar', 'is', null);
+
+  if (error) throw error;
+  return data || [];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Families CRUD
 // ═══════════════════════════════════════════════════════════════════════════
@@ -211,6 +257,16 @@ export async function getFamilies(): Promise<Family[]> {
   
   if (error) throw error;
   return data || [];
+}
+
+/** Head-count only — for dashboard cards that don't need row payloads. */
+export async function getFamiliesCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('families')
+    .select('*', { count: 'exact', head: true });
+
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function getFamily(id: string): Promise<Family | null> {
@@ -252,7 +308,20 @@ export async function getFamilyChildren(familyId: string): Promise<Person[]> {
   );
 }
 
-export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]> {
+/**
+ * Bulk missing-spouse worklist, paginated.
+ *
+ * The candidate set is inherently the "incomplete families" slice of
+ * `families` (already a narrow subset, not the full people table) — chi/
+ * generation live on the *person* row so they cannot be pushed into the
+ * families query. The algorithm therefore still loads that full incomplete
+ * set + their linked people, applies chi/generation filters server-side in
+ * memory, sorts, and only then slices the page via `getPaginationRange`;
+ * `total` reflects the filtered (not the raw incomplete) count.
+ */
+export async function getFamiliesMissingSpouse(
+  filters: FamiliesMissingSpouseFilters
+): Promise<PaginatedResult<FamilyMissingSpouse>> {
   const { data: families, error } = await supabase
     .from('families')
     .select('id, father_id, mother_id')
@@ -261,7 +330,7 @@ export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]>
     );
 
   if (error) throw error;
-  if (!families || families.length === 0) return [];
+  if (!families || families.length === 0) return { items: [], total: 0 };
 
   const personIds = families.map((f) => f.father_id ?? f.mother_id).filter((id): id is string => Boolean(id));
 
@@ -282,7 +351,7 @@ export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]>
     childCounts.set(row.family_id, (childCounts.get(row.family_id) || 0) + 1);
   }
 
-  return families
+  const filtered = families
     .map((family) => {
       const knownRole: 'father' | 'mother' = family.father_id ? 'father' : 'mother';
       const person = peopleById.get(family.father_id ?? family.mother_id);
@@ -295,12 +364,17 @@ export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]>
       };
     })
     .filter((entry): entry is FamilyMissingSpouse => entry != null)
+    .filter((entry) => filters.chi == null || entry.person.chi === filters.chi)
+    .filter((entry) => filters.generation == null || entry.person.generation === filters.generation)
     .sort(
       (a, b) =>
         a.person.generation - b.person.generation ||
         (a.person.chi ?? 0) - (b.person.chi ?? 0) ||
         a.person.display_name.localeCompare(b.person.display_name, 'vi')
     );
+
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+  return { items: filtered.slice(from, to + 1), total: filtered.length };
 }
 
 export async function createFamily(input: Omit<Family, 'id' | 'created_at' | 'updated_at'>): Promise<Family> {
@@ -927,6 +1001,25 @@ export async function getProfiles(): Promise<Profile[]> {
   return data || [];
 }
 
+/**
+ * Batch-fetch profiles by user id for author-lookup maps (e.g. feed/comment
+ * author names). Dedupes input and chunks `.in()` calls.
+ */
+export async function getProfilesByIds(userIds: string[]): Promise<Profile[]> {
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) return [];
+
+  const results = await Promise.all(
+    chunkIds(uniqueIds, ID_LOOKUP_CHUNK_SIZE).map(async (chunk) => {
+      const { data, error } = await supabase.from('profiles').select('*').in('user_id', chunk);
+      if (error) throw error;
+      return data || [];
+    })
+  );
+
+  return results.flat();
+}
+
 /** Paginated profiles for admin users list — never loads the full table. */
 export async function getProfilesPage(
   filters: ProfilesListFilters
@@ -1107,6 +1200,20 @@ export async function getUnverifiedProfiles(): Promise<Profile[]> {
 // Statistics
 // ═══════════════════════════════════════════════════════════════════════════
 
+interface PeopleStatsRpcResult {
+  totalPeople: number;
+  livingCount: number;
+  deceasedCount: number;
+  totalGenerations: number;
+  totalChi: number;
+}
+
+/**
+ * Dashboard counters. Prefers the `get_people_stats` SQL RPC (single
+ * aggregate query). Falls back to count-only queries + a lightweight
+ * `generation, chi` projection (not a full row select) if the RPC is not
+ * available yet (e.g. migration not applied).
+ */
 export async function getStats(): Promise<{
   totalPeople: number;
   totalGenerations: number;
@@ -1114,23 +1221,39 @@ export async function getStats(): Promise<{
   livingCount: number;
   deceasedCount: number;
 }> {
-  const { data: people, error } = await supabase
-    .from('people')
-    .select('id, generation, chi, is_living');
-  
-  if (error) throw error;
-  
-  const generations = new Set(people?.map(p => p.generation) || []);
-  const chis = new Set(people?.filter(p => p.chi).map(p => p.chi) || []);
-  const living = people?.filter(p => p.is_living).length || 0;
-  const deceased = people?.filter(p => !p.is_living).length || 0;
-  
+  const { data, error } = await supabase.rpc('get_people_stats');
+  if (!error && data) {
+    const result = data as PeopleStatsRpcResult;
+    return {
+      totalPeople: result.totalPeople ?? 0,
+      totalGenerations: result.totalGenerations ?? 0,
+      totalChi: result.totalChi ?? 0,
+      livingCount: result.livingCount ?? 0,
+      deceasedCount: result.deceasedCount ?? 0,
+    };
+  }
+
+  const [totalRes, livingRes, deceasedRes, genChiRes] = await Promise.all([
+    supabase.from('people').select('*', { count: 'exact', head: true }),
+    supabase.from('people').select('*', { count: 'exact', head: true }).eq('is_living', true),
+    supabase.from('people').select('*', { count: 'exact', head: true }).eq('is_living', false),
+    supabase.from('people').select('generation, chi'),
+  ]);
+
+  if (totalRes.error) throw totalRes.error;
+  if (livingRes.error) throw livingRes.error;
+  if (deceasedRes.error) throw deceasedRes.error;
+  if (genChiRes.error) throw genChiRes.error;
+
+  const generations = new Set((genChiRes.data || []).map((p) => p.generation));
+  const chis = new Set((genChiRes.data || []).filter((p) => p.chi).map((p) => p.chi));
+
   return {
-    totalPeople: people?.length || 0,
+    totalPeople: totalRes.count ?? 0,
     totalGenerations: generations.size,
     totalChi: chis.size,
-    livingCount: living,
-    deceasedCount: deceased,
+    livingCount: livingRes.count ?? 0,
+    deceasedCount: deceasedRes.count ?? 0,
   };
 }
 

@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
@@ -32,7 +32,7 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-import { useContributions, usePeople } from '@hooks';
+import { useContributions, usePeopleByIds } from '@hooks';
 import { ContributionForm } from './contribution-form';
 import { ContributionListItem } from './contribution-list-item';
 
@@ -50,10 +50,14 @@ export function ContributionsView() {
     },
     { enabled: isAdmin || !!profile }
   );
-  const { data: people } = usePeople();
-
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [...new Set(items.map((c) => c.target_person).filter(Boolean))],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
 
   if (!user) {
     return (

@@ -2,25 +2,37 @@
  * @project AncestorTree
  * @file src/hooks/use-notifications.ts
  * @description React Query hooks for in-app notifications
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '@lib';
+import { getNotifications, getRecentNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNotification } from '@lib';
+import type { NotificationsListFilters } from '@types';
 
 export const notificationKeys = {
   all: ['notifications'] as const,
-  list: () => [...notificationKeys.all, 'list'] as const,
+  list: (filters: NotificationsListFilters) =>
+    [...notificationKeys.all, 'list', filters] as const,
+  recent: (limit: number) => [...notificationKeys.all, 'recent', limit] as const,
   unread: () => [...notificationKeys.all, 'unread'] as const,
 };
 
-export function useNotifications() {
+/** Paginated notifications list — never loads the full table. */
+export function useNotifications(filters: NotificationsListFilters) {
   return useQuery({
-    queryKey: notificationKeys.list(),
-    queryFn: () => getNotifications(),
+    queryKey: notificationKeys.list(filters),
+    queryFn: () => getNotifications(filters),
+  });
+}
+
+/** Small fixed-size fetch for the header bell dropdown. */
+export function useRecentNotifications(limit = 10) {
+  return useQuery({
+    queryKey: notificationKeys.recent(limit),
+    queryFn: () => getRecentNotifications(limit),
   });
 }
 

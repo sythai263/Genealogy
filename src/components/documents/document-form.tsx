@@ -8,8 +8,9 @@
 
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { PersonCombobox } from '@components/people';
 import {
   Button,
   Input,
@@ -24,30 +25,36 @@ import {
 import {
   DOCUMENT_CATEGORY_OPTIONS,
 } from '@constants';
+import { usePerson } from '@hooks';
 import { formatFileSize } from '@lib';
 import type { ClanDocument, CreateClanDocumentInput, DocumentCategory, Person } from '@types';
 
 interface DocumentFormProps {
   document?: ClanDocument;
-  people: Person[];
   onSubmit: (data: CreateClanDocumentInput, file?: File) => void;
   isPending: boolean;
 }
 
 export function DocumentForm({
   document: doc,
-  people,
   onSubmit,
   isPending,
 }: DocumentFormProps) {
+  const { data: loadedPerson } = usePerson(doc?.person_id);
   const [title, setTitle] = useState(doc?.title || '');
   const [category, setCategory] = useState<DocumentCategory>(doc?.category || 'khac');
   const [description, setDescription] = useState(doc?.description || '');
   const [tags, setTags] = useState(doc?.tags || '');
-  const [personId, setPersonId] = useState(doc?.person_id || 'none');
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [privacyLevel, setPrivacyLevel] = useState(doc?.privacy_level ?? 1);
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (loadedPerson) {
+      setSelectedPerson(loadedPerson);
+    }
+  }, [loadedPerson]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +71,7 @@ export function DocumentForm({
       category,
       description: description || undefined,
       tags: tags || undefined,
-      person_id: personId === 'none' ? undefined : personId || undefined,
+      person_id: selectedPerson?.id ?? undefined,
       file_url: doc?.file_url || '',
       file_type: file?.type || doc?.file_type,
       file_size: file?.size || doc?.file_size,
@@ -109,16 +116,11 @@ export function DocumentForm({
           </Select>
         </div>
         <div>
-          <Label>Thành viên liên quan</Label>
-          <Select value={personId} onValueChange={setPersonId}>
-            <SelectTrigger><SelectValue placeholder="Không chọn" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Không chọn</SelectItem>
-              {people.map(p => (
-                <SelectItem key={p.id} value={p.id}>{p.display_name} (Đời {p.generation})</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <PersonCombobox
+            label="Thành viên liên quan"
+            selected={selectedPerson}
+            onSelect={setSelectedPerson}
+          />
         </div>
       </div>
       <div>

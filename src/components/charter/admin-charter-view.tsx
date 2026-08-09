@@ -48,9 +48,11 @@ export function AdminCharterView() {
   const [editingItem, setEditingItem] = useState<ClanArticle | undefined>();
   const [filterCat, setFilterCat] = useState<ClanArticleCategory | 'all'>('all');
 
-  const { data: articles, isLoading } = useClanArticles(
-    filterCat === 'all' ? undefined : filterCat
-  );
+  const { data, isLoading } = useClanArticles({
+    category: filterCat === 'all' ? undefined : filterCat,
+    pageSize: 50,
+  });
+  const articles = data?.items ?? [];
   const createMutation = useCreateClanArticle();
   const updateMutation = useUpdateClanArticle();
   const deleteMutation = useDeleteClanArticle();

@@ -9,8 +9,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse, addChildForPerson } from '@lib';
-import type { Family } from '@types';
+import { getFamilies, getFamiliesCount, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse, addChildForPerson } from '@lib';
+import type { Family, FamiliesMissingSpouseFilters } from '@types';
 
 // Query keys
 export const familyKeys = {
@@ -20,7 +20,9 @@ export const familyKeys = {
   detail: (id: string) => [...familyKeys.details(), id] as const,
   children: (id: string) => [...familyKeys.all, 'children', id] as const,
   relations: (id: string) => [...familyKeys.all, 'relations', id] as const,
-  missingSpouse: () => [...familyKeys.all, 'missing-spouse'] as const,
+  missingSpouse: (filters: FamiliesMissingSpouseFilters) =>
+    [...familyKeys.all, 'missing-spouse', filters] as const,
+  count: () => [...familyKeys.all, 'count'] as const,
   tree: () => ['tree'] as const,
 };
 
@@ -57,10 +59,19 @@ export function useTreeData() {
   });
 }
 
-export function useFamiliesMissingSpouse() {
+export function useFamiliesMissingSpouse(filters: FamiliesMissingSpouseFilters) {
   return useQuery({
-    queryKey: familyKeys.missingSpouse(),
-    queryFn: getFamiliesMissingSpouse,
+    queryKey: familyKeys.missingSpouse(filters),
+    queryFn: () => getFamiliesMissingSpouse(filters),
+  });
+}
+
+/** Head-count only — for dashboard cards. */
+export function useFamiliesCount() {
+  return useQuery({
+    queryKey: familyKeys.count(),
+    queryFn: getFamiliesCount,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

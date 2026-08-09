@@ -10,6 +10,7 @@
 
 import { useMemo, useState } from 'react';
 import { BookOpen, Download, Printer } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Button,
   Skeleton,
@@ -18,12 +19,15 @@ import {
   TabsList,
   TabsTrigger,
 } from '@components/ui';
+import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
 import {
   useFundBalance,
   useFundTransactions,
-  usePeople,
+  usePeopleByIds,
+  useResettablePage,
   useScholarships,
 } from '@hooks';
+import { getAllFundTransactions, getAllScholarships, getPeopleByIds } from '@lib';
 import type { Person } from '@types';
 import { exportFundReport } from './export-fund-report';
 import { FundDonationsTab } from './fund-donations-tab';
@@ -33,11 +37,53 @@ import { FundStats } from './fund-stats';
 
 export function FundView() {
   const [activeTab, setActiveTab] = useState('scholarships');
+  const [isExporting, setIsExporting] = useState(false);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+
+  const [schPage, setSchPage] = useResettablePage(String(pageSize));
+  const [rewardPage, setRewardPage] = useResettablePage(String(pageSize));
+  const [donationPage, setDonationPage] = useResettablePage(String(pageSize));
+  const [historyPage, setHistoryPage] = useResettablePage(String(pageSize));
 
   const { data: balance, isLoading: balanceLoading } = useFundBalance();
-  const { data: transactions, isLoading: txLoading } = useFundTransactions();
-  const { data: scholarships, isLoading: schLoading } = useScholarships();
-  const { data: people } = usePeople();
+
+  // Paginated per-tab queries — never load the full tables for display.
+  const { data: scholarshipsPage, isLoading: schLoading } = useScholarships({
+    type: 'hoc_bong',
+    page: schPage,
+    pageSize,
+  });
+  const { data: rewardsPage, isLoading: rewardLoading } = useScholarships({
+    type: 'khen_thuong',
+    page: rewardPage,
+    pageSize,
+  });
+  const { data: donationsPage, isLoading: donationLoading } = useFundTransactions({
+    type: 'income',
+    page: donationPage,
+    pageSize,
+  });
+  const { data: historyPageData, isLoading: historyLoading } = useFundTransactions({
+    page: historyPage,
+    pageSize,
+  });
+
+  const hocBong = scholarshipsPage?.items ?? [];
+  const khenThuong = rewardsPage?.items ?? [];
+  const donations = donationsPage?.items ?? [];
+  const history = historyPageData?.items ?? [];
+  const scholarshipCount =
+    (scholarshipsPage?.total ?? 0) + (rewardsPage?.total ?? 0);
+
+  const personIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of [...hocBong, ...khenThuong]) ids.add(s.person_id);
+    for (const t of [...donations, ...history]) {
+      if (t.donor_person_id) ids.add(t.donor_person_id);
+    }
+    return [...ids];
+  }, [hocBong, khenThuong, donations, history]);
+  const { data: people } = usePeopleByIds(personIds);
 
   const peopleMap = useMemo(() => {
     const map = new Map<string, Person>();
@@ -47,20 +93,33 @@ export function FundView() {
     return map;
   }, [people]);
 
-  const hocBong = useMemo(
-    () => (scholarships || []).filter((item) => item.type === 'hoc_bong'),
-    [scholarships]
-  );
-  const khenThuong = useMemo(
-    () => (scholarships || []).filter((item) => item.type === 'khen_thuong'),
-    [scholarships]
-  );
-  const donations = useMemo(
-    () => (transactions || []).filter((item) => item.type === 'income'),
-    [transactions]
-  );
+  const isLoading =
+    balanceLoading || schLoading || rewardLoading || donationLoading || historyLoading;
 
-  const isLoading = balanceLoading || txLoading || schLoading;
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      const [allTransactions, allScholarships] = await Promise.all([
+        getAllFundTransactions(),
+        getAllScholarships(),
+      ]);
+      const exportPersonIds = [
+        ...new Set([
+          ...allScholarships.map((s) => s.person_id),
+          ...allTransactions
+            .map((t) => t.donor_person_id)
+            .filter((id): id is string => Boolean(id)),
+        ]),
+      ];
+      const exportPeople = await getPeopleByIds(exportPersonIds);
+      const exportPeopleMap = new Map(exportPeople.map((p) => [p.id, p]));
+      exportFundReport(balance, allTransactions, allScholarships, exportPeopleMap);
+    } catch {
+      toast.error('Lỗi khi xuất báo cáo');
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -93,17 +152,11 @@ export function FundView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              exportFundReport(
-                balance,
-                transactions || [],
-                scholarships || [],
-                peopleMap
-              )
-            }
+            disabled={isExporting}
+            onClick={handleExport}
           >
             <Download className="mr-2 h-4 w-4" />
-            Xuất CSV
+            {isExporting ? 'Đang xuất...' : 'Xuất CSV'}
           </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
@@ -112,10 +165,7 @@ export function FundView() {
         </div>
       </div>
 
-      <FundStats
-        balance={balance}
-        scholarshipCount={(scholarships || []).length}
-      />
+      <FundStats balance={balance} scholarshipCount={scholarshipCount} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -127,17 +177,42 @@ export function FundView() {
         <TabsContent value="scholarships">
           <FundScholarshipsTab
             scholarships={hocBong}
+            scholarshipsTotal={scholarshipsPage?.total ?? 0}
+            scholarshipsPage={schPage}
+            scholarshipsPageSize={pageSize}
+            onScholarshipsPageChange={setSchPage}
+            onScholarshipsPageSizeChange={setPageSize}
             rewards={khenThuong}
+            rewardsTotal={rewardsPage?.total ?? 0}
+            rewardsPage={rewardPage}
+            rewardsPageSize={pageSize}
+            onRewardsPageChange={setRewardPage}
+            onRewardsPageSizeChange={setPageSize}
             peopleMap={peopleMap}
           />
         </TabsContent>
 
         <TabsContent value="donations">
-          <FundDonationsTab donations={donations} peopleMap={peopleMap} />
+          <FundDonationsTab
+            donations={donations}
+            total={donationsPage?.total ?? 0}
+            page={donationPage}
+            pageSize={pageSize}
+            onPageChange={setDonationPage}
+            onPageSizeChange={setPageSize}
+            peopleMap={peopleMap}
+          />
         </TabsContent>
 
         <TabsContent value="history">
-          <FundHistoryTab transactions={transactions || []} />
+          <FundHistoryTab
+            transactions={history}
+            total={historyPageData?.total ?? 0}
+            page={historyPage}
+            pageSize={pageSize}
+            onPageChange={setHistoryPage}
+            onPageSizeChange={setPageSize}
+          />
         </TabsContent>
       </Tabs>
     </div>

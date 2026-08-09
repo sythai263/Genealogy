@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -23,7 +23,7 @@ import {
   Textarea,
 } from '@components/ui';
 import { EVENT_TYPE_OPTIONS } from '@constants';
-import { usePeople, useSearchPeople } from '@hooks';
+import { usePerson, useSearchPeople } from '@hooks';
 import { parseLunarString } from '@lib';
 import type { CreateEventInput, Event, EventType, Person } from '@types';
 
@@ -47,13 +47,9 @@ export function EventForm({ event, onSubmit, isPending }: EventFormProps) {
   const [personDropOpen, setPersonDropOpen] = useState(false);
 
   // Resolve initial person if editing
-  const { data: people } = usePeople();
-  const initialPerson = useMemo(() => {
-    if (!event?.person_id || !people) return null;
-    return people.find(p => p.id === event.person_id) || null;
-  }, [event, people]);
+  const { data: initialPerson } = usePerson(event?.person_id);
 
-  const resolvedPerson = selectedPerson ?? initialPerson;
+  const resolvedPerson = selectedPerson ?? initialPerson ?? null;
 
   const { data: searchResults, isFetching } = useSearchPeople(personQuery);
 

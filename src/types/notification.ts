@@ -27,3 +27,8 @@ export interface Notification {
   reference_id: string | null;
   created_at: string;
 }
+
+export interface NotificationsListFilters {
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

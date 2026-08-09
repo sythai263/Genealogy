@@ -12,6 +12,7 @@ import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle, Users, X } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import {
   Badge,
   Button,
@@ -22,7 +23,8 @@ import {
   CardTitle,
   Skeleton,
 } from '@components/ui';
-import { useDuplicates } from '@hooks';
+import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
+import { useDuplicates, useResettablePage } from '@hooks';
 import {
   getDismissedPairs,
   pairKey,
@@ -38,6 +40,8 @@ export function AdminDuplicatesView() {
   const [dismissed, setDismissed] = useState<Set<string>>(() =>
     getDismissedPairs()
   );
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(String(pageSize));
 
   const handleDismiss = useCallback((pair: DuplicatePair) => {
     const key = pairKey(pair);
@@ -73,6 +77,12 @@ export function AdminDuplicatesView() {
   const mediumCount = visiblePairs.filter(
     pair => pair.level === 'MEDIUM'
   ).length;
+
+  // Detection runs over the full tree graph (see useDuplicates) — only the
+  // rendered result list is paginated here, client-side.
+  const total = visiblePairs.length;
+  const pageStart = (page - 1) * pageSize;
+  const pagedPairs = visiblePairs.slice(pageStart, pageStart + pageSize);
 
   return (
     <div className='container mx-auto px-4 py-8 space-y-6'>
@@ -116,7 +126,7 @@ export function AdminDuplicatesView() {
       {/* Pairs */}
       {!isLoading && visiblePairs.length > 0 && (
         <div className='space-y-3'>
-          {visiblePairs.map(pair => {
+          {pagedPairs.map(pair => {
             const pct = Math.round(pair.score.total * 100);
 
             return (
@@ -172,6 +182,14 @@ export function AdminDuplicatesView() {
               </Card>
             );
           })}
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="cặp trùng"
+          />
         </div>
       )}
 

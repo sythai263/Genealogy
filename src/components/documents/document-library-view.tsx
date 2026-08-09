@@ -19,7 +19,7 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-import { useDocuments, usePeople } from '@hooks';
+import { useDocuments, usePeopleByIds } from '@hooks';
 import type { DocumentCategory } from '@types';
 import { DocumentLibraryCard } from './document-library-card';
 import { DocumentLibraryFilters } from './document-library-filters';
@@ -38,13 +38,17 @@ export function DocumentLibraryView() {
     page,
     pageSize,
   });
-  const { data: people } = usePeople();
   const { profile } = useAuth();
   const isViewer = profile?.role === 'viewer';
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
 
+  const personIds = useMemo(
+    () => [...new Set(items.map((doc) => doc.person_id).filter((id): id is string => Boolean(id)))],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
   const peopleMap = useMemo(() => {
     const map = new Map<string, string>();
     for (const person of people || []) {

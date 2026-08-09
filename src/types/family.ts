@@ -51,3 +51,10 @@ export interface FamilyMissingSpouse {
   knownRole: 'father' | 'mother';
   childrenCount: number;
 }
+
+export interface FamiliesMissingSpouseFilters {
+  chi?: number;
+  generation?: number;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

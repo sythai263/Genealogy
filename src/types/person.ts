@@ -76,3 +76,9 @@ export interface PeopleFilterOptions {
   generations: number[];
   chiValues: number[];
 }
+
+/** Lightweight deceased-person projection for auto-giỗ (memorial) scans. */
+export type MemorialPerson = Pick<
+  Person,
+  'id' | 'display_name' | 'death_lunar' | 'is_living'
+>;

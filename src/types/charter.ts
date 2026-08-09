@@ -14,3 +14,9 @@ export interface ClanArticle {
 
 export type CreateClanArticleInput = Omit<ClanArticle, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateClanArticleInput = Partial<CreateClanArticleInput>;
+
+export interface ClanArticlesListFilters {
+  category?: ClanArticleCategory;
+  page: number;
+  pageSize: 20 | 30 | 50;
+}

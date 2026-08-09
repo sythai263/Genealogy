@@ -35,7 +35,8 @@ export interface EventsListFilters {
 
 export interface UpcomingEvent {
   event: Event;
-  person?: Person;
+  /** Only `id`/`display_name` are used for display — accepts full or lightweight (memorial) person projections. */
+  person?: Pick<Person, 'id' | 'display_name'>;
   nextDate: Date;
   daysUntil: number;
   lunarDisplay: string;

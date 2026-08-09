@@ -8,19 +8,41 @@
 
 import { Award, GraduationCap } from 'lucide-react';
 import { Card, CardContent, Separator } from '@components/ui';
+import { ListPagination } from '@components/shared';
+import type { ListPageSize } from '@constants';
 import { formatVND } from '@lib';
 import type { Person, Scholarship } from '@types';
 import { ScholarshipStatusBadge } from './scholarship-status-badge';
 
 interface FundScholarshipsTabProps {
   scholarships: Scholarship[];
+  scholarshipsTotal: number;
+  scholarshipsPage: number;
+  scholarshipsPageSize: ListPageSize;
+  onScholarshipsPageChange: (page: number) => void;
+  onScholarshipsPageSizeChange: (pageSize: ListPageSize) => void;
   rewards: Scholarship[];
+  rewardsTotal: number;
+  rewardsPage: number;
+  rewardsPageSize: ListPageSize;
+  onRewardsPageChange: (page: number) => void;
+  onRewardsPageSizeChange: (pageSize: ListPageSize) => void;
   peopleMap: Map<string, Person>;
 }
 
 export function FundScholarshipsTab({
   scholarships,
+  scholarshipsTotal,
+  scholarshipsPage,
+  scholarshipsPageSize,
+  onScholarshipsPageChange,
+  onScholarshipsPageSizeChange,
   rewards,
+  rewardsTotal,
+  rewardsPage,
+  rewardsPageSize,
+  onRewardsPageChange,
+  onRewardsPageSizeChange,
   peopleMap,
 }: FundScholarshipsTabProps) {
   return (
@@ -28,7 +50,7 @@ export function FundScholarshipsTab({
       <div>
         <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
           <GraduationCap className="h-4 w-4" />
-          Học bổng ({scholarships.length})
+          Học bổng ({scholarshipsTotal})
         </h3>
         {scholarships.length === 0 ? (
           <p className="text-sm text-muted-foreground">Chưa có học bổng nào</p>
@@ -67,6 +89,18 @@ export function FundScholarshipsTab({
             })}
           </div>
         )}
+        {scholarshipsTotal > 0 && (
+          <div className="mt-3">
+            <ListPagination
+              page={scholarshipsPage}
+              pageSize={scholarshipsPageSize}
+              total={scholarshipsTotal}
+              onPageChange={onScholarshipsPageChange}
+              onPageSizeChange={onScholarshipsPageSizeChange}
+              itemLabel="học bổng"
+            />
+          </div>
+        )}
       </div>
 
       <Separator />
@@ -74,7 +108,7 @@ export function FundScholarshipsTab({
       <div>
         <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
           <Award className="h-4 w-4" />
-          Khen thưởng ({rewards.length})
+          Khen thưởng ({rewardsTotal})
         </h3>
         {rewards.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -112,6 +146,18 @@ export function FundScholarshipsTab({
                 </Card>
               );
             })}
+          </div>
+        )}
+        {rewardsTotal > 0 && (
+          <div className="mt-3">
+            <ListPagination
+              page={rewardsPage}
+              pageSize={rewardsPageSize}
+              total={rewardsTotal}
+              onPageChange={onRewardsPageChange}
+              onPageSizeChange={onRewardsPageSizeChange}
+              itemLabel="khen thưởng"
+            />
           </div>
         )}
       </div>

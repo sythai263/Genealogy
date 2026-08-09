@@ -10,8 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import { getPosts, getPostsCount, getPost, createPost, updatePost, deletePost, hidePost, unhidePost, getPostComments, createComment, deleteComment, toggleLike, getUserLikedPosts } from '@lib';
+import { PEOPLE_SEARCH_DEBOUNCE_MS, type ListPageSize } from '@constants';
+import { getPosts, getPostsCount, getPost, createPost, updatePost, deletePost, hidePost, unhidePost, getPostComments, createComment, deleteComment, toggleLike, getUserLikedPosts, getUserLikedPostIdsForPosts } from '@lib';
 import type { PostsListFilters, CreatePostInput, UpdatePostInput, CreateCommentInput, PostStatus } from '@types';
 
 export const postKeys = {
@@ -31,8 +31,12 @@ export const postKeys = {
   count: (status: PostStatus | 'all') => [...postKeys.all, 'count', status] as const,
   details: () => [...postKeys.all, 'detail'] as const,
   detail: (id: string) => [...postKeys.details(), id] as const,
-  comments: (postId: string) => [...postKeys.all, 'comments', postId] as const,
+  commentsAll: (postId: string) => [...postKeys.all, 'comments', postId] as const,
+  comments: (postId: string, page: number, pageSize: ListPageSize) =>
+    [...postKeys.commentsAll(postId), page, pageSize] as const,
   userLikes: (userId: string) => [...postKeys.all, 'userLikes', userId] as const,
+  likedIdsForPosts: (postIds: string[]) =>
+    [...postKeys.all, 'likedIdsForPosts', [...postIds].sort().join(',')] as const,
 };
 
 export function usePosts(filters: PostsListFilters) {
@@ -74,19 +78,34 @@ export function usePost(id: string | undefined) {
   });
 }
 
-export function usePostComments(postId: string | undefined) {
+/** Paginated comments for an expanded post — defaults to a single 50-row page. */
+export function usePostComments(
+  postId: string | undefined,
+  page = 1,
+  pageSize: ListPageSize = 50
+) {
   return useQuery({
-    queryKey: postKeys.comments(postId!),
-    queryFn: () => getPostComments(postId!),
+    queryKey: postKeys.comments(postId!, page, pageSize),
+    queryFn: () => getPostComments(postId!, page, pageSize),
     enabled: !!postId,
   });
 }
 
+/** Full liked-post-id list for a user — author-only surfaces (e.g. profile). */
 export function useUserLikedPosts(userId: string | undefined) {
   return useQuery({
     queryKey: postKeys.userLikes(userId!),
     queryFn: () => getUserLikedPosts(userId!),
     enabled: !!userId,
+  });
+}
+
+/** Like lookup scoped to the given post ids — use for the current feed page. */
+export function useLikedPostIdsForPosts(postIds: string[], enabled = true) {
+  return useQuery({
+    queryKey: postKeys.likedIdsForPosts(postIds),
+    queryFn: () => getUserLikedPostIdsForPosts(postIds),
+    enabled: enabled && postIds.length > 0,
   });
 }
 
@@ -136,7 +155,7 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: (input: CreateCommentInput) => createComment(input),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: postKeys.comments(variables.post_id) });
+      queryClient.invalidateQueries({ queryKey: postKeys.commentsAll(variables.post_id) });
       queryClient.invalidateQueries({ queryKey: postKeys.all });
     },
   });
@@ -147,7 +166,7 @@ export function useDeleteComment() {
   return useMutation({
     mutationFn: ({ id }: { id: string; postId: string }) => deleteComment(id),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: postKeys.comments(variables.postId) });
+      queryClient.invalidateQueries({ queryKey: postKeys.commentsAll(variables.postId) });
       queryClient.invalidateQueries({ queryKey: postKeys.all });
     },
   });

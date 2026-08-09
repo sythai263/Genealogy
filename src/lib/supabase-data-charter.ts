@@ -2,26 +2,32 @@
  * @project AncestorTree
  * @file src/lib/supabase-data-charter.ts
  * @description Supabase data functions for clan articles (hương ước)
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 import { supabase } from './supabase';
-import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput, UpdateClanArticleInput } from '@types';
+import { getPaginationRange } from '@constants';
+import type { ClanArticle, ClanArticlesListFilters, CreateClanArticleInput, PaginatedResult, UpdateClanArticleInput } from '@types';
 
-export async function getClanArticles(category?: ClanArticleCategory): Promise<ClanArticle[]> {
+/** Paginated clan articles list — bounds the query as the category grows. */
+export async function getClanArticles(
+  filters: ClanArticlesListFilters
+): Promise<PaginatedResult<ClanArticle>> {
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   let query = supabase
     .from('clan_articles')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('sort_order', { ascending: true });
 
-  if (category) {
-    query = query.eq('category', category);
+  if (filters.category) {
+    query = query.eq('category', filters.category);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
 }
 
 export async function getClanArticle(id: string): Promise<ClanArticle | null> {

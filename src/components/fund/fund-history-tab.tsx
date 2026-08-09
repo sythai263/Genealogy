@@ -8,19 +8,33 @@
 
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Card, CardContent } from '@components/ui';
+import { ListPagination } from '@components/shared';
+import type { ListPageSize } from '@constants';
 import { formatVND } from '@lib';
 import { cn } from '@lib';
 import type { FundTransaction } from '@types';
 
 interface FundHistoryTabProps {
   transactions: FundTransaction[];
+  total: number;
+  page: number;
+  pageSize: ListPageSize;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: ListPageSize) => void;
 }
 
-export function FundHistoryTab({ transactions }: FundHistoryTabProps) {
+export function FundHistoryTab({
+  transactions,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: FundHistoryTabProps) {
   return (
-    <div className="mt-4">
-      <h3 className="mb-3 text-base font-semibold">
-        Lịch sử giao dịch ({transactions.length})
+    <div className="mt-4 space-y-4">
+      <h3 className="text-base font-semibold">
+        Lịch sử giao dịch ({total})
       </h3>
       {transactions.length === 0 ? (
         <Card>
@@ -70,6 +84,14 @@ export function FundHistoryTab({ transactions }: FundHistoryTabProps) {
           ))}
         </div>
       )}
+      <ListPagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        itemLabel="giao dịch"
+      />
     </div>
   );
 }

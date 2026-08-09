@@ -22,7 +22,7 @@ import {
 import {
   useMarkAllAsRead,
   useMarkAsRead,
-  useNotifications,
+  useRecentNotifications,
   useUnreadCount,
 } from '@hooks';
 import { getRelativeTime } from '@lib';
@@ -33,7 +33,7 @@ export function NotificationBell() {
   const { user } = useAuth();
   const router = useRouter();
   const { data: unreadCount = 0 } = useUnreadCount();
-  const { data: notifications, isLoading } = useNotifications();
+  const { data: notifications, isLoading } = useRecentNotifications(10);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 

@@ -43,7 +43,7 @@ import {
   useHidePost,
   usePosts,
   usePostsCount,
-  useProfiles,
+  useProfilesByIds,
   useResettablePage,
 } from '@hooks';
 import { getInitials } from '@lib';
@@ -69,12 +69,17 @@ export function AdminFeedView() {
   });
   const { data: allCount = 0 } = usePostsCount('all');
   const { data: hiddenCount = 0 } = usePostsCount('hidden');
-  const { data: profiles } = useProfiles();
   const deletePost = useDeletePost();
   const hidePost = useHidePost();
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const authorIds = useMemo(
+    () => [...new Set(items.map((post) => post.author_id))],
+    [items]
+  );
+  const { data: profiles } = useProfilesByIds(authorIds);
 
   const profileMap = useMemo(() => {
     const map = new Map<string, Profile>();

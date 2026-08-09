@@ -44,7 +44,7 @@ import {
   useCreateDocument,
   useDeleteDocument,
   useDocuments,
-  usePeople,
+  usePeopleByIds,
   useResettablePage,
   useUpdateDocument,
   useUploadDocumentFile,
@@ -66,20 +66,24 @@ export function AdminDocumentsView() {
     page,
     pageSize,
   });
-  const { data: people } = usePeople();
   const createMutation = useCreateDocument();
   const updateMutation = useUpdateDocument();
   const deleteMutation = useDeleteDocument();
   const uploadMutation = useUploadDocumentFile();
 
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [...new Set(items.map((doc) => doc.person_id).filter((id): id is string => Boolean(id)))],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
   const peopleMap = useMemo(() => {
     const map = new Map<string, Person>();
     for (const p of people || []) map.set(p.id, p);
     return map;
   }, [people]);
-
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
 
   if (!isEditor) {
     return (
@@ -124,7 +128,7 @@ export function AdminDocumentsView() {
           category: data.category,
           description: data.description,
           tags: data.tags,
-          person_id: data.person_id === 'none' ? undefined : data.person_id,
+          person_id: data.person_id,
           privacy_level: data.privacy_level,
         },
       });
@@ -163,7 +167,6 @@ export function AdminDocumentsView() {
             <DocumentForm
               key={editingItem?.id || 'new'}
               document={editingItem}
-              people={people || []}
               onSubmit={editingItem ? handleUpdate : handleCreate}
               isPending={createMutation.isPending || updateMutation.isPending || uploadMutation.isPending}
             />

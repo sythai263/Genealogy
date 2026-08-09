@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useResettablePage } from '@hooks';
 import { Search, Star, Trophy } from 'lucide-react';
 import {
@@ -21,7 +21,7 @@ import {
 import {
   useAchievements,
   useFeaturedAchievements,
-  usePeople,
+  usePeopleByIds,
 } from '@hooks';
 import type { AchievementCategory, Person } from '@types';
 import { AchievementCard } from './achievement-card';
@@ -41,15 +41,26 @@ export function AchievementsView() {
     pageSize,
   });
   const { data: featured = [] } = useFeaturedAchievements();
-  const { data: people } = usePeople();
-
-  const peopleMap = new Map<string, Person>();
-  for (const person of people ?? []) {
-    peopleMap.set(person.id, person);
-  }
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [
+      ...new Set(
+        [...items, ...featured].map((achievement) => achievement.person_id).filter(Boolean)
+      ),
+    ],
+    [items, featured]
+  );
+  const { data: people } = usePeopleByIds(personIds);
+  const peopleMap = useMemo(() => {
+    const map = new Map<string, Person>();
+    for (const person of people ?? []) {
+      map.set(person.id, person);
+    }
+    return map;
+  }, [people]);
 
   if (isLoading) {
     return (

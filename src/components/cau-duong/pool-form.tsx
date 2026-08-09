@@ -8,8 +8,10 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PersonCombobox } from '@components/people';
 import {
   Button,
   Checkbox,
@@ -20,13 +22,9 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Textarea,
 } from '@components/ui';
+import { usePerson } from '@hooks';
 import {
   cauDuongPoolSchema,
   defaultCauDuongPoolValues,
@@ -36,12 +34,14 @@ import type { CauDuongPool, Person } from '@types';
 
 interface PoolFormProps {
   pool?: CauDuongPool;
-  people: Person[];
   onSubmit: (data: CauDuongPoolFormData) => void;
   isPending: boolean;
 }
 
-export function PoolForm({ pool, people, onSubmit, isPending }: PoolFormProps) {
+export function PoolForm({ pool, onSubmit, isPending }: PoolFormProps) {
+  const { data: loadedAncestor } = usePerson(pool?.ancestor_id);
+  const [selectedAncestor, setSelectedAncestor] = useState<Person | null>(null);
+
   const form = useForm<CauDuongPoolFormData>({
     resolver: zodResolver(cauDuongPoolSchema),
     defaultValues: pool
@@ -55,6 +55,17 @@ export function PoolForm({ pool, people, onSubmit, isPending }: PoolFormProps) {
         }
       : defaultCauDuongPoolValues,
   });
+
+  useEffect(() => {
+    if (loadedAncestor) {
+      setSelectedAncestor(loadedAncestor);
+    }
+  }, [loadedAncestor]);
+
+  function handleAncestorSelect(person: Person | null) {
+    setSelectedAncestor(person);
+    form.setValue('ancestor_id', person?.id ?? '', { shouldValidate: true });
+  }
 
   function handleSubmit(data: CauDuongPoolFormData) {
     onSubmit({
@@ -83,24 +94,15 @@ export function PoolForm({ pool, people, onSubmit, isPending }: PoolFormProps) {
         <FormField
           control={form.control}
           name="ancestor_id"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Tổ tông (gốc nhóm) *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn tổ tông" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {people.map((person) => (
-                    <SelectItem key={person.id} value={person.id}>
-                      {person.display_name}
-                      {person.generation ? ` (Đời ${person.generation})` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <PersonCombobox
+                  label="Tổ tông (gốc nhóm) *"
+                  selected={selectedAncestor}
+                  onSelect={handleAncestorSelect}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

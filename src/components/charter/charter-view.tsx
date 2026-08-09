@@ -34,7 +34,8 @@ import { ArticleList } from './article-list';
 
 export function CharterView() {
   const [activeTab, setActiveTab] = useState<ClanArticleCategory>('gia_huan');
-  const { data: articles, isLoading } = useClanArticles(activeTab);
+  const { data, isLoading } = useClanArticles({ category: activeTab });
+  const articles = data?.items;
 
   function handleTabChange(value: string) {
     if (isClanArticleCategory(value)) {

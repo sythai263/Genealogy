@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useStats, useFamilies } from '@hooks';
+import { useStats, useFamiliesCount } from '@hooks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Skeleton } from '@components/ui';
 import {
   Users,
@@ -24,7 +24,7 @@ import Link from 'next/link';
 
 export default function AdminPage() {
   const { data: stats, isLoading: statsLoading } = useStats();
-  const { data: families, isLoading: familiesLoading } = useFamilies();
+  const { data: familiesCount, isLoading: familiesLoading } = useFamiliesCount();
 
   const isLoading = statsLoading || familiesLoading;
 
@@ -110,7 +110,7 @@ export default function AdminPage() {
             {isLoading ? (
               <Skeleton className="h-8 w-12" />
             ) : (
-              <div className="text-2xl font-bold">{families?.length || 0}</div>
+              <div className="text-2xl font-bold">{familiesCount || 0}</div>
             )}
           </CardContent>
         </Card>
@@ -178,7 +178,7 @@ export default function AdminPage() {
               {isLoading ? (
                 <Skeleton className="h-5 w-12" />
               ) : (
-                <span className="font-semibold">{families?.length || 0}</span>
+                <span className="font-semibold">{familiesCount || 0}</span>
               )}
             </div>
           </CardContent>

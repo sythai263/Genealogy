@@ -16,9 +16,11 @@ import {
   deletePerson,
   getPeople,
   getPeopleByGeneration,
+  getPeopleByIds,
   getPeopleFilterOptions,
   getPerson,
   getStats,
+  getUpcomingMemorialPeople,
   searchPeople,
   searchPeopleAdvanced,
   searchPeopleFiltered,
@@ -42,8 +44,11 @@ export const peopleKeys = {
     [...peopleKeys.all, 'advanced-search', query, ignoreAccents] as const,
   byGeneration: (gen: number) =>
     [...peopleKeys.all, 'generation', gen] as const,
+  byIds: (ids: string[]) =>
+    [...peopleKeys.all, 'by-ids', [...ids].sort().join(',')] as const,
   filterOptions: () => [...peopleKeys.all, 'filter-options'] as const,
   stats: () => [...peopleKeys.all, 'stats'] as const,
+  upcomingMemorial: () => [...peopleKeys.all, 'upcoming-memorial'] as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -159,6 +164,25 @@ export function usePeopleByGeneration(generation: number) {
   return useQuery({
     queryKey: peopleKeys.byGeneration(generation),
     queryFn: () => getPeopleByGeneration(generation),
+  });
+}
+
+/** Batch person lookup by id (name maps) — never loads the full table. */
+export function usePeopleByIds(ids: string[]) {
+  const sortedIds = [...ids].sort();
+  return useQuery({
+    queryKey: peopleKeys.byIds(sortedIds),
+    queryFn: () => getPeopleByIds(sortedIds),
+    enabled: sortedIds.length > 0,
+  });
+}
+
+/** Deceased people with lunar death dates only — for auto-giỗ (memorial) scans. */
+export function useUpcomingMemorialPeople() {
+  return useQuery({
+    queryKey: peopleKeys.upcomingMemorial(),
+    queryFn: getUpcomingMemorialPeople,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

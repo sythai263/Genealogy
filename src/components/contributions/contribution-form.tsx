@@ -9,6 +9,7 @@
 'use client';
 
 import { useAuth } from '@components/auth';
+import { PersonCombobox } from '@components/people';
 import {
   Button,
   DialogFooter,
@@ -34,12 +35,13 @@ import {
   isChangeType,
 } from '@constants';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreateContribution, usePeople } from '@hooks';
+import { useCreateContribution } from '@hooks';
 import {
   contributionFormSchema,
   defaultContributionFormValues,
   type ContributionFormData,
 } from '@schemas';
+import type { Person } from '@types';
 import { Plus, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -51,8 +53,8 @@ interface ContributionFormProps {
 
 export function ContributionForm({ onClose }: ContributionFormProps) {
   const { profile } = useAuth();
-  const { data: people } = usePeople();
   const createContribution = useCreateContribution();
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [fieldName, setFieldName] = useState('');
   const [fieldValue, setFieldValue] = useState('');
 
@@ -72,6 +74,11 @@ export function ContributionForm({ onClose }: ContributionFormProps) {
     form.setValue('changes', nextChanges, { shouldValidate: true });
     setFieldName('');
     setFieldValue('');
+  }
+
+  function handlePersonSelect(person: Person | null) {
+    setSelectedPerson(person);
+    form.setValue('target_person', person?.id ?? '', { shouldValidate: true });
   }
 
   function removeChange(key: string) {
@@ -141,23 +148,15 @@ export function ContributionForm({ onClose }: ContributionFormProps) {
         <FormField
           control={form.control}
           name='target_person'
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Thành viên liên quan</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Chọn thành viên...' />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {people?.map(person => (
-                    <SelectItem key={person.id} value={person.id}>
-                      {person.display_name} (Đời {person.generation})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <PersonCombobox
+                  label='Thành viên liên quan'
+                  selected={selectedPerson}
+                  onSelect={handlePersonSelect}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

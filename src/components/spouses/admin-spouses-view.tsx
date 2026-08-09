@@ -2,19 +2,19 @@
  * @project AncestorTree
  * @file src/components/spouses/admin-spouses-view.tsx
  * @description Admin bulk worklist for families missing a spouse
- * @version 1.0.0
+ * @version 2.0.0
  * @updated 2026-08-09
  */
 
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Check, Heart } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ListPagination } from '@components/shared';
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -28,11 +28,18 @@ import {
   SelectValue,
   Skeleton,
 } from '@components/ui';
-import { PEOPLE_SEARCH_MIN_CHARS, SPOUSES_FILTER_ALL } from '@constants';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  PEOPLE_SEARCH_MIN_CHARS,
+  SPOUSES_FILTER_ALL,
+  type ListPageSize,
+} from '@constants';
 import {
   useCreatePerson,
   useCreateSpouseFamily,
   useFamiliesMissingSpouse,
+  usePeopleFilterOptions,
+  useResettablePage,
 } from '@hooks';
 import { buildSpousePersonInput } from '@lib';
 import type { FamilyMissingSpouse, SpouseSavePayload } from '@types';
@@ -40,64 +47,33 @@ import { SpouseRow } from './spouse-row';
 
 export function AdminSpousesView() {
   const { isEditor } = useAuth();
-  const { data, isLoading } = useFamiliesMissingSpouse();
+  const [chiFilter, setChiFilter] = useState(SPOUSES_FILTER_ALL);
+  const [generationFilter, setGenerationFilter] = useState(SPOUSES_FILTER_ALL);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(
+    `${chiFilter}|${generationFilter}|${pageSize}`
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const chi = chiFilter === SPOUSES_FILTER_ALL ? undefined : Number(chiFilter);
+  const generation =
+    generationFilter === SPOUSES_FILTER_ALL ? undefined : Number(generationFilter);
+
+  const { data, isLoading } = useFamiliesMissingSpouse({ chi, generation, page, pageSize });
+  const { data: filterOptions } = usePeopleFilterOptions();
   const createPersonMutation = useCreatePerson();
   const createSpouseFamilyMutation = useCreateSpouseFamily();
 
-  // Snapshot the worklist once so saving a row does not reshuffle the list
-  // underneath the cursor when the query is invalidated.
-  const [rows, setRows] = useState<FamilyMissingSpouse[]>([]);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [chiFilter, setChiFilter] = useState(SPOUSES_FILTER_ALL);
-  const [generationFilter, setGenerationFilter] = useState(SPOUSES_FILTER_ALL);
-  const hasSnapshot = useRef(false);
-
-  useEffect(() => {
-    if (hasSnapshot.current || !data) return;
-    hasSnapshot.current = true;
-    setRows(data);
-  }, [data]);
-
-  const chiOptions = useMemo(
-    () =>
-      [
-        ...new Set(
-          rows.map((row) => row.person.chi).filter((chi): chi is number => chi != null)
-        ),
-      ].sort((a, b) => a - b),
-    [rows]
-  );
-  const generationOptions = useMemo(
-    () =>
-      [...new Set(rows.map((row) => row.person.generation))].sort((a, b) => a - b),
-    [rows]
-  );
-
-  const visibleRows = useMemo(
-    () =>
-      rows.filter((row) => {
-        if (
-          chiFilter !== SPOUSES_FILTER_ALL &&
-          String(row.person.chi ?? '') !== chiFilter
-        ) {
-          return false;
-        }
-        if (
-          generationFilter !== SPOUSES_FILTER_ALL &&
-          String(row.person.generation) !== generationFilter
-        ) {
-          return false;
-        }
-        return true;
-      }),
-    [rows, chiFilter, generationFilter]
-  );
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const chiOptions = filterOptions?.chiValues ?? [];
+  const generationOptions = filterOptions?.generations ?? [];
 
   async function handleSave(
     entry: FamilyMissingSpouse,
     payload: SpouseSavePayload
   ): Promise<void> {
+    const position = items.findIndex((row) => row.family_id === entry.family_id);
     try {
       let spouseId: string;
       let toastName: string;
@@ -126,11 +102,9 @@ export function AdminSpousesView() {
         targetFamilyId: entry.family_id,
       });
 
-      setSavedIds((prev) => new Set(prev).add(entry.family_id));
-      const position = visibleRows.findIndex(
-        (row) => row.family_id === entry.family_id
-      );
-      if (position >= 0) setActiveIndex(position + 1);
+      // Once saved, the family drops off the missing-spouse list on refetch —
+      // the next row slides into the same position, so keep focus there.
+      if (position >= 0) setActiveIndex(position);
       toast.success(
         linkedExisting ? `Đã liên kết ${toastName}` : `Đã thêm ${toastName}`
       );
@@ -155,10 +129,6 @@ export function AdminSpousesView() {
       </div>
     );
   }
-
-  const total = rows.length;
-  const savedCount = savedIds.size;
-  const percent = total > 0 ? Math.round((savedCount / total) * 100) : 0;
 
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
@@ -192,18 +162,9 @@ export function AdminSpousesView() {
         <>
           <Card>
             <CardContent className="space-y-3 py-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Đã nhập {savedCount} / {total}
-                </span>
-                <Badge variant="outline">{percent}%</Badge>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-pink-400 transition-all"
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Còn {total} gia đình cần nhập vợ/chồng
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Select value={chiFilter} onValueChange={setChiFilter}>
                   <SelectTrigger className="w-36">
@@ -211,9 +172,9 @@ export function AdminSpousesView() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={SPOUSES_FILTER_ALL}>Tất cả chi</SelectItem>
-                    {chiOptions.map((chi) => (
-                      <SelectItem key={chi} value={String(chi)}>
-                        Chi {chi}
+                    {chiOptions.map((chiValue) => (
+                      <SelectItem key={chiValue} value={String(chiValue)}>
+                        Chi {chiValue}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -241,16 +202,25 @@ export function AdminSpousesView() {
           </Card>
 
           <div className="space-y-2">
-            {visibleRows.map((entry, index) => (
+            {items.map((entry, index) => (
               <SpouseRow
                 key={entry.family_id}
                 entry={entry}
-                isSaved={savedIds.has(entry.family_id)}
+                isSaved={false}
                 autoFocus={index === activeIndex}
                 onSave={handleSave}
               />
             ))}
           </div>
+
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="gia đình"
+          />
 
           <Card>
             <CardHeader className="pb-2">

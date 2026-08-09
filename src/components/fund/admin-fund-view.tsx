@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { Plus, Trash2, CheckCircle, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
+import { PersonCombobox } from '@components/people';
+import { ListPagination } from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +46,7 @@ import {
   TabsTrigger,
   Textarea,
 } from '@components/ui';
+import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
 import {
   useFundTransactions,
   useFundBalance,
@@ -53,7 +56,8 @@ import {
   useCreateScholarship,
   useUpdateScholarshipStatus,
   useDeleteScholarship,
-  usePeople,
+  usePeopleByIds,
+  useResettablePage,
 } from '@hooks';
 import { formatVND } from '@lib';
 import type {
@@ -69,10 +73,17 @@ export function AdminFundView() {
   const [txDialogOpen, setTxDialogOpen] = useState(false);
   const [schDialogOpen, setSchDialogOpen] = useState(false);
 
+  const [txPageSize, setTxPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [txPage, setTxPage] = useResettablePage(String(txPageSize));
+  const [schPageSize, setSchPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [schPage, setSchPage] = useResettablePage(String(schPageSize));
+
   const { data: balance } = useFundBalance();
-  const { data: transactions } = useFundTransactions();
-  const { data: scholarships } = useScholarships();
-  const { data: people } = usePeople();
+  const { data: transactionsPage } = useFundTransactions({ page: txPage, pageSize: txPageSize });
+  const { data: scholarshipsPage } = useScholarships({ page: schPage, pageSize: schPageSize });
+
+  const transactions = transactionsPage?.items ?? [];
+  const scholarships = scholarshipsPage?.items ?? [];
 
   const createTx = useCreateFundTransaction();
   const deleteTx = useDeleteFundTransaction();
@@ -80,6 +91,11 @@ export function AdminFundView() {
   const updateSchStatus = useUpdateScholarshipStatus();
   const deleteSch = useDeleteScholarship();
 
+  const personIds = useMemo(
+    () => [...new Set(scholarships.map((s) => s.person_id).filter(Boolean))],
+    [scholarships]
+  );
+  const { data: people } = usePeopleByIds(personIds);
   const peopleMap = useMemo(() => {
     const map = new Map<string, Person>();
     for (const p of people || []) map.set(p.id, p);
@@ -95,7 +111,7 @@ export function AdminFundView() {
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10));
 
   // Scholarship form state
-  const [schPersonId, setSchPersonId] = useState('');
+  const [schPerson, setSchPerson] = useState<Person | null>(null);
   const [schType, setSchType] = useState<'hoc_bong' | 'khen_thuong'>('hoc_bong');
   const [schAmount, setSchAmount] = useState('');
   const [schReason, setSchReason] = useState('');
@@ -121,7 +137,7 @@ export function AdminFundView() {
   };
 
   const resetSchForm = () => {
-    setSchPersonId(''); setSchType('hoc_bong'); setSchAmount(''); setSchReason(''); setSchYear('2025-2026'); setSchSchool(''); setSchGrade('');
+    setSchPerson(null); setSchType('hoc_bong'); setSchAmount(''); setSchReason(''); setSchYear('2025-2026'); setSchSchool(''); setSchGrade('');
   };
 
   const handleCreateTx = async (e: React.FormEvent) => {
@@ -150,10 +166,10 @@ export function AdminFundView() {
   const handleCreateSch = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedSchAmount = parseInt(schAmount);
-    if (!schPersonId || !schAmount || isNaN(parsedSchAmount) || parsedSchAmount <= 0) { toast.error('Vui lòng điền đủ thông tin (số tiền > 0)'); return; }
+    if (!schPerson || !schAmount || isNaN(parsedSchAmount) || parsedSchAmount <= 0) { toast.error('Vui lòng điền đủ thông tin (số tiền > 0)'); return; }
     try {
       const input: CreateScholarshipInput = {
-        person_id: schPersonId,
+        person_id: schPerson.id,
         type: schType,
         amount: parsedSchAmount,
         reason: schReason || undefined,
@@ -252,7 +268,7 @@ export function AdminFundView() {
           </Dialog>
 
           <div className="space-y-2">
-            {(transactions || []).map(tx => (
+            {transactions.map(tx => (
               <Card key={tx.id}>
                 <CardContent className="p-3 flex items-center justify-between">
                   <div>
@@ -286,7 +302,7 @@ export function AdminFundView() {
                 </CardContent>
               </Card>
             ))}
-            {(!transactions || transactions.length === 0) && (
+            {transactions.length === 0 && (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
                   <Wallet className="h-10 w-10 mx-auto mb-2 opacity-50" />
@@ -295,6 +311,14 @@ export function AdminFundView() {
               </Card>
             )}
           </div>
+          <ListPagination
+            page={txPage}
+            pageSize={txPageSize}
+            total={transactionsPage?.total ?? 0}
+            onPageChange={setTxPage}
+            onPageSizeChange={setTxPageSize}
+            itemLabel="giao dịch"
+          />
         </TabsContent>
 
         {/* Scholarships */}
@@ -307,15 +331,11 @@ export function AdminFundView() {
               <DialogHeader><DialogTitle>Đề cử học bổng / khen thưởng</DialogTitle></DialogHeader>
               <form onSubmit={handleCreateSch} className="space-y-4">
                 <div>
-                  <Label>Thành viên *</Label>
-                  <Select value={schPersonId} onValueChange={setSchPersonId}>
-                    <SelectTrigger><SelectValue placeholder="Chọn thành viên" /></SelectTrigger>
-                    <SelectContent>
-                      {(people || []).map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.display_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <PersonCombobox
+                    label="Thành viên *"
+                    selected={schPerson}
+                    onSelect={setSchPerson}
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -359,7 +379,7 @@ export function AdminFundView() {
           </Dialog>
 
           <div className="space-y-2">
-            {(scholarships || []).map(s => {
+            {scholarships.map(s => {
               const person = peopleMap.get(s.person_id);
               return (
                 <Card key={s.id}>
@@ -402,12 +422,20 @@ export function AdminFundView() {
                 </Card>
               );
             })}
-            {(!scholarships || scholarships.length === 0) && (
+            {scholarships.length === 0 && (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">Chưa có đề cử nào</CardContent>
               </Card>
             )}
           </div>
+          <ListPagination
+            page={schPage}
+            pageSize={schPageSize}
+            total={scholarshipsPage?.total ?? 0}
+            onPageChange={setSchPage}
+            onPageSizeChange={setSchPageSize}
+            itemLabel="đề cử"
+          />
         </TabsContent>
       </Tabs>
     </div>

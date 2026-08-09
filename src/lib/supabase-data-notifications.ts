@@ -2,14 +2,36 @@
  * @project AncestorTree
  * @file src/lib/supabase-data-notifications.ts
  * @description Data layer for in-app notifications
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 import { supabase } from './supabase';
-import type { Notification } from '@types';
+import { getPaginationRange } from '@constants';
+import type { Notification, NotificationsListFilters, PaginatedResult } from '@types';
 
-export async function getNotifications(limit = 50): Promise<Notification[]> {
+/** Paginated notifications list for the full `/notifications` page. */
+export async function getNotifications(
+  filters: NotificationsListFilters
+): Promise<PaginatedResult<Notification>> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { items: [], total: 0 };
+
+  const { from, to } = getPaginationRange(filters.page, filters.pageSize);
+
+  const { data, error, count } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact' })
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+  return { items: data || [], total: count ?? 0 };
+}
+
+/** Small, unbounded-page fetch for the header bell dropdown. */
+export async function getRecentNotifications(limit = 10): Promise<Notification[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 

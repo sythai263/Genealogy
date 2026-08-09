@@ -9,7 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProfiles, getProfilesPage, getUnverifiedProfilesCount, getProfile, updateProfile, updateUserRole, updateLinkedPerson, updateEditRootPerson, suspendUser, unsuspendUser, verifyUser, getUnverifiedProfiles } from '@lib';
+import { getProfiles, getProfilesByIds, getProfilesPage, getUnverifiedProfilesCount, getProfile, updateProfile, updateUserRole, updateLinkedPerson, updateEditRootPerson, suspendUser, unsuspendUser, verifyUser, getUnverifiedProfiles } from '@lib';
 import { deleteUserAccount } from '@/app/(main)/admin/users/actions';
 import type { Profile, ProfilesListFilters, UserRole } from '@types';
 
@@ -30,6 +30,8 @@ export const profileKeys = {
   unverifiedCount: () => [...profileKeys.all, 'unverified-count'] as const,
   details: () => [...profileKeys.all, 'detail'] as const,
   detail: (id: string) => [...profileKeys.details(), id] as const,
+  byIds: (userIds: string[]) =>
+    [...profileKeys.all, 'by-ids', [...userIds].sort().join(',')] as const,
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -47,6 +49,16 @@ export function useProfilesPage(filters: ProfilesListFilters) {
   return useQuery({
     queryKey: profileKeys.list(filters),
     queryFn: () => getProfilesPage(filters),
+  });
+}
+
+/** Batch profile lookup by user id (author/display maps) — never loads the full table. */
+export function useProfilesByIds(userIds: string[]) {
+  const sortedIds = [...userIds].sort();
+  return useQuery({
+    queryKey: profileKeys.byIds(sortedIds),
+    queryFn: () => getProfilesByIds(sortedIds),
+    enabled: sortedIds.length > 0,
   });
 }
 

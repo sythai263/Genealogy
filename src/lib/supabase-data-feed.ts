@@ -9,7 +9,7 @@
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
 import { FEED_MAX_IMAGES, getPaginationRange } from '@constants';
-import type { Post, PostComment, PostLike, PostsListFilters, PaginatedResult, CreatePostInput, UpdatePostInput, CreateCommentInput, PostStatus } from '@types';
+import type { ListPageSize, Post, PostComment, PostLike, PostsListFilters, PaginatedResult, CreatePostInput, UpdatePostInput, CreateCommentInput, PostStatus } from '@types';
 
 // Security: allowlist for mass-assignment protection
 const ALLOWED_UPDATE_FIELDS = ['content', 'post_type', 'images', 'status'] as const;
@@ -196,15 +196,23 @@ export async function unhidePost(id: string): Promise<void> {
 
 // ─── Comments ───────────────────────────────────────────────────────────────
 
-export async function getPostComments(postId: string): Promise<PostComment[]> {
-  const { data, error } = await supabase
+/** Paginated comments list — bounds fetch for posts with heavy discussion. */
+export async function getPostComments(
+  postId: string,
+  page = 1,
+  pageSize: ListPageSize = 50
+): Promise<PaginatedResult<PostComment>> {
+  const { from, to } = getPaginationRange(page, pageSize);
+
+  const { data, error, count } = await supabase
     .from('post_comments')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('post_id', postId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .range(from, to);
 
   if (error) throw error;
-  return data || [];
+  return { items: data || [], total: count ?? 0 };
 }
 
 export async function createComment(input: CreateCommentInput): Promise<PostComment> {
@@ -291,4 +299,22 @@ export async function getUserLikedPosts(userId: string): Promise<string[]> {
 
   if (error) throw error;
   return (data || []).map(d => d.post_id);
+}
+
+/** Scoped like-lookup — only queries the given post ids (e.g. current page). */
+export async function getUserLikedPostIdsForPosts(postIds: string[]): Promise<string[]> {
+  const uniqueIds = [...new Set(postIds)];
+  if (uniqueIds.length === 0) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('post_likes')
+    .select('post_id')
+    .eq('user_id', user.id)
+    .in('post_id', uniqueIds);
+
+  if (error) throw error;
+  return (data || []).map((d) => d.post_id);
 }

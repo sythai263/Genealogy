@@ -7,22 +7,34 @@
  */
 
 import { Card, CardContent } from '@components/ui';
+import { ListPagination } from '@components/shared';
+import type { ListPageSize } from '@constants';
 import { formatVND } from '@lib';
 import type { FundTransaction, Person } from '@types';
 
 interface FundDonationsTabProps {
   donations: FundTransaction[];
+  total: number;
+  page: number;
+  pageSize: ListPageSize;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: ListPageSize) => void;
   peopleMap: Map<string, Person>;
 }
 
 export function FundDonationsTab({
   donations,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   peopleMap,
 }: FundDonationsTabProps) {
   return (
-    <div className="mt-4">
-      <h3 className="mb-3 text-base font-semibold">
-        Danh sách đóng góp ({donations.length})
+    <div className="mt-4 space-y-4">
+      <h3 className="text-base font-semibold">
+        Danh sách đóng góp ({total})
       </h3>
       {donations.length === 0 ? (
         <Card>
@@ -67,6 +79,14 @@ export function FundDonationsTab({
           })}
         </div>
       )}
+      <ListPagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        itemLabel="đóng góp"
+      />
     </div>
   );
 }

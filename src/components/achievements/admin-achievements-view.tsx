@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -36,7 +36,7 @@ import {
   useAchievements,
   useCreateAchievement,
   useDeleteAchievement,
-  usePeople,
+  usePeopleByIds,
   useUpdateAchievement,
 } from '@hooks';
 import type { AchievementFormData } from '@schemas';
@@ -68,18 +68,25 @@ export function AdminAchievementsView() {
     page,
     pageSize,
   });
-  const { data: people } = usePeople();
   const createMutation = useCreateAchievement();
   const updateMutation = useUpdateAchievement();
   const deleteMutation = useDeleteAchievement();
 
-  const peopleMap = new Map<string, Person>();
-  for (const person of people ?? []) {
-    peopleMap.set(person.id, person);
-  }
-
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [...new Set(items.map((achievement) => achievement.person_id).filter(Boolean))],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
+  const peopleMap = useMemo(() => {
+    const map = new Map<string, Person>();
+    for (const person of people ?? []) {
+      map.set(person.id, person);
+    }
+    return map;
+  }, [people]);
 
   if (!isEditor) {
     return (

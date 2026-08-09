@@ -49,7 +49,7 @@ import {
   useCreateEvent,
   useDeleteEvent,
   useEvents,
-  usePeople,
+  usePeopleByIds,
   useResettablePage,
   useUpdateEvent,
 } from '@hooks';
@@ -71,19 +71,23 @@ export function AdminEventsView() {
     page,
     pageSize,
   });
-  const { data: people } = usePeople();
   const createMutation = useCreateEvent();
   const updateMutation = useUpdateEvent();
   const deleteMutation = useDeleteEvent();
 
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  const personIds = useMemo(
+    () => [...new Set(items.map((ev) => ev.person_id).filter((id): id is string => Boolean(id)))],
+    [items]
+  );
+  const { data: people } = usePeopleByIds(personIds);
   const peopleMap = useMemo(() => {
     const map = new Map<string, Person>();
     for (const p of people || []) map.set(p.id, p);
     return map;
   }, [people]);
-
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
 
   if (!isEditor) {
     return (

@@ -8,22 +8,30 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ListPagination } from '@components/shared';
 import { Button, Card, CardContent } from '@components/ui';
+import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
 import {
   useDeleteNotification,
   useMarkAllAsRead,
   useMarkAsRead,
   useNotifications,
+  useResettablePage,
   useUnreadCount,
 } from '@hooks';
 import { NotificationListItem } from './notification-list-item';
 
 export function NotificationsView() {
   const router = useRouter();
-  const { data: notifications, isLoading } = useNotifications();
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useResettablePage(String(pageSize));
+  const { data, isLoading } = useNotifications({ page, pageSize });
+  const notifications = data?.items ?? [];
+  const total = data?.total ?? 0;
   const { data: unreadCount = 0 } = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
@@ -76,22 +84,32 @@ export function NotificationsView() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : !notifications || notifications.length === 0 ? (
+      ) : notifications.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             Chưa có thông báo nào
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {notifications.map((notification) => (
-            <NotificationListItem
-              key={notification.id}
-              notification={notification}
-              onOpen={handleOpen}
-              onDelete={handleDelete}
-            />
-          ))}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            {notifications.map((notification) => (
+              <NotificationListItem
+                key={notification.id}
+                notification={notification}
+                onOpen={handleOpen}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            itemLabel="thông báo"
+          />
         </div>
       )}
     </div>

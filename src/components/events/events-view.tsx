@@ -38,8 +38,9 @@ import {
   useDeleteEvent,
   useEvents,
   useEventsCalendar,
-  usePeople,
+  usePeopleByIds,
   useResettablePage,
+  useUpcomingMemorialPeople,
 } from '@hooks';
 import {
   formatLunarDate,
@@ -58,7 +59,8 @@ import { UpcomingEventsBanner } from './upcoming-events-banner';
 
 export function EventsView() {
   const { data: events, isLoading: eventsLoading } = useEventsCalendar();
-  const { data: people, isLoading: peopleLoading } = usePeople();
+  const { data: memorialPeople, isLoading: memorialLoading } =
+    useUpcomingMemorialPeople();
   const { isEditor } = useAuth();
   const deleteEvent = useDeleteEvent();
 
@@ -81,7 +83,21 @@ export function EventsView() {
   const listItems = listData?.items ?? [];
   const listTotal = listData?.total ?? 0;
 
-  const isLoading = eventsLoading || peopleLoading;
+  // Name map covers only the person ids actually referenced by loaded events —
+  // never the full people table.
+  const personIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const event of events ?? []) {
+      if (event.person_id) ids.add(event.person_id);
+    }
+    for (const event of listItems) {
+      if (event.person_id) ids.add(event.person_id);
+    }
+    return [...ids];
+  }, [events, listItems]);
+  const { data: people, isLoading: peopleLoading } = usePeopleByIds(personIds);
+
+  const isLoading = eventsLoading || peopleLoading || memorialLoading;
 
   const upcomingEvents = useMemo<UpcomingEvent[]>(() => {
     if (!events || !people) return [];
@@ -134,7 +150,7 @@ export function EventsView() {
   }, [events, people]);
 
   const autoGioEvents = useMemo<UpcomingEvent[]>(() => {
-    if (!people || !events) return [];
+    if (!memorialPeople || !events) return [];
 
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -143,7 +159,7 @@ export function EventsView() {
     );
     const results: UpcomingEvent[] = [];
 
-    for (const person of people) {
+    for (const person of memorialPeople) {
       if (
         person.is_living ||
         !person.death_lunar ||
@@ -180,7 +196,7 @@ export function EventsView() {
     }
 
     return results.sort((a, b) => a.daysUntil - b.daysUntil);
-  }, [people, events]);
+  }, [memorialPeople, events]);
 
   const allUpcoming = useMemo(() => {
     return [...upcomingEvents, ...autoGioEvents].sort(
