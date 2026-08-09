@@ -8,18 +8,18 @@
 
 'use client';
 
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
-import { GitBranchPlus } from 'lucide-react';
 import { LandingAuthCta } from '@components/layout';
 import { Skeleton } from '@components/ui';
 import { useClanSettings } from '@hooks';
 import { CLAN_FULL_NAME } from '@lib';
+import { GitBranchPlus } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 
-const FamilyTreeV3 = dynamic(
+const FamilyTree = dynamic(
   () =>
-    import('@components/tree/family-tree-v3').then((mod) => ({
-      default: mod.FamilyTreeV3,
+    import('@components/tree/family-tree').then((mod) => ({
+      default: mod.FamilyTree,
     })),
   {
     ssr: false,
@@ -70,7 +70,7 @@ export function FamilyTreeContent() {
             </div>
           }
         >
-          <FamilyTreeV3 variant="public" />
+          <FamilyTree variant="public" />
         </Suspense>
       </div>
     </div>

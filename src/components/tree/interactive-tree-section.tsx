@@ -8,20 +8,20 @@
 
 'use client';
 
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+    Skeleton,
 } from '@components/ui';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 
 const FamilyTree = dynamic(
   () =>
-    import('./family-tree-v3').then((mod) => ({ default: mod.FamilyTreeV3 })),
+    import('./family-tree').then((mod) => ({ default: mod.FamilyTree })),
   {
     ssr: false,
     loading: () => <Skeleton className="h-[60vh] w-full rounded-lg" />,

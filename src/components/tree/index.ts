@@ -11,7 +11,6 @@ export * from './family-tree';
 export * from './family-tree-canvas';
 export * from './family-tree-selected-card';
 export * from './family-tree-toolbar';
-export * from './family-tree-v2';
-export * from './family-tree-v3';
 export * from './interactive-tree-section';
 export * from './tree-view';
+
