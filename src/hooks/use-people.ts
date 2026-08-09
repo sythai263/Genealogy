@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/hooks/use-people.ts
  * @description React Query hooks for people data
- * @version 1.2.0
- * @updated 2026-07-19
+ * @version 1.3.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -99,23 +99,60 @@ export function usePerson(id: string | undefined) {
   });
 }
 
+/** Debounce typing before hitting the people search API. */
+function useDebouncedSearchQuery(query: string): string {
+  const trimmed = query.trim();
+  const [debouncedQuery, setDebouncedQuery] = useState(trimmed);
+
+  useEffect(() => {
+    if (trimmed.length < 2) {
+      setDebouncedQuery(trimmed);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDebouncedQuery(trimmed);
+    }, PEOPLE_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [trimmed]);
+
+  return debouncedQuery;
+}
+
 export function useSearchPeople(query: string) {
-  return useQuery({
-    queryKey: peopleKeys.search(query),
-    queryFn: () => searchPeople(query),
-    enabled: query.length >= 2,
+  const debouncedQuery = useDebouncedSearchQuery(query);
+  const isDebouncing =
+    query.trim().length >= 2 && query.trim() !== debouncedQuery;
+
+  const result = useQuery({
+    queryKey: peopleKeys.search(debouncedQuery),
+    queryFn: () => searchPeople(debouncedQuery),
+    enabled: debouncedQuery.length >= 2,
   });
+
+  return {
+    ...result,
+    isFetching: result.isFetching || isDebouncing,
+  };
 }
 
 export function useSearchPeopleAdvanced(
   query: string,
   ignoreAccents: boolean = true
 ) {
-  return useQuery({
-    queryKey: peopleKeys.advancedSearch(query, ignoreAccents),
-    queryFn: () => searchPeopleAdvanced(query, ignoreAccents),
-    enabled: query.length >= 2,
+  const debouncedQuery = useDebouncedSearchQuery(query);
+  const isDebouncing =
+    query.trim().length >= 2 && query.trim() !== debouncedQuery;
+
+  const result = useQuery({
+    queryKey: peopleKeys.advancedSearch(debouncedQuery, ignoreAccents),
+    queryFn: () => searchPeopleAdvanced(debouncedQuery, ignoreAccents),
+    enabled: debouncedQuery.length >= 2,
   });
+
+  return {
+    ...result,
+    isFetching: result.isFetching || isDebouncing,
+  };
 }
 
 export function usePeopleByGeneration(generation: number) {

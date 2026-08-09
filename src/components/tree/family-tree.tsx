@@ -144,8 +144,9 @@ export function FamilyTree({
     return () => clearTimeout(timer);
   }, [filterSearch]);
 
+  // Hook already debounces; pass raw input so we do not wait 600ms total.
   const { data: remoteSearchResults, isFetching: isRemoteSearching } =
-    useSearchPeopleAdvanced(isPublic ? '' : debouncedSearch);
+    useSearchPeopleAdvanced(isPublic ? '' : filterSearch);
 
   const searchResults = useMemo(() => {
     if (!isPublic) return remoteSearchResults;

@@ -1,8 +1,8 @@
 /**
  * @project AncestorTree
  * @file src/components/people/person-combobox.tsx
- * @description Searchable person picker with keyboard navigation
- * @version 1.1.0
+ * @description Searchable person picker with keyboard navigation and debounced backend search
+ * @version 1.2.0
  * @updated 2026-08-09
  */
 
@@ -11,7 +11,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
-import { useSearchPeople } from '@hooks';
+import { useSearchPeopleAdvanced } from '@hooks';
 import { cn } from '@lib';
 import type { Person } from '@types';
 
@@ -33,7 +33,7 @@ export function PersonCombobox({
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const { data: results, isFetching } = useSearchPeople(query);
+  const { data: results, isFetching } = useSearchPeopleAdvanced(query);
 
   const filtered = (results || []).filter((person) => person.id !== excludeId);
 

@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { usePersonRelations, useCreateSpouseFamily, useAddChildToFamilyMutation, useSearchPeople, useCreatePerson } from '@hooks';
+import { usePersonRelations, useCreateSpouseFamily, useAddChildToFamilyMutation, useSearchPeopleAdvanced, useCreatePerson } from '@hooks';
 import { Card, CardContent, CardHeader, CardTitle, Button, Separator, Skeleton, Input, Label, Dialog, DialogContent, DialogHeader, DialogTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@components/ui';
 import { Users, Plus, Search, UserPlus } from 'lucide-react';
 import { buildPersonHandle, buildSpousePersonInput, splitVietnameseName } from '@lib';
@@ -162,7 +162,7 @@ interface PersonSearchSelectProps {
 
 function PersonSearchSelect({ excludeIds = [], onSelect, isLoading }: PersonSearchSelectProps) {
   const [query, setQuery] = useState('');
-  const { data: results, isFetching } = useSearchPeople(query);
+  const { data: results, isFetching } = useSearchPeopleAdvanced(query);
 
   const filtered = (results || []).filter((p) => !excludeIds.includes(p.id));
 
