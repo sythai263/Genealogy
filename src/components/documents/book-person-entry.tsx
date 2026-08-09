@@ -2,10 +2,13 @@
  * @project AncestorTree
  * @file src/components/documents/book-person-entry.tsx
  * @description Single person entry in the printable family book
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Heart, User, Users } from 'lucide-react';
 import { cn } from '@lib';
 import type { BookPerson } from '@types';
@@ -15,6 +18,7 @@ interface BookPersonEntryProps {
 }
 
 export function BookPersonEntry({ entry }: BookPersonEntryProps) {
+  const t = useTranslations('Documents');
   const { person, father, mother, spouses, children, zodiacYear } = entry;
 
   return (
@@ -39,29 +43,40 @@ export function BookPersonEntry({ entry }: BookPersonEntryProps) {
           <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
             {(person.birth_year || person.death_year) && (
               <p>
-                {person.birth_year && `Sinh: ${person.birth_year}`}
+                {person.birth_year &&
+                  t('book.birth', { year: person.birth_year })}
                 {zodiacYear && ` (${zodiacYear})`}
-                {person.death_year && ` — Mất: ${person.death_year}`}
-                {person.death_lunar && ` (Âm lịch: ${person.death_lunar})`}
+                {person.death_year &&
+                  ` — ${t('book.death', { year: person.death_year })}`}
+                {person.death_lunar &&
+                  ` (${t('book.lunar', { date: person.death_lunar })})`}
               </p>
             )}
 
-            {person.birth_place && <p>Nơi sinh: {person.birth_place}</p>}
-            {person.hometown && <p>Quê quán: {person.hometown}</p>}
-            {person.occupation && <p>Nghề nghiệp: {person.occupation}</p>}
+            {person.birth_place && (
+              <p>{t('book.birthPlace', { place: person.birth_place })}</p>
+            )}
+            {person.hometown && (
+              <p>{t('book.hometown', { place: person.hometown })}</p>
+            )}
+            {person.occupation && (
+              <p>{t('book.occupation', { job: person.occupation })}</p>
+            )}
 
             {(father || mother) && (
               <p className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                Cha mẹ: {father?.display_name || '?'} &{' '}
-                {mother?.display_name || '?'}
+                {t('book.parents', {
+                  father: father?.display_name || '?',
+                  mother: mother?.display_name || '?',
+                })}
               </p>
             )}
 
             {spouses.length > 0 && (
               <p className="flex items-center gap-1">
                 <Heart className="h-3 w-3" />
-                {person.gender === 1 ? 'Vợ' : 'Chồng'}:{' '}
+                {person.gender === 1 ? t('book.wife') : t('book.husband')}:{' '}
                 {spouses.map((spouse) => spouse.display_name).join(', ')}
               </p>
             )}
@@ -70,7 +85,7 @@ export function BookPersonEntry({ entry }: BookPersonEntryProps) {
               <p className="flex items-start gap-1">
                 <User className="mt-0.5 h-3 w-3" />
                 <span>
-                  Con ({children.length}):{' '}
+                  {t('book.children', { count: children.length })}:{' '}
                   {children.map((child) => child.display_name).join(', ')}
                 </span>
               </p>

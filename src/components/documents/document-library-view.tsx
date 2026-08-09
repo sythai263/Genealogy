@@ -2,15 +2,15 @@
  * @project AncestorTree
  * @file src/components/documents/document-library-view.tsx
  * @description Kho tài liệu — gallery view with category filter and search
- * @version 1.0.0
- * @updated 2026-07-27
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useResettablePage } from '@hooks';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Archive, ArrowLeft, Info } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ListPagination, PageHeader, QueryBoundary } from '@components/shared';
@@ -19,18 +19,26 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-import { useDocumentFileUrls, useDocuments, usePeopleByIds } from '@hooks';
+import {
+  useDocumentFileUrls,
+  useDocuments,
+  usePeopleByIds,
+  useResettablePage,
+} from '@hooks';
 import type { DocumentCategory } from '@types';
 import { DocumentLibraryCard } from './document-library-card';
 import { DocumentLibraryFilters } from './document-library-filters';
 
 export function DocumentLibraryView() {
+  const t = useTranslations('Documents');
   const [categoryFilter, setCategoryFilter] = useState<
     DocumentCategory | undefined
   >();
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
-  const [page, setPage] = useResettablePage(`${categoryFilter}|${search}|${pageSize}`);
+  const [page, setPage] = useResettablePage(
+    `${categoryFilter}|${search}|${pageSize}`
+  );
 
   const { data, isLoading } = useDocuments({
     category: categoryFilter,
@@ -45,7 +53,13 @@ export function DocumentLibraryView() {
   const total = data?.total ?? 0;
 
   const personIds = useMemo(
-    () => [...new Set(items.map((doc) => doc.person_id).filter((id): id is string => Boolean(id)))],
+    () => [
+      ...new Set(
+        items
+          .map((doc) => doc.person_id)
+          .filter((id): id is string => Boolean(id))
+      ),
+    ],
     [items]
   );
   const fileRefs = useMemo(() => items.map((doc) => doc.file_url), [items]);
@@ -67,25 +81,22 @@ export function DocumentLibraryView() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/documents">
               <ArrowLeft className="mr-1 h-4 w-4" />
-              Tài liệu
+              {t('title')}
             </Link>
           </Button>
         </div>
         <PageHeader
           className="mb-2"
           icon={Archive}
-          title="Kho tài liệu"
-          description="Ảnh lịch sử, giấy tờ, bản đồ, video — ký ức dòng họ"
+          title={t('library.title')}
+          description={t('library.subtitle')}
         />
       </div>
 
       {isViewer && (
         <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
           <Info className="h-4 w-4 shrink-0" />
-          <span>
-            Bạn đang xem tài liệu công khai. Một số tài liệu chỉ dành cho thành
-            viên quản trị.
-          </span>
+          <span>{t('library.viewerNotice')}</span>
         </div>
       )}
 
@@ -102,8 +113,8 @@ export function DocumentLibraryView() {
         emptyIcon={Archive}
         emptyTitle={
           search || categoryFilter
-            ? 'Không tìm thấy tài liệu phù hợp'
-            : 'Chưa có tài liệu nào'
+            ? t('library.emptyFiltered')
+            : t('library.empty')
         }
         skeletonVariant="grid"
       >
@@ -128,7 +139,7 @@ export function DocumentLibraryView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="tài liệu"
+            itemLabel={t('library.itemLabel')}
           />
         </div>
       </QueryBoundary>

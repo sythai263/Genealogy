@@ -2,14 +2,15 @@
  * @project AncestorTree
  * @file src/components/notifications/notifications-view.tsx
  * @description Full notifications list with mark as read and delete
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Bell, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { ListPagination, QueryBoundary } from '@components/shared';
@@ -26,6 +27,7 @@ import {
 import { NotificationListItem } from './notification-list-item';
 
 export function NotificationsView() {
+  const t = useTranslations('Notifications');
   const router = useRouter();
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
   const [page, setPage] = useResettablePage(String(pageSize));
@@ -49,7 +51,7 @@ export function NotificationsView() {
   function handleDelete(event: React.MouseEvent, id: string) {
     event.stopPropagation();
     deleteNotif.mutate(id, {
-      onError: () => toast.error('Lỗi khi xóa thông báo'),
+      onError: () => toast.error(t('deleteError')),
     });
   }
 
@@ -59,11 +61,11 @@ export function NotificationsView() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Bell className="h-6 w-6" />
-            Thông báo
+            {t('title')}
           </h1>
           {unreadCount > 0 && (
             <p className="text-sm text-muted-foreground">
-              {unreadCount} chưa đọc
+              {t('unreadCount', { count: unreadCount })}
             </p>
           )}
         </div>
@@ -75,7 +77,7 @@ export function NotificationsView() {
             disabled={markAllAsRead.isPending}
           >
             <Check className="mr-1.5 h-4 w-4" />
-            Đã đọc tất cả
+            {t('markAllRead')}
           </Button>
         )}
       </div>
@@ -84,7 +86,7 @@ export function NotificationsView() {
         isLoading={isLoading}
         isEmpty={notifications.length === 0}
         emptyIcon={Bell}
-        emptyTitle="Chưa có thông báo nào"
+        emptyTitle={t('empty')}
         skeletonRows={4}
       >
         <div className="space-y-4">
@@ -104,7 +106,7 @@ export function NotificationsView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="thông báo"
+            itemLabel={t('itemLabel')}
           />
         </div>
       </QueryBoundary>

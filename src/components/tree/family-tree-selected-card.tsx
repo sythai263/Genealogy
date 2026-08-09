@@ -2,12 +2,15 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-selected-card.tsx
  * @description Floating card for the currently selected tree person
- * @version 1.1.0
- * @updated 2026-07-19
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { X } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
@@ -18,13 +21,11 @@ import {
 } from '@components/ui';
 import { cn, getInitials, getPersonTreeNameParts } from '@lib';
 import type { Person } from '@types';
-import { X } from 'lucide-react';
-import Link from 'next/link';
 
 interface FamilyTreeSelectedCardProps {
   person: Person;
   onClose: () => void;
-  /** When false, hide the authenticated "Chi tiết" link (public landing). */
+  /** When false, hide the authenticated detail link (public landing). */
   showDetailLink?: boolean;
   /** Optional login CTA when detail link is hidden. */
   loginHref?: string;
@@ -38,6 +39,9 @@ export function FamilyTreeSelectedCard({
   loginHref = '/login',
   className,
 }: FamilyTreeSelectedCardProps) {
+  const t = useTranslations('Tree');
+  const tCommon = useTranslations('Common');
+  const tAuth = useTranslations('Auth');
   const { givenName, familyLine } = getPersonTreeNameParts(person);
 
   return (
@@ -65,19 +69,30 @@ export function FamilyTreeSelectedCard({
               </p>
             ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-              <span>Chi: {person.chi != null ? person.chi : ''}</span>
-              <span className="ml-1">Đời: {person.generation}</span>
+              <span>
+                {t('selected.chi', {
+                  chi: person.chi != null ? person.chi : '',
+                })}
+              </span>
+              <span className="ml-1">
+                {t('selected.generation', { n: person.generation })}
+              </span>
             </p>
-          </div>  
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {showDetailLink ? (
             <Button asChild size="sm" className="rounded-full px-4 sm:px-6">
-              <Link href={`/people/${person.id}`}>Chi tiết</Link>
+              <Link href={`/people/${person.id}`}>{tCommon('details')}</Link>
             </Button>
           ) : (
-            <Button asChild size="sm" variant="outline" className="rounded-full px-3 text-xs sm:px-4 sm:text-sm">
-              <Link href={loginHref}>Đăng nhập</Link>
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="rounded-full px-3 text-xs sm:px-4 sm:text-sm"
+            >
+              <Link href={loginHref}>{tAuth('login.title')}</Link>
             </Button>
           )}
           <Button
@@ -85,7 +100,7 @@ export function FamilyTreeSelectedCard({
             size="icon"
             onClick={onClose}
             className="h-8 w-8 rounded-full text-muted-foreground"
-            aria-label="Đóng"
+            aria-label={tCommon('close')}
           >
             <X className="h-4 w-4" />
           </Button>

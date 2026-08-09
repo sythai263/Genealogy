@@ -2,18 +2,19 @@
  * @project AncestorTree
  * @file src/components/people/avatar-upload.tsx
  * @description Avatar component with upload capability
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useRef, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@components/ui';
+import { useTranslations } from 'next-intl';
 import { Camera, Loader2, User } from 'lucide-react';
-import { uploadFile } from '@lib';
-import { useUpdatePerson } from '@hooks';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@components/ui';
+import { useUpdatePerson } from '@hooks';
+import { uploadFile } from '@lib';
 import type { Person } from '@types';
 
 interface AvatarUploadProps {
@@ -22,7 +23,12 @@ interface AvatarUploadProps {
   size?: 'sm' | 'lg';
 }
 
-export function AvatarUpload({ person, canEdit, size = 'lg' }: AvatarUploadProps) {
+export function AvatarUpload({
+  person,
+  canEdit,
+  size = 'lg',
+}: AvatarUploadProps) {
+  const t = useTranslations('People');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const updateMutation = useUpdatePerson();
@@ -38,27 +44,33 @@ export function AvatarUpload({ person, canEdit, size = 'lg' }: AvatarUploadProps
     .join('')
     .toUpperCase();
 
-  const genderColor = person.gender === 1 ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
+  const genderColor =
+    person.gender === 1 ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     try {
       const url = await uploadFile(file, person.id, 'avatar');
-      await updateMutation.mutateAsync({ id: person.id, input: { avatar_url: url } });
-      toast.success('Đã cập nhật ảnh đại diện');
+      await updateMutation.mutateAsync({
+        id: person.id,
+        input: { avatar_url: url },
+      });
+      toast.success(t('avatar.updateSuccess'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Lỗi khi tải ảnh lên');
+      toast.error(
+        err instanceof Error ? err.message : t('avatar.uploadError')
+      );
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  };
+  }
 
   return (
-    <div className="relative group">
+    <div className="group relative">
       <Avatar className={sizeClass}>
         <AvatarImage src={person.avatar_url} alt={person.display_name} />
         <AvatarFallback className={`${genderColor} ${textSize}`}>
@@ -78,10 +90,10 @@ export function AvatarUpload({ person, canEdit, size = 'lg' }: AvatarUploadProps
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
           >
             {isUploading ? (
-              <Loader2 className="h-6 w-6 text-white animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
             ) : (
               <Camera className="h-6 w-6 text-white" />
             )}

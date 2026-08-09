@@ -1,20 +1,17 @@
 /**
  * @project AncestorTree
  * @file src/constants/people.ts
- * @description Shared constants for people list filters
- * @version 1.2.0
- * @updated 2026-07-19
+ * @description Shared constants for people list filters (labels via next-intl)
+ * @version 1.3.0
+ * @updated 2026-08-09
  */
 
 export type PeopleStatusFilter = 'all' | 'living' | 'deceased';
 
-export const PEOPLE_STATUS_FILTER_OPTIONS: {
-  value: PeopleStatusFilter;
-  label: string;
-}[] = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'living', label: 'Còn sống' },
-  { value: 'deceased', label: 'Đã mất' },
+export const PEOPLE_STATUS_FILTER_VALUES: PeopleStatusFilter[] = [
+  'all',
+  'living',
+  'deceased',
 ];
 
 export const DUPLICATE_DISMISSED_STORAGE_KEY =
@@ -30,7 +27,7 @@ export const PEOPLE_DEFAULT_PAGE_SIZE: PeoplePageSize = 20;
 export function isPeopleStatusFilter(
   value: string
 ): value is PeopleStatusFilter {
-  return PEOPLE_STATUS_FILTER_OPTIONS.some((option) => option.value === value);
+  return PEOPLE_STATUS_FILTER_VALUES.some((option) => option === value);
 }
 
 export function isPeoplePageSize(value: number): value is PeoplePageSize {

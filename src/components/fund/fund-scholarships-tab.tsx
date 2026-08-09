@@ -2,10 +2,13 @@
  * @project AncestorTree
  * @file src/components/fund/fund-scholarships-tab.tsx
  * @description Scholarships and rewards lists for education fund
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Award, GraduationCap } from 'lucide-react';
 import { Card, CardContent, Separator } from '@components/ui';
 import { ListPagination } from '@components/shared';
@@ -45,15 +48,19 @@ export function FundScholarshipsTab({
   onRewardsPageSizeChange,
   peopleMap,
 }: FundScholarshipsTabProps) {
+  const t = useTranslations('Fund');
+
   return (
     <div className="mt-4 space-y-6">
       <div>
         <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
           <GraduationCap className="h-4 w-4" />
-          Học bổng ({scholarshipsTotal})
+          {t('scholarshipsSection.title', { count: scholarshipsTotal })}
         </h3>
         {scholarships.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chưa có học bổng nào</p>
+          <p className="text-sm text-muted-foreground">
+            {t('scholarshipsSection.empty')}
+          </p>
         ) : (
           <div className="space-y-2">
             {scholarships.map((scholarship) => {
@@ -63,7 +70,7 @@ export function FundScholarshipsTab({
                   <CardContent className="flex items-center justify-between p-3">
                     <div>
                       <p className="text-sm font-medium">
-                        {person?.display_name || 'Không rõ'}
+                        {person?.display_name || t('unknown')}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {scholarship.school && `${scholarship.school} · `}
@@ -97,7 +104,7 @@ export function FundScholarshipsTab({
               total={scholarshipsTotal}
               onPageChange={onScholarshipsPageChange}
               onPageSizeChange={onScholarshipsPageSizeChange}
-              itemLabel="học bổng"
+              itemLabel={t('scholarshipsSection.itemLabel')}
             />
           </div>
         )}
@@ -108,11 +115,11 @@ export function FundScholarshipsTab({
       <div>
         <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
           <Award className="h-4 w-4" />
-          Khen thưởng ({rewardsTotal})
+          {t('rewardsSection.title', { count: rewardsTotal })}
         </h3>
         {rewards.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Chưa có khen thưởng nào
+            {t('rewardsSection.empty')}
           </p>
         ) : (
           <div className="space-y-2">
@@ -123,7 +130,7 @@ export function FundScholarshipsTab({
                   <CardContent className="flex items-center justify-between p-3">
                     <div>
                       <p className="text-sm font-medium">
-                        {person?.display_name || 'Không rõ'}
+                        {person?.display_name || t('unknown')}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {reward.school && `${reward.school} · `}
@@ -156,7 +163,7 @@ export function FundScholarshipsTab({
               total={rewardsTotal}
               onPageChange={onRewardsPageChange}
               onPageSizeChange={onRewardsPageSizeChange}
-              itemLabel="khen thưởng"
+              itemLabel={t('rewardsSection.itemLabel')}
             />
           </div>
         )}

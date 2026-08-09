@@ -1,7 +1,16 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/register-form.tsx
+ * @description User registration form
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -23,14 +32,17 @@ import {
 } from '@components/ui';
 import { useSignUp } from '@hooks';
 import { CLAN_INITIAL } from '@lib';
-import { registerSchema, type RegisterFormData } from '@schemas';
+import { createRegisterSchema, type RegisterFormData } from '@schemas';
 
 export function RegisterForm() {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const signUp = useSignUp();
+  const schema = createRegisterSchema(tValidation);
 
   const form = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       fullName: '',
       email: '',
@@ -51,7 +63,7 @@ export function RegisterForm() {
           setRegisteredEmail(data.email);
         },
         onError: (error: Error) => {
-          toast.error(error.message || 'Đăng ký thất bại');
+          toast.error(error.message || t('register.failed'));
         },
       }
     );
@@ -65,19 +77,19 @@ export function RegisterForm() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-white">
               <Mail className="h-6 w-6" />
             </div>
-            <CardTitle>Kiểm tra email</CardTitle>
+            <CardTitle>{t('register.checkEmailTitle')}</CardTitle>
             <CardDescription>
-              Chúng tôi đã gửi email xác nhận đến{' '}
-              <strong>{registeredEmail}</strong>
+              {t.rich('register.checkEmailSentTo', {
+                email: () => <strong>{registeredEmail}</strong>,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-sm text-muted-foreground">
-              Vui lòng nhấp vào liên kết trong email để xác nhận tài khoản. Sau
-              khi xác nhận email, quản trị viên sẽ duyệt tài khoản của bạn.
+              {t('register.checkEmailAdminNote')}
             </p>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/login">Đã xác nhận? Đăng nhập</Link>
+              <Link href="/login">{t('register.alreadyVerified')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -92,10 +104,8 @@ export function RegisterForm() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-xl font-bold text-white">
             {CLAN_INITIAL}
           </div>
-          <CardTitle>Đăng ký</CardTitle>
-          <CardDescription>
-            Tạo tài khoản để truy cập Gia Phả Điện Tử
-          </CardDescription>
+          <CardTitle>{t('register.title')}</CardTitle>
+          <CardDescription>{t('register.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -108,9 +118,9 @@ export function RegisterForm() {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Họ và tên</FormLabel>
+                    <FormLabel>{t('register.fullName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nguyễn Văn A" {...field} />
+                      <Input placeholder={t('register.fullNamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -121,7 +131,7 @@ export function RegisterForm() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('register.email')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -138,7 +148,7 @@ export function RegisterForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mật khẩu</FormLabel>
+                    <FormLabel>{t('register.password')}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -151,7 +161,7 @@ export function RegisterForm() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Xác nhận mật khẩu</FormLabel>
+                    <FormLabel>{t('register.confirmPassword')}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -164,15 +174,19 @@ export function RegisterForm() {
                 className="w-full"
                 disabled={signUp.isPending}
               >
-                {signUp.isPending ? 'Đang đăng ký...' : 'Đăng ký'}
+                {signUp.isPending
+                  ? t('register.submitting')
+                  : t('register.submit')}
               </Button>
             </form>
           </Form>
 
           <div className="mt-4 text-center text-sm">
-            <span className="text-muted-foreground">Đã có tài khoản? </span>
+            <span className="text-muted-foreground">
+              {t('register.hasAccount')}{' '}
+            </span>
             <Link href="/login" className="text-emerald-600 hover:underline">
-              Đăng nhập
+              {t('register.loginLink')}
             </Link>
           </div>
         </CardContent>

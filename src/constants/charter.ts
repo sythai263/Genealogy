@@ -1,32 +1,19 @@
 /**
  * @project AncestorTree
  * @file src/constants/charter.ts
- * @description Shared constants for Hương ước (clan charter)
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description Shared constants for Hương ước (labels via next-intl)
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import { BookOpen, MessageCircle, ScrollText, type LucideIcon } from 'lucide-react';
 import type { ClanArticleCategory } from '@types';
-
-export const CHARTER_CATEGORY_LABELS: Record<ClanArticleCategory, string> = {
-  gia_huan: 'Gia huấn',
-  quy_uoc: 'Quy ước',
-  loi_dan: 'Lời dặn con cháu',
-};
 
 export const CHARTER_CATEGORY_ORDER: ClanArticleCategory[] = [
   'gia_huan',
   'quy_uoc',
   'loi_dan',
 ];
-
-export const CHARTER_CATEGORY_OPTIONS = CHARTER_CATEGORY_ORDER.map(
-  (value) => ({
-    value,
-    label: CHARTER_CATEGORY_LABELS[value],
-  })
-);
 
 export const CHARTER_TAB_ICONS: Record<ClanArticleCategory, LucideIcon> = {
   gia_huan: BookOpen,

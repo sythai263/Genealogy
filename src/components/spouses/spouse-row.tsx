@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/spouses/spouse-row.tsx
  * @description Single missing-spouse worklist row with search-or-create
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
@@ -10,6 +10,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Check, ExternalLink, Loader2, Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
@@ -37,6 +38,8 @@ export function SpouseRow({
   autoFocus,
   onSave,
 }: SpouseRowProps) {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const listboxId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +52,8 @@ export function SpouseRow({
   const [isSaving, setIsSaving] = useState(false);
 
   const { person, knownRole, childrenCount } = entry;
-  const spouseLabel = knownRole === 'father' ? 'Vợ' : 'Chồng';
+  const spouseLabel =
+    knownRole === 'father' ? t('spouses.wife') : t('spouses.husband');
   const expectedGender: 1 | 2 = knownRole === 'father' ? 2 : 1;
 
   const { data: results, isFetching } = useSearchPeopleAdvanced(fullName);
@@ -124,7 +128,7 @@ export function SpouseRow({
     if (!name) return;
     const year = birthYear.trim() ? Number(birthYear.trim()) : undefined;
     if (year != null && !Number.isFinite(year)) {
-      toast.error('Năm sinh không hợp lệ');
+      toast.error(t('spouses.birthYearInvalid'));
       return;
     }
     await persist({ fullName: name, birthYear: year });
@@ -212,15 +216,18 @@ export function SpouseRow({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Đời {person.generation}
-          {person.chi ? ` · Chi ${person.chi}` : ''} · {childrenCount} con
+          {t('spouses.generationLine', { generation: person.generation })}
+          {person.chi
+            ? t('spouses.chiSuffix', { chi: person.chi })
+            : ''}{' '}
+          · {t('spouses.childrenCount', { count: childrenCount })}
         </p>
       </div>
 
       {isSaved ? (
         <div className="flex flex-1 items-center gap-2 text-sm text-green-700">
           <Check className="h-4 w-4" />
-          Đã lưu
+          {t('spouses.saved')}
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -241,7 +248,9 @@ export function SpouseRow({
                   {selectedPerson.display_name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Đời {selectedPerson.generation}
+                  {t('spouses.generationLine', {
+                    generation: selectedPerson.generation,
+                  })}
                   {selectedPerson.birth_year
                     ? ` · ${selectedPerson.birth_year}`
                     : ''}
@@ -282,7 +291,9 @@ export function SpouseRow({
                       setHighlightedIndex(-1);
                     }, SPOUSE_SEARCH_BLUR_CLOSE_MS)
                   }
-                  placeholder={`Tìm hoặc nhập tên ${spouseLabel.toLowerCase()}`}
+                  placeholder={t('spouses.searchPlaceholder', {
+                    label: spouseLabel.toLowerCase(),
+                  })}
                   disabled={isSaving}
                   className="pl-9"
                 />
@@ -296,14 +307,14 @@ export function SpouseRow({
                 >
                   {isFetching && (
                     <p className="px-3 py-2 text-sm text-muted-foreground">
-                      Đang tìm...
+                      {t('spouses.searching')}
                     </p>
                   )}
                   {!isFetching &&
                     filtered.length === 0 &&
                     fullName.trim().length >= PEOPLE_SEARCH_MIN_CHARS && (
                       <p className="px-3 py-2 text-sm text-muted-foreground">
-                        Không tìm thấy — Enter để tạo mới
+                        {t('spouses.notFoundCreate')}
                       </p>
                     )}
                   {filtered.map((candidate, index) => (
@@ -338,7 +349,9 @@ export function SpouseRow({
                           {candidate.display_name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Đời {candidate.generation}
+                          {t('spouses.generationLine', {
+                            generation: candidate.generation,
+                          })}
                           {candidate.birth_year
                             ? ` · ${candidate.birth_year}`
                             : ''}
@@ -363,7 +376,7 @@ export function SpouseRow({
                   void handleSave();
                 }
               }}
-              placeholder="Năm sinh"
+              placeholder={t('spouses.birthYear')}
               inputMode="numeric"
               maxLength={4}
               disabled={isSaving}
@@ -377,7 +390,11 @@ export function SpouseRow({
             size="sm"
             className="sm:w-24"
           >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lưu'}
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              tCommon('save')
+            )}
           </Button>
         </div>
       )}

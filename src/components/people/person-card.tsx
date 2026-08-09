@@ -2,16 +2,24 @@
  * @project AncestorTree
  * @file src/components/people/person-card.tsx
  * @description Card component displaying person information
- * @version 1.0.0
- * @updated 2026-02-24
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent, Avatar, AvatarFallback, AvatarImage, Badge } from '@components/ui';
-import { type Person, getZodiacYear } from '@types';
-import { User, MapPin, Calendar } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Calendar, MapPin, User } from 'lucide-react';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Card,
+  CardContent,
+} from '@components/ui';
+import { getZodiacYear, type Person } from '@types';
 
 interface PersonCardProps {
   person: Person;
@@ -19,6 +27,9 @@ interface PersonCardProps {
 }
 
 export function PersonCard({ person, showDetails = true }: PersonCardProps) {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
+
   const initials = person.display_name
     .split(' ')
     .map((n) => n[0])
@@ -26,12 +37,15 @@ export function PersonCard({ person, showDetails = true }: PersonCardProps) {
     .join('')
     .toUpperCase();
 
-  const genderColor = person.gender === 1 ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
-  const statusColor = person.is_living ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600';
+  const genderColor =
+    person.gender === 1 ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
+  const statusColor = person.is_living
+    ? 'bg-green-100 text-green-800'
+    : 'bg-gray-100 text-gray-600';
 
   return (
     <Link href={`/people/${person.id}`}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+      <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
             <Avatar className="h-14 w-14">
@@ -40,23 +54,23 @@ export function PersonCard({ person, showDetails = true }: PersonCardProps) {
                 {initials || <User className="h-6 w-6" />}
               </AvatarFallback>
             </Avatar>
-            
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base truncate">
+
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-base font-semibold">
                 {person.display_name}
               </h3>
-              
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
+
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
                 <Badge variant="outline" className="text-xs">
-                  Đời {person.generation}
+                  {t('generationN', { n: person.generation })}
                 </Badge>
                 {person.chi && (
                   <Badge variant="outline" className="text-xs">
-                    Chi {person.chi}
+                    {t('chiN', { n: person.chi })}
                   </Badge>
                 )}
                 <Badge className={`text-xs ${statusColor}`}>
-                  {person.is_living ? 'Còn sống' : 'Đã mất'}
+                  {person.is_living ? tCommon('living') : tCommon('deceased')}
                 </Badge>
               </div>
 

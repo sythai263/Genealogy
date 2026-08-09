@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/events/events-view.tsx
  * @description Memorial calendar and events page with lunar date support
- * @version 1.0.0
- * @updated 2026-07-27
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -30,7 +30,6 @@ import {
 } from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
-  MONTHS_VI,
   UPCOMING_EVENTS_WINDOW_DAYS,
   type ListPageSize,
 } from '@constants';
@@ -50,6 +49,7 @@ import {
 } from '@lib';
 import type { EventType, UpcomingEvent } from '@types';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AddEventDialog } from './add-event-dialog';
@@ -58,6 +58,7 @@ import { EventsListPanel } from './events-list-panel';
 import { UpcomingEventsBanner } from './upcoming-events-banner';
 
 export function EventsView() {
+  const t = useTranslations('Events');
   const { data: events, isLoading: eventsLoading } = useEventsCalendar();
   const { data: memorialPeople, isLoading: memorialLoading } =
     useUpcomingMemorialPeople();
@@ -180,7 +181,7 @@ export function EventsView() {
       results.push({
         event: {
           id: `gio-auto-${person.id}`,
-          title: `Giỗ ${person.display_name}`,
+          title: t('autoGioTitle', { name: person.display_name }),
           event_type: 'gio',
           event_lunar: person.death_lunar,
           person_id: person.id,
@@ -196,7 +197,7 @@ export function EventsView() {
     }
 
     return results.sort((a, b) => a.daysUntil - b.daysUntil);
-  }, [memorialPeople, events]);
+  }, [memorialPeople, events, t]);
 
   const allUpcoming = useMemo(() => {
     return [...upcomingEvents, ...autoGioEvents].sort(
@@ -222,10 +223,10 @@ export function EventsView() {
   function handleDelete(id: string) {
     deleteEvent.mutate(id, {
       onSuccess: () => {
-        toast.success('Đã xóa sự kiện');
+        toast.success(t('toasts.deleteSuccess'));
       },
       onError: () => {
-        toast.error('Lỗi khi xóa sự kiện');
+        toast.error(t('toasts.deleteError'));
       },
     });
   }
@@ -235,21 +236,21 @@ export function EventsView() {
       <PageHeader
         className='mb-8'
         icon={Calendar}
-        title='Lịch cúng lễ'
-        description='Quản lý ngày giỗ, lễ tết và sự kiện dòng họ'
+        title={t('title')}
+        description={t('description')}
         actions={
           isEditor && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className='gap-2'>
-                  <Plus className='h-4 w-4' /> Thêm sự kiện
+                  <Plus className='h-4 w-4' /> {t('add')}
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-md'>
                 <DialogHeader>
-                  <DialogTitle>Thêm sự kiện mới</DialogTitle>
+                  <DialogTitle>{t('addDialogTitle')}</DialogTitle>
                   <DialogDescription>
-                    Thêm ngày giỗ, lễ tết hoặc sự kiện dòng họ
+                    {t('addDialogDescription')}
                   </DialogDescription>
                 </DialogHeader>
                 <AddEventDialog onClose={() => setDialogOpen(false)} />
@@ -263,8 +264,8 @@ export function EventsView() {
 
       <Tabs defaultValue='calendar'>
         <TabsList className='mb-4'>
-          <TabsTrigger value='calendar'>Lịch</TabsTrigger>
-          <TabsTrigger value='list'>Danh sách</TabsTrigger>
+          <TabsTrigger value='calendar'>{t('tabs.calendar')}</TabsTrigger>
+          <TabsTrigger value='list'>{t('tabs.list')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value='calendar'>
@@ -278,7 +279,7 @@ export function EventsView() {
                   <ChevronLeft className='h-4 w-4' />
                 </Button>
                 <CardTitle className='text-base'>
-                  {MONTHS_VI[calendarMonth - 1]} {calendarYear}
+                  {t(`months.m${calendarMonth}` as 'months.m1')} {calendarYear}
                 </CardTitle>
                 <Button
                   variant='ghost'
@@ -319,7 +320,7 @@ export function EventsView() {
             total={listTotal}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel='sự kiện'
+            itemLabel={t('itemLabel')}
             disabled={listLoading}
           />
         </TabsContent>

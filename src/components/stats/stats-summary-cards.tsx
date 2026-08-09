@@ -2,10 +2,13 @@
  * @project AncestorTree
  * @file src/components/stats/stats-summary-cards.tsx
  * @description Summary metric cards for stats dashboard
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Heart, Layers, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui';
 import type { DetailedStats } from '@lib';
@@ -15,13 +18,15 @@ interface StatsSummaryCardsProps {
 }
 
 export function StatsSummaryCards({ stats }: StatsSummaryCardsProps) {
+  const t = useTranslations('Stats');
+
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Users className="h-4 w-4" />
-            Tổng thành viên
+            {t('cards.totalPeople')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -32,7 +37,7 @@ export function StatsSummaryCards({ stats }: StatsSummaryCardsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Layers className="h-4 w-4" />
-            Số đời
+            {t('cards.generations')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -43,7 +48,7 @@ export function StatsSummaryCards({ stats }: StatsSummaryCardsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
             <Heart className="h-4 w-4" />
-            Số gia đình
+            {t('cards.families')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -53,13 +58,13 @@ export function StatsSummaryCards({ stats }: StatsSummaryCardsProps) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            TB con/gia đình
+            {t('cards.avgChildren')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-3xl font-bold">{stats.avgChildrenPerFamily}</p>
           <p className="text-xs text-muted-foreground">
-            Tuyệt tự: {stats.childlessRate}%
+            {t('cards.childlessRate', { rate: stats.childlessRate })}
           </p>
         </CardContent>
       </Card>

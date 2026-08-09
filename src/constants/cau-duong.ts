@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/constants/cau-duong.ts
- * @description Shared constants for Cầu đương
- * @version 1.1.0
- * @updated 2026-07-18
+ * @description Shared constants for Cầu đương (labels via next-intl)
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 import type { CauDuongCeremonyType, CauDuongStatus } from '@types';
@@ -15,20 +15,13 @@ export const CAU_DUONG_YEAR_OPTIONS = Array.from(
   (_, index) => currentYear - 1 + index
 );
 
-export const CAU_DUONG_STATUS_LABELS: Record<CauDuongStatus, string> = {
-  scheduled: 'Đã phân công',
-  completed: 'Đã hoàn thành',
-  delegated: 'Đã ủy quyền',
-  rescheduled: 'Đổi ngày',
-  cancelled: 'Đã hủy',
-};
-
-export const CAU_DUONG_CEREMONY_LABELS: Record<CauDuongCeremonyType, string> = {
-  tet: 'Tết Nguyên Đán (1/1 AL)',
-  ram_thang_gieng: 'Rằm tháng Giêng (15/1 AL)',
-  gio_to: 'Giỗ tổ Can Thăng (15/3 AL)',
-  ram_thang_bay: 'Rằm tháng Bảy (15/7 AL)',
-};
+export const CAU_DUONG_STATUS_ORDER: CauDuongStatus[] = [
+  'scheduled',
+  'completed',
+  'delegated',
+  'rescheduled',
+  'cancelled',
+];
 
 export const CAU_DUONG_CEREMONY_ORDER: CauDuongCeremonyType[] = [
   'tet',

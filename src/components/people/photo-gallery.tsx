@@ -2,18 +2,50 @@
  * @project AncestorTree
  * @file src/components/people/photo-gallery.tsx
  * @description Photo gallery component for person detail page
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { usePersonMedia, useUploadMedia, useDeleteMedia, useSetPrimaryMedia } from '@hooks';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Dialog, DialogContent, DialogHeader, DialogTitle, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@components/ui';
-import { ImagePlus, Trash2, Star, Loader2, ImageIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import {
+  ImageIcon,
+  ImagePlus,
+  Loader2,
+  Star,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@components/ui';
+import {
+  useDeleteMedia,
+  usePersonMedia,
+  useSetPrimaryMedia,
+  useUploadMedia,
+} from '@hooks';
 import type { Media } from '@types';
 
 interface PhotoGalleryProps {
@@ -22,6 +54,8 @@ interface PhotoGalleryProps {
 }
 
 export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<Media | null>(null);
 
@@ -30,22 +64,23 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
   const deleteMutation = useDeleteMedia();
   const setPrimaryMutation = useSetPrimaryMedia();
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       await uploadMutation.mutateAsync({ file, personId });
-      toast.success('Tải ảnh lên thành công');
+      toast.success(t('photos.uploadSuccess'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Lỗi khi tải ảnh lên');
+      toast.error(
+        err instanceof Error ? err.message : t('photos.uploadError')
+      );
     }
 
-    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+  }
 
-  const handleDelete = async (photo: Media) => {
+  async function handleDelete(photo: Media) {
     try {
       await deleteMutation.mutateAsync({
         id: photo.id,
@@ -53,29 +88,29 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
         personId: photo.person_id,
       });
       setSelectedPhoto(null);
-      toast.success('Đã xóa ảnh');
+      toast.success(t('photos.deleteSuccess'));
     } catch {
-      toast.error('Lỗi khi xóa ảnh');
+      toast.error(t('photos.deleteError'));
     }
-  };
+  }
 
-  const handleSetPrimary = async (photo: Media) => {
+  async function handleSetPrimary(photo: Media) {
     try {
       await setPrimaryMutation.mutateAsync({
         personId: photo.person_id,
         mediaId: photo.id,
       });
-      toast.success('Đã đặt làm ảnh chính');
+      toast.success(t('photos.setPrimarySuccess'));
     } catch {
-      toast.error('Lỗi khi đặt ảnh chính');
+      toast.error(t('photos.setPrimaryError'));
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Hình ảnh</CardTitle>
+          <CardTitle className="text-base">{t('photos.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -90,7 +125,7 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Hình ảnh</CardTitle>
+          <CardTitle className="text-base">{t('photos.title')}</CardTitle>
           {canEdit && (
             <>
               <input
@@ -107,44 +142,44 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
                 disabled={uploadMutation.isPending}
               >
                 {uploadMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <ImagePlus className="h-4 w-4 mr-2" />
+                  <ImagePlus className="mr-2 h-4 w-4" />
                 )}
-                Thêm ảnh
+                {t('photos.add')}
               </Button>
             </>
           )}
         </CardHeader>
         <CardContent>
           {!photos || photos.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <ImageIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p>Chưa có hình ảnh</p>
+            <div className="py-8 text-center text-muted-foreground">
+              <ImageIcon className="mx-auto mb-2 h-10 w-10 opacity-50" />
+              <p>{t('photos.empty')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer border"
+                  className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border"
                   onClick={() => setSelectedPhoto(photo)}
                 >
                   <Image
                     src={photo.url}
-                    alt={photo.caption || 'Ảnh'}
+                    alt={photo.caption || t('photos.alt')}
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                   />
                   {photo.is_primary && (
                     <Badge className="absolute top-1 left-1 bg-amber-500 text-xs">
-                      <Star className="h-3 w-3 mr-1" />
-                      Chính
+                      <Star className="mr-1 h-3 w-3" />
+                      {t('photos.primary')}
                     </Badge>
                   )}
                   {photo.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate">
+                    <div className="absolute right-0 bottom-0 left-0 truncate bg-black/50 p-1 text-xs text-white">
                       {photo.caption}
                     </div>
                   )}
@@ -155,24 +190,25 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
         </CardContent>
       </Card>
 
-      {/* Photo preview dialog */}
       <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{selectedPhoto?.caption || 'Xem ảnh'}</DialogTitle>
+            <DialogTitle>
+              {selectedPhoto?.caption || t('photos.view')}
+            </DialogTitle>
           </DialogHeader>
           {selectedPhoto && (
             <div className="space-y-4">
               <Image
                 src={selectedPhoto.url}
-                alt={selectedPhoto.caption || 'Ảnh'}
+                alt={selectedPhoto.caption || t('photos.alt')}
                 width={800}
                 height={600}
                 className="w-full rounded-lg"
                 sizes="(max-width: 768px) 100vw, 800px"
               />
               {canEdit && (
-                <div className="flex gap-2 justify-end">
+                <div className="flex justify-end gap-2">
                   {!selectedPhoto.is_primary && (
                     <Button
                       variant="outline"
@@ -180,31 +216,35 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
                       onClick={() => handleSetPrimary(selectedPhoto)}
                       disabled={setPrimaryMutation.isPending}
                     >
-                      <Star className="h-4 w-4 mr-2" />
-                      Đặt làm ảnh chính
+                      <Star className="mr-2 h-4 w-4" />
+                      {t('photos.setPrimary')}
                     </Button>
                   )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Xóa
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {tCommon('delete')}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Xóa ảnh này?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          {t('photos.deleteConfirm')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Hành động này không thể hoàn tác.
+                          {t('photos.deleteConfirmDesc')}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDelete(selectedPhoto)}
                           disabled={deleteMutation.isPending}
                         >
-                          {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+                          {deleteMutation.isPending
+                            ? tCommon('deleting')
+                            : tCommon('delete')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

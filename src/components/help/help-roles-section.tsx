@@ -2,18 +2,21 @@
  * @project AncestorTree
  * @file src/components/help/help-roles-section.tsx
  * @description Help section: user roles and permissions
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+import { getTranslations } from 'next-intl/server';
 import { Badge } from '@components/ui';
-import { HELP_ROLES } from '@constants';
+import { HELP_ROLE_KEYS } from '@constants';
 
-export function HelpRolesSection() {
+export async function HelpRolesSection() {
+  const t = await getTranslations('Help');
+
   return (
     <section>
       <h2 className="mb-6 text-center text-xl font-semibold text-foreground">
-        Phân quyền người dùng
+        {t('roles.title')}
       </h2>
       <div className="mx-auto max-w-3xl">
         <div className="overflow-x-auto">
@@ -21,21 +24,21 @@ export function HelpRolesSection() {
             <thead>
               <tr className="bg-emerald-50">
                 <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">
-                  Vai trò
+                  {t('roles.roleHeader')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">
-                  Quyền hạn
+                  {t('roles.permissionsHeader')}
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {HELP_ROLES.map((role) => (
-                <tr key={role.role}>
+              {HELP_ROLE_KEYS.map((key) => (
+                <tr key={key}>
                   <td className="px-4 py-3 text-sm font-medium text-foreground">
-                    <Badge variant="outline">{role.role}</Badge>
+                    <Badge variant="outline">{t(`roles.${key}.role`)}</Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {role.permissions}
+                    {t(`roles.${key}.permissions`)}
                   </td>
                 </tr>
               ))}

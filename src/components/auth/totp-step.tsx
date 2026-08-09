@@ -1,5 +1,14 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/totp-step.tsx
+ * @description MFA TOTP verification step after password login
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -20,7 +29,7 @@ import {
   useVerifyMfaCode,
 } from '@hooks';
 import { isAuthServiceError } from '@services';
-import { totpCodeSchema, type TotpCodeFormData } from '@schemas';
+import { createTotpCodeSchema, type TotpCodeFormData } from '@schemas';
 
 interface TotpStepProps {
   factorId: string;
@@ -29,13 +38,16 @@ interface TotpStepProps {
 }
 
 export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
   const challengeQuery = useMfaChallenge(factorId);
   const refreshChallenge = useRefreshMfaChallenge();
   const verifyMfa = useVerifyMfaCode();
   const challengeId = refreshChallenge.data ?? challengeQuery.data ?? null;
+  const schema = createTotpCodeSchema(tValidation);
 
   const form = useForm<TotpCodeFormData>({
-    resolver: zodResolver(totpCodeSchema),
+    resolver: zodResolver(schema),
     defaultValues: { code: '' },
   });
 
@@ -44,7 +56,7 @@ export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
       { factorId, code: data.code, challengeId },
       {
         onSuccess: () => {
-          toast.success('Xác thực 2 bước thành công!');
+          toast.success(t('totp.success'));
           onSuccess();
         },
         onError: (error: Error) => {
@@ -52,11 +64,7 @@ export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
             console.error('[MFA] challenge error:', refreshError.message);
           });
           const is422 = isAuthServiceError(error) && error.status === 422;
-          toast.error(
-            is422
-              ? 'Mã không đúng hoặc đã hết hạn. Kiểm tra đồng hồ thiết bị và thử lại.'
-              : error.message
-          );
+          toast.error(is422 ? t('totp.invalidCode') : error.message);
           form.setValue('code', '');
         },
       }
@@ -68,16 +76,14 @@ export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
           <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600" />
-          <p className="text-sm text-emerald-800">
-            Nhập mã 6 chữ số từ ứng dụng xác thực (Google Authenticator).
-          </p>
+          <p className="text-sm text-emerald-800">{t('totp.hint')}</p>
         </div>
         <FormField
           control={form.control}
           name="code"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mã xác thực</FormLabel>
+              <FormLabel>{t('totp.codeLabel')}</FormLabel>
               <FormControl>
                 <Input
                   type="text"
@@ -107,10 +113,10 @@ export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
           {verifyMfa.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang xác thực...
+              {t('totp.verifying')}
             </>
           ) : (
-            'Xác nhận'
+            t('totp.confirm')
           )}
         </Button>
         <Button
@@ -121,7 +127,7 @@ export function TotpStep({ factorId, onSuccess, onBack }: TotpStepProps) {
           disabled={verifyMfa.isPending}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại đăng nhập
+          {t('totp.backToLogin')}
         </Button>
       </form>
     </Form>

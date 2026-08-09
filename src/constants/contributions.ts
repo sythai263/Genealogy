@@ -1,27 +1,24 @@
 /**
  * @project AncestorTree
  * @file src/constants/contributions.ts
- * @description Shared constants for contribution (đề xuất chỉnh sửa) UI
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description Shared constants for contribution UI (labels via next-intl)
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import { CheckCircle2, Clock, XCircle, type LucideIcon } from 'lucide-react';
 import type { ChangeType, ContributionStatus } from '@types';
 
-export const CONTRIBUTION_STATUS_LABELS: Record<ContributionStatus, string> = {
-  pending: 'Chờ duyệt',
-  approved: 'Đã duyệt',
-  rejected: 'Từ chối',
-};
+export const CONTRIBUTION_STATUS_ORDER: ContributionStatus[] = [
+  'pending',
+  'approved',
+  'rejected',
+];
 
-export const CONTRIBUTION_STATUS_CONFIG: Record<
-  ContributionStatus,
-  { label: string; color: string }
-> = {
-  pending: { label: 'Chờ duyệt', color: 'text-amber-600' },
-  approved: { label: 'Đã duyệt', color: 'text-green-600' },
-  rejected: { label: 'Từ chối', color: 'text-destructive' },
+export const CONTRIBUTION_STATUS_COLORS: Record<ContributionStatus, string> = {
+  pending: 'text-amber-600',
+  approved: 'text-green-600',
+  rejected: 'text-destructive',
 };
 
 export const CONTRIBUTION_STATUS_ICONS: Record<ContributionStatus, LucideIcon> =
@@ -40,43 +37,31 @@ export const CONTRIBUTION_STATUS_VARIANTS: Record<
   rejected: 'destructive',
 };
 
-export const CONTRIBUTION_CHANGE_TYPE_LABELS: Record<ChangeType, string> = {
-  create: 'Thêm mới',
-  update: 'Cập nhật',
-  delete: 'Xóa',
-};
-
-export const CONTRIBUTION_CHANGE_TYPE_FORM_LABELS: Record<ChangeType, string> = {
-  create: 'Thêm thành viên mới',
-  update: 'Cập nhật thông tin',
-  delete: 'Xóa thành viên',
-};
-
 export const CONTRIBUTION_CHANGE_TYPE_ORDER: ChangeType[] = [
   'update',
   'create',
   'delete',
 ];
 
-export const CONTRIBUTION_FIELD_OPTIONS = [
-  { value: 'display_name', label: 'Họ tên' },
-  { value: 'phone', label: 'Số điện thoại' },
-  { value: 'email', label: 'Email' },
-  { value: 'address', label: 'Địa chỉ' },
-  { value: 'birth_year', label: 'Năm sinh' },
-  { value: 'death_year', label: 'Năm mất' },
-  { value: 'death_lunar', label: 'Ngày giỗ (ÂL)' },
-  { value: 'occupation', label: 'Nghề nghiệp' },
-  { value: 'biography', label: 'Tiểu sử' },
-  { value: 'notes', label: 'Ghi chú' },
+export const CONTRIBUTION_FIELD_KEYS = [
+  'display_name',
+  'phone',
+  'email',
+  'address',
+  'birth_year',
+  'death_year',
+  'death_lunar',
+  'occupation',
+  'biography',
+  'notes',
 ] as const;
 
-export type ContributionFieldKey =
-  (typeof CONTRIBUTION_FIELD_OPTIONS)[number]['value'];
+export type ContributionFieldKey = (typeof CONTRIBUTION_FIELD_KEYS)[number];
 
-export function getContributionFieldLabel(key: string): string {
-  const option = CONTRIBUTION_FIELD_OPTIONS.find((field) => field.value === key);
-  return option?.label ?? key;
+export function isContributionFieldKey(
+  value: string
+): value is ContributionFieldKey {
+  return CONTRIBUTION_FIELD_KEYS.some((key) => key === value);
 }
 
 export function isChangeType(value: string): value is ChangeType {

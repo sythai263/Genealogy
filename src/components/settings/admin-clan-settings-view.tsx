@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/settings/admin-clan-settings-view.tsx
  * @description Admin clan configuration CRUD view
- * @version 2.1.0
+ * @version 2.2.0
  * @updated 2026-08-09
  */
 
@@ -50,11 +50,15 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 export function AdminClanSettingsView() {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const router = useRouter();
   const { isEditor } = useAuth();
   const { data: clanSettings, isLoading } = useClanSettings();
@@ -68,14 +72,12 @@ export function AdminClanSettingsView() {
   const [description, setDescription] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  // Sprint 18: Council + Ancestral Hall
   const [councilMembers, setCouncilMembers] = useState<CouncilMember[]>([]);
   const [clanHistory, setClanHistory] = useState('');
   const [clanMission, setClanMission] = useState('');
   const [hallAddress, setHallAddress] = useState('');
   const [hallHistory, setHallHistory] = useState('');
   const [ceremonies, setCeremonies] = useState<CeremonyScheduleItem[]>([]);
-  // Login config
   const [loginMethods, setLoginMethods] = useState<LoginMethod[]>([
     'email_password',
     'email_otp',
@@ -115,15 +117,24 @@ export function AdminClanSettingsView() {
     return <AccessDenied />;
   }
 
+  const formatDateTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
   async function handleSave(e: FormEvent) {
     e.preventDefault();
     if (!clanSettings) return;
     if (!clanName.trim() || !clanFullName.trim()) {
-      toast.error('Tên dòng họ không được để trống');
+      toast.error(t('settings.nameRequired'));
       return;
     }
     if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-      toast.error('Email không hợp lệ');
+      toast.error(t('settings.emailInvalid'));
       return;
     }
     const input: UpdateClanSettingsInput = {
@@ -135,27 +146,26 @@ export function AdminClanSettingsView() {
       clan_description: description.trim() || undefined,
       contact_email: contactEmail.trim() || undefined,
       contact_phone: contactPhone.trim() || undefined,
-      council_members: councilMembers.filter(m => m.name.trim()),
+      council_members: councilMembers.filter((m) => m.name.trim()),
       clan_history: clanHistory.trim() || undefined,
       clan_mission: clanMission.trim() || undefined,
       ancestral_hall_address: hallAddress.trim() || undefined,
       ancestral_hall_history: hallHistory.trim() || undefined,
-      ceremony_schedule: ceremonies.filter(c => c.title.trim()),
+      ceremony_schedule: ceremonies.filter((c) => c.title.trim()),
     };
     try {
       await updateMutation.mutateAsync({ id: clanSettings.id, input });
-      toast.success('Đã lưu thông tin dòng họ');
+      toast.success(t('settings.toastSuccess'));
       router.refresh();
     } catch {
-      toast.error('Lỗi khi lưu cài đặt');
+      toast.error(t('settings.toastError'));
     }
-  };
+  }
 
   async function handleSaveLoginConfig() {
     if (!clanSettings) return;
-    // At least one method must be enabled
     if (loginMethods.length === 0) {
-      toast.error('Phải bật ít nhất một phương thức đăng nhập');
+      toast.error(t('settings.loginRequired'));
       return;
     }
     setIsSavingLogin(true);
@@ -170,13 +180,13 @@ export function AdminClanSettingsView() {
           },
         },
       });
-      toast.success('Đã lưu cấu hình đăng nhập');
+      toast.success(t('settings.toastLoginSuccess'));
     } catch {
-      toast.error('Lỗi khi lưu cấu hình đăng nhập');
+      toast.error(t('settings.toastLoginError'));
     } finally {
       setIsSavingLogin(false);
     }
-  };
+  }
 
   const previewInitial = deriveClanInitial(clanName || ENV_CLAN_NAME);
   const previewSubtitle = deriveClanSubtitle(
@@ -185,145 +195,140 @@ export function AdminClanSettingsView() {
   );
 
   return (
-    <div className='container mx-auto p-4 space-y-6 max-w-3xl'>
+    <div className="container mx-auto p-4 space-y-6 max-w-3xl">
       <div>
-        <h1 className='text-2xl font-bold flex items-center gap-2'>
-          <Settings className='h-6 w-6' />
-          Cài đặt
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Settings className="h-6 w-6" />
+          {t('settings.title')}
         </h1>
-        <p className='text-muted-foreground'>
-          Cấu hình thông tin dòng họ hiển thị trên toàn bộ ứng dụng
-        </p>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Globe className='h-4 w-4' />
-            Thông tin dòng họ
+          <CardTitle className="text-base flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            {t('settings.clanInfo.title')}
           </CardTitle>
-          <CardDescription>
-            Chỉnh sửa và lưu để cập nhật ngay — không cần build lại ứng dụng
-          </CardDescription>
+          <CardDescription>{t('settings.clanInfo.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className='space-y-4'>
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className='h-10 w-full' />
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
           ) : (
-            <form onSubmit={handleSave} className='space-y-5'>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <form onSubmit={handleSave} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Tên dòng họ (ngắn) *</Label>
+                  <Label>{t('settings.fields.shortName')}</Label>
                   <Input
                     value={clanName}
-                    onChange={e => setClanName(e.target.value)}
-                    placeholder='Họ Đặng'
-                    className='mt-1'
+                    onChange={(e) => setClanName(e.target.value)}
+                    placeholder={t('settings.placeholders.shortName')}
+                    className="mt-1"
                   />
-                  <p className='text-xs text-muted-foreground mt-1'>
-                    Hiển thị trên sidebar
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('settings.fields.shortNameHint')}
                   </p>
                 </div>
                 <div>
-                  <Label>Năm thành lập</Label>
+                  <Label>{t('settings.fields.foundingYear')}</Label>
                   <Input
-                    type='number'
+                    type="number"
                     value={foundingYear}
-                    onChange={e => setFoundingYear(e.target.value)}
-                    placeholder='1750'
+                    onChange={(e) => setFoundingYear(e.target.value)}
+                    placeholder="1750"
                     min={1000}
                     max={2100}
-                    className='mt-1'
+                    className="mt-1"
                   />
                 </div>
               </div>
 
               <div>
-                <Label>Tên dòng họ (đầy đủ) *</Label>
+                <Label>{t('settings.fields.fullName')}</Label>
                 <Input
                   value={clanFullName}
-                  onChange={e => setClanFullName(e.target.value)}
-                  placeholder='Họ Lê Sỹ, xã Thường Xuân, Thanh Hóa'
-                  className='mt-1'
+                  onChange={(e) => setClanFullName(e.target.value)}
+                  placeholder={t('settings.placeholders.fullName')}
+                  className="mt-1"
                 />
-                <p className='text-xs text-muted-foreground mt-1'>
-                  Hiển thị trên trang chủ, đăng nhập, gia phả sách
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('settings.fields.fullNameHint')}
                 </p>
               </div>
 
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Thủy tổ</Label>
+                  <Label>{t('settings.fields.patriarch')}</Label>
                   <Input
                     value={patriarch}
-                    onChange={e => setPatriarch(e.target.value)}
-                    placeholder='Cụ Lê Sỹ...'
-                    className='mt-1'
+                    onChange={(e) => setPatriarch(e.target.value)}
+                    placeholder={t('settings.placeholders.ancestor')}
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label>Quê gốc</Label>
+                  <Label>{t('settings.fields.origin')}</Label>
                   <Input
                     value={origin}
-                    onChange={e => setOrigin(e.target.value)}
-                    placeholder='xã Thường Xuân, tỉnh Thanh Hóa'
-                    className='mt-1'
+                    onChange={(e) => setOrigin(e.target.value)}
+                    placeholder={t('settings.placeholders.hometown')}
+                    className="mt-1"
                   />
                 </div>
               </div>
 
               <div>
-                <Label>Lịch sử / Mô tả</Label>
+                <Label>{t('settings.fields.history')}</Label>
                 <Textarea
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  placeholder='Giới thiệu lịch sử dòng họ...'
-                  className='mt-1'
+                  placeholder={t('settings.placeholders.intro')}
+                  className="mt-1"
                 />
               </div>
 
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Email liên hệ</Label>
+                  <Label>{t('settings.fields.contactEmail')}</Label>
                   <Input
-                    type='email'
+                    type="email"
                     value={contactEmail}
-                    onChange={e => setContactEmail(e.target.value)}
-                    placeholder='hoidong@example.com'
-                    className='mt-1'
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="hoidong@example.com"
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label>Điện thoại liên hệ</Label>
+                  <Label>{t('settings.fields.contactPhone')}</Label>
                   <Input
                     value={contactPhone}
-                    onChange={e => setContactPhone(e.target.value)}
-                    placeholder='0912 345 678'
-                    className='mt-1'
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="0912 345 678"
+                    className="mt-1"
                   />
                 </div>
               </div>
 
-              {/* Live preview */}
-              <div className='rounded-lg border bg-muted/30 p-4 space-y-2'>
-                <p className='text-xs font-medium text-muted-foreground uppercase tracking-wide'>
-                  Xem trước — Sidebar
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {t('settings.preview.sidebar')}
                 </p>
-                <div className='flex items-center gap-3'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg shrink-0'>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg shrink-0">
                     {previewInitial}
                   </div>
                   <div>
-                    <p className='font-semibold text-sm'>
+                    <p className="font-semibold text-sm">
                       {clanName || ENV_CLAN_NAME}
                     </p>
                     {previewSubtitle && (
-                      <p className='text-xs text-muted-foreground'>
+                      <p className="text-xs text-muted-foreground">
                         {previewSubtitle}
                       </p>
                     )}
@@ -332,17 +337,18 @@ export function AdminClanSettingsView() {
               </div>
 
               <Button
-                type='submit'
-                disabled={updateMutation.isPending || !clanSettings}>
+                type="submit"
+                disabled={updateMutation.isPending || !clanSettings}
+              >
                 {updateMutation.isPending ? (
                   <>
-                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                    Đang lưu...
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {tCommon('saving')}
                   </>
                 ) : (
                   <>
-                    <Save className='h-4 w-4 mr-2' />
-                    Lưu thay đổi
+                    <Save className="h-4 w-4 mr-2" />
+                    {t('settings.saveChanges')}
                   </>
                 )}
               </Button>
@@ -351,43 +357,40 @@ export function AdminClanSettingsView() {
         </CardContent>
       </Card>
 
-      {/* Council members */}
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Users className='h-4 w-4' />
-            Hội đồng gia tộc
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            {t('settings.council.title')}
           </CardTitle>
-          <CardDescription>
-            Thành viên ban quản trị hiển thị trên trang công khai /council
-          </CardDescription>
+          <CardDescription>{t('settings.council.description')}</CardDescription>
         </CardHeader>
-        <CardContent className='space-y-3'>
+        <CardContent className="space-y-3">
           {councilMembers.map((m, i) => (
-            <div key={i} className='flex gap-2 items-start'>
-              <div className='flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2'>
+            <div key={i} className="flex gap-2 items-start">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
-                  placeholder='Họ tên'
+                  placeholder={t('settings.placeholders.councilName')}
                   value={m.name}
-                  onChange={e => {
+                  onChange={(e) => {
                     const updated = [...councilMembers];
                     updated[i] = { ...updated[i], name: e.target.value };
                     setCouncilMembers(updated);
                   }}
                 />
                 <Input
-                  placeholder='Chức vụ'
+                  placeholder={t('settings.placeholders.councilRole')}
                   value={m.title}
-                  onChange={e => {
+                  onChange={(e) => {
                     const updated = [...councilMembers];
                     updated[i] = { ...updated[i], title: e.target.value };
                     setCouncilMembers(updated);
                   }}
                 />
                 <Input
-                  placeholder='Điện thoại (tùy chọn)'
+                  placeholder={t('settings.placeholders.councilPhone')}
                   value={m.phone ?? ''}
-                  onChange={e => {
+                  onChange={(e) => {
                     const updated = [...councilMembers];
                     updated[i] = {
                       ...updated[i],
@@ -398,122 +401,121 @@ export function AdminClanSettingsView() {
                 />
               </div>
               <Button
-                type='button'
-                variant='ghost'
-                size='sm'
-                className='h-9 w-9 p-0 text-muted-foreground hover:text-destructive shrink-0'
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() =>
                   setCouncilMembers(councilMembers.filter((_, j) => j !== i))
-                }>
-                <Trash2 className='h-4 w-4' />
+                }
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           ))}
           <Button
-            type='button'
-            variant='outline'
-            size='sm'
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={() =>
               setCouncilMembers([...councilMembers, { name: '', title: '' }])
-            }>
-            <Plus className='h-4 w-4 mr-1' />
-            Thêm thành viên
+            }
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            {t('settings.council.addMember')}
           </Button>
         </CardContent>
       </Card>
 
-      {/* History + Mission */}
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Globe className='h-4 w-4' />
-            Lịch sử & Sứ mệnh
+          <CardTitle className="text-base flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            {t('settings.historyMission.title')}
           </CardTitle>
           <CardDescription>
-            Hiển thị trên trang Hội đồng gia tộc (/council)
+            {t('settings.historyMission.description')}
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
+        <CardContent className="space-y-4">
           <div>
-            <Label>Lịch sử dòng họ</Label>
+            <Label>{t('settings.historyMission.history')}</Label>
             <Textarea
               value={clanHistory}
-              onChange={e => setClanHistory(e.target.value)}
+              onChange={(e) => setClanHistory(e.target.value)}
               rows={4}
-              placeholder='Nguồn gốc, lịch sử phát triển dòng họ...'
-              className='mt-1'
+              placeholder={t('settings.placeholders.origin')}
+              className="mt-1"
             />
           </div>
           <div>
-            <Label>Sứ mệnh & Tầm nhìn</Label>
+            <Label>{t('settings.historyMission.mission')}</Label>
             <Textarea
               value={clanMission}
-              onChange={e => setClanMission(e.target.value)}
+              onChange={(e) => setClanMission(e.target.value)}
               rows={3}
-              placeholder='Sứ mệnh gìn giữ và phát triển...'
-              className='mt-1'
+              placeholder={t('settings.placeholders.mission')}
+              className="mt-1"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Ancestral Hall */}
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Landmark className='h-4 w-4' />
-            Nhà thờ họ
+          <CardTitle className="text-base flex items-center gap-2">
+            <Landmark className="h-4 w-4" />
+            {t('settings.ancestralHall.title')}
           </CardTitle>
           <CardDescription>
-            Thông tin nhà thờ hiển thị trên /ancestral-hall
+            {t('settings.ancestralHall.description')}
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
+        <CardContent className="space-y-4">
           <div>
-            <Label>Địa chỉ nhà thờ</Label>
+            <Label>{t('settings.ancestralHall.address')}</Label>
             <Input
               value={hallAddress}
-              onChange={e => setHallAddress(e.target.value)}
-              placeholder='xã Thường Xuân, tỉnh Thanh Hóa'
-              className='mt-1'
+              onChange={(e) => setHallAddress(e.target.value)}
+              placeholder={t('settings.placeholders.hallLocation')}
+              className="mt-1"
             />
           </div>
           <div>
-            <Label>Lịch sử nhà thờ</Label>
+            <Label>{t('settings.ancestralHall.history')}</Label>
             <Textarea
               value={hallHistory}
-              onChange={e => setHallHistory(e.target.value)}
+              onChange={(e) => setHallHistory(e.target.value)}
               rows={3}
-              placeholder='Lịch sử xây dựng, trùng tu nhà thờ...'
-              className='mt-1'
+              placeholder={t('settings.placeholders.hallHistory')}
+              className="mt-1"
             />
           </div>
 
-          {/* Ceremony schedule */}
-          <div className='border-t pt-4 space-y-3'>
-            <Label className='flex items-center gap-2'>
-              <Calendar className='h-4 w-4' />
-              Lịch tế lễ hàng năm
+          <div className="border-t pt-4 space-y-3">
+            <Label className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              {t('settings.ancestralHall.ceremonies')}
             </Label>
-            <p className='text-xs text-muted-foreground'>
-              Hiển thị trên trang Nhà thờ họ (/ancestral-hall)
+            <p className="text-xs text-muted-foreground">
+              {t('settings.ancestralHall.ceremoniesHint')}
             </p>
             {ceremonies.map((c, i) => (
-              <div key={i} className='flex gap-2 items-start'>
-                <div className='flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2'>
+              <div key={i} className="flex gap-2 items-start">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2">
                   <Input
-                    placeholder='Tên lễ'
+                    placeholder={t('settings.placeholders.ceremonyName')}
                     value={c.title}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...ceremonies];
                       updated[i] = { ...updated[i], title: e.target.value };
                       setCeremonies(updated);
                     }}
                   />
                   <Input
-                    placeholder='Ngày AL (VD: 15/7)'
+                    placeholder={t('settings.placeholders.lunarDate')}
                     value={c.lunar_date ?? ''}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...ceremonies];
                       updated[i] = {
                         ...updated[i],
@@ -523,9 +525,9 @@ export function AdminClanSettingsView() {
                     }}
                   />
                   <Input
-                    placeholder='Ngày DL (VD: 20/08)'
+                    placeholder={t('settings.placeholders.solarDate')}
                     value={c.solar_date ?? ''}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...ceremonies];
                       updated[i] = {
                         ...updated[i],
@@ -535,9 +537,9 @@ export function AdminClanSettingsView() {
                     }}
                   />
                   <Input
-                    placeholder='Ghi chú'
+                    placeholder={t('settings.placeholders.note')}
                     value={c.description ?? ''}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...ceremonies];
                       updated[i] = {
                         ...updated[i],
@@ -548,119 +550,118 @@ export function AdminClanSettingsView() {
                   />
                 </div>
                 <Button
-                  type='button'
-                  variant='ghost'
-                  size='sm'
-                  className='h-9 w-9 p-0 text-muted-foreground hover:text-destructive shrink-0'
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 text-muted-foreground hover:text-destructive shrink-0"
                   onClick={() =>
                     setCeremonies(ceremonies.filter((_, j) => j !== i))
-                  }>
-                  <Trash2 className='h-4 w-4' />
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}
             <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => setCeremonies([...ceremonies, { title: '' }])}>
-              <Plus className='h-4 w-4 mr-1' />
-              Thêm ngày lễ
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCeremonies([...ceremonies, { title: '' }])}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              {t('settings.ancestralHall.addCeremony')}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Login config */}
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Lock className='h-4 w-4' />
-            Cấu hình đăng nhập
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            {t('settings.login.title')}
           </CardTitle>
-          <CardDescription>
-            Chọn phương thức đăng nhập cho thành viên. Phải bật ít nhất một
-            phương thức.
-          </CardDescription>
+          <CardDescription>{t('settings.login.description')}</CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
-          <div className='space-y-3'>
-            {/* Email + Password */}
-            <label className='flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors'>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
               <input
-                type='checkbox'
+                type="checkbox"
                 checked={loginMethods.includes('email_password')}
-                onChange={e => {
+                onChange={(e) => {
                   if (e.target.checked) {
-                    setLoginMethods(prev => [...prev, 'email_password']);
+                    setLoginMethods((prev) => [...prev, 'email_password']);
                   } else {
-                    setLoginMethods(prev =>
-                      prev.filter(m => m !== 'email_password')
+                    setLoginMethods((prev) =>
+                      prev.filter((m) => m !== 'email_password')
                     );
                   }
                 }}
-                className='mt-0.5'
+                className="mt-0.5"
               />
-              <div className='flex-1'>
-                <p className='font-medium text-sm'>Email &amp; Mật khẩu</p>
-                <p className='text-xs text-muted-foreground mt-0.5'>
-                  Đăng nhập truyền thống bằng email và mật khẩu. Hỗ trợ xác thực
-                  2 bước (TOTP).
+              <div className="flex-1">
+                <p className="font-medium text-sm">
+                  {t('settings.login.emailPassword.title')}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('settings.login.emailPassword.description')}
                 </p>
               </div>
             </label>
 
-            {/* OTP Email */}
-            <label className='flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors'>
+            <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
               <input
-                type='checkbox'
+                type="checkbox"
                 checked={loginMethods.includes('email_otp')}
-                onChange={e => {
+                onChange={(e) => {
                   if (e.target.checked) {
-                    setLoginMethods(prev => [...prev, 'email_otp']);
+                    setLoginMethods((prev) => [...prev, 'email_otp']);
                   } else {
-                    setLoginMethods(prev =>
-                      prev.filter(m => m !== 'email_otp')
+                    setLoginMethods((prev) =>
+                      prev.filter((m) => m !== 'email_otp')
                     );
                   }
                 }}
-                className='mt-0.5'
+                className="mt-0.5"
               />
-              <div className='flex-1'>
-                <p className='font-medium text-sm'>Mã OTP qua Email</p>
-                <p className='text-xs text-muted-foreground mt-0.5'>
-                  Không cần mật khẩu — hệ thống gửi mã 6 chữ số đến email. Phù
-                  hợp cho thành viên cao tuổi, không rành công nghệ.
+              <div className="flex-1">
+                <p className="font-medium text-sm">
+                  {t('settings.login.emailOtp.title')}
                 </p>
-                <p className='text-xs text-emerald-600 mt-1'>
-                  Miễn phí • Supabase Magic Link
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('settings.login.emailOtp.description')}
+                </p>
+                <p className="text-xs text-emerald-600 mt-1">
+                  {t('settings.login.emailOtp.badge')}
                 </p>
               </div>
             </label>
           </div>
 
           {loginMethods.length === 0 && (
-            <p className='text-xs text-destructive'>
-              Vui lòng bật ít nhất một phương thức đăng nhập.
+            <p className="text-xs text-destructive">
+              {t('settings.loginRequiredInline')}
             </p>
           )}
 
           <Button
-            type='button'
-            size='sm'
+            type="button"
+            size="sm"
             onClick={handleSaveLoginConfig}
             disabled={
               isSavingLogin || loginMethods.length === 0 || !clanSettings
-            }>
+            }
+          >
             {isSavingLogin ? (
               <>
-                <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                Đang lưu...
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {tCommon('saving')}
               </>
             ) : (
               <>
-                <Save className='h-4 w-4 mr-2' />
-                Lưu cấu hình đăng nhập
+                <Save className="h-4 w-4 mr-2" />
+                {t('settings.saveLoginConfig')}
               </>
             )}
           </Button>
@@ -669,39 +670,32 @@ export function AdminClanSettingsView() {
 
       <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Database className='h-4 w-4' />
-            Thông tin hệ thống
+          <CardTitle className="text-base flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            {t('settings.system.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='space-y-3'>
-            <div className='flex justify-between items-center py-2 border-b'>
-              <span className='text-sm text-muted-foreground'>Phiên bản</span>
-              <Badge variant='outline'>{APP_VERSION_DISPLAY}</Badge>
-            </div>
-            <div className='flex justify-between items-center py-2 border-b'>
-              <span className='text-sm text-muted-foreground'>
-                Cơ sở dữ liệu
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b">
+              <span className="text-sm text-muted-foreground">
+                {t('settings.system.version')}
               </span>
-              <Badge variant='outline'>PostgreSQL (Supabase)</Badge>
+              <Badge variant="outline">{APP_VERSION_DISPLAY}</Badge>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b">
+              <span className="text-sm text-muted-foreground">
+                {t('settings.system.database')}
+              </span>
+              <Badge variant="outline">{t('settings.system.databaseValue')}</Badge>
             </div>
             {clanSettings?.updated_at && (
-              <div className='flex justify-between items-center py-2'>
-                <span className='text-sm text-muted-foreground'>
-                  Cài đặt cập nhật lần cuối
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-muted-foreground">
+                  {t('settings.system.lastUpdated')}
                 </span>
-                <span className='text-xs text-muted-foreground'>
-                  {new Date(clanSettings.updated_at).toLocaleDateString(
-                    'vi-VN',
-                    {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }
-                  )}
+                <span className="text-xs text-muted-foreground">
+                  {formatDateTime(clanSettings.updated_at)}
                 </span>
               </div>
             )}

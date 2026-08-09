@@ -2,57 +2,74 @@
  * @project AncestorTree
  * @file src/components/fund/export-fund-report.ts
  * @description CSV export helper for education fund report
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
-import {
-  FUND_REPORT_CLAN_NAME,
-  FUND_SCHOLARSHIP_STATUS_LABELS,
-  FUND_SCHOLARSHIP_TYPE_LABELS,
-} from '@constants';
-import { formatVND } from '@lib';
 import type {
   FundBalance,
   FundTransaction,
   Person,
   Scholarship,
+  ScholarshipStatus,
+  ScholarshipType,
 } from '@types';
 
+export interface ExportFundReportLabels {
+  header: string;
+  exportDate: string;
+  overview: string;
+  totalIncome: string;
+  totalExpense: string;
+  balanceLine: string;
+  scholarshipsHeading: string;
+  scholarshipColumns: string;
+  transactionsHeading: string;
+  transactionColumns: string;
+  income: string;
+  expense: string;
+  unknown: string;
+  typeLabels: Record<ScholarshipType, string>;
+  statusLabels: Record<ScholarshipStatus, string>;
+  dateLocale: string;
+}
+
 export function exportFundReport(
-  balance: FundBalance | undefined,
+  _balance: FundBalance | undefined,
   transactions: FundTransaction[],
   scholarships: Scholarship[],
-  peopleMap: Map<string, Person>
+  peopleMap: Map<string, Person>,
+  labels: ExportFundReportLabels
 ): void {
   const lines: string[] = [];
-  lines.push(`BÁO CÁO QUỸ KHUYẾN HỌC - ${FUND_REPORT_CLAN_NAME}`);
-  lines.push(`Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}`);
+  lines.push(labels.header);
+  lines.push(labels.exportDate);
   lines.push('');
-  lines.push('=== TỔNG QUAN ===');
-  lines.push(`Tổng thu: ${formatVND(balance?.income || 0)}`);
-  lines.push(`Tổng chi: ${formatVND(balance?.expense || 0)}`);
-  lines.push(`Số dư: ${formatVND(balance?.balance || 0)}`);
+  lines.push(labels.overview);
+  lines.push(labels.totalIncome);
+  lines.push(labels.totalExpense);
+  lines.push(labels.balanceLine);
   lines.push('');
-  lines.push('=== HỌC BỔNG & KHEN THƯỞNG ===');
-  lines.push('Họ tên,Loại,Số tiền,Năm học,Trường,Khối/Lớp,Trạng thái');
+  lines.push(labels.scholarshipsHeading);
+  lines.push(labels.scholarshipColumns);
   for (const scholarship of scholarships) {
     const name =
-      peopleMap.get(scholarship.person_id)?.display_name || 'Không rõ';
-    const type = FUND_SCHOLARSHIP_TYPE_LABELS[scholarship.type];
-    const status = FUND_SCHOLARSHIP_STATUS_LABELS[scholarship.status];
+      peopleMap.get(scholarship.person_id)?.display_name || labels.unknown;
+    const type = labels.typeLabels[scholarship.type];
+    const status = labels.statusLabels[scholarship.status];
     lines.push(
       `"${name}","${type}",${scholarship.amount},"${scholarship.academic_year}","${scholarship.school || ''}","${scholarship.grade_level || ''}","${status}"`
     );
   }
   lines.push('');
-  lines.push('=== LỊCH SỬ GIAO DỊCH ===');
-  lines.push('Ngày,Loại,Người/Mô tả,Số tiền,Năm học');
+  lines.push(labels.transactionsHeading);
+  lines.push(labels.transactionColumns);
   for (const transaction of transactions) {
     const date = new Date(transaction.transaction_date).toLocaleDateString(
-      'vi-VN'
+      labels.dateLocale
     );
-    const type = transaction.type === 'income' ? 'Thu' : 'Chi';
+    const type =
+      transaction.type === 'income' ? labels.income : labels.expense;
     const description =
       transaction.donor_name || transaction.description || '';
     lines.push(

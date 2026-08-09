@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/charter/charter-view.tsx
  * @description Public Hương ước view with category tabs
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ScrollText } from 'lucide-react';
 import { PageHeader, PageSkeleton } from '@components/shared';
 import {
@@ -23,7 +24,6 @@ import {
   TabsTrigger,
 } from '@components/ui';
 import {
-  CHARTER_CATEGORY_LABELS,
   CHARTER_CATEGORY_ORDER,
   CHARTER_TAB_ICONS,
   isClanArticleCategory,
@@ -33,6 +33,7 @@ import type { ClanArticleCategory } from '@types';
 import { ArticleList } from './article-list';
 
 export function CharterView() {
+  const t = useTranslations('Charter');
   const [activeTab, setActiveTab] = useState<ClanArticleCategory>('gia_huan');
   const { data, isLoading } = useClanArticles({ category: activeTab });
   const articles = data?.items;
@@ -51,8 +52,8 @@ export function CharterView() {
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
       <PageHeader
         icon={ScrollText}
-        title="Hương ước Dòng họ"
-        description="Gia huấn, quy ước và lời dặn dò từ tổ tiên"
+        title={t('title')}
+        description={t('subtitle')}
       />
 
       <Separator />
@@ -64,7 +65,7 @@ export function CharterView() {
             return (
               <TabsTrigger key={category} value={category} className="flex-1">
                 <Icon className="mr-1 h-4 w-4" />
-                {CHARTER_CATEGORY_LABELS[category]}
+                {t(`categories.${category}`)}
               </TabsTrigger>
             );
           })}
@@ -78,7 +79,7 @@ export function CharterView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Icon className="h-4 w-4" />
-                    {CHARTER_CATEGORY_LABELS[category]}
+                    {t(`categories.${category}`)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

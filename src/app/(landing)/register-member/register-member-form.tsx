@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/app/(landing)/register-member/register-member-form.tsx
  * @description Client component — public registration form with honeypot
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -27,10 +27,13 @@ import {
 import { useClanSettings, useSubmitRegistration } from '@hooks';
 import { CLAN_NAME } from '@lib';
 import { CheckCircle, Loader2, UserPlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
 
 export function RegisterMemberForm() {
+  const t = useTranslations('Landing');
+  const tCommon = useTranslations('Common');
   const { data: cs } = useClanSettings();
   const clanName = cs?.clan_name ?? CLAN_NAME;
   const submitMutation = useSubmitRegistration();
@@ -47,10 +50,9 @@ export function RegisterMemberForm() {
   const [chi, setChi] = useState('');
   const [relationship, setRelationship] = useState('');
   const [notes, setNotes] = useState('');
-  // Honeypot — hidden from real users, bots fill it
   const [honeypot, setHoneypot] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!fullName.trim() || !gender) return;
 
@@ -73,28 +75,25 @@ export function RegisterMemberForm() {
     } catch {
       // Error handled by mutation state
     }
-  };
+  }
 
   if (submitted) {
     return (
-      <div className='max-w-lg mx-auto px-4 py-16 text-center space-y-6'>
-        <CheckCircle className='h-16 w-16 text-green-500 mx-auto' />
-        <h1 className='text-2xl font-bold text-gray-900'>
-          Ghi danh thành công!
+      <div className="mx-auto max-w-lg space-y-6 px-4 py-16 text-center">
+        <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
+        <h1 className="text-2xl font-bold text-gray-900">
+          {t('pages.registerMember.successTitle')}
         </h1>
-        <p className='text-gray-600'>
-          Thông tin của bạn đã được gửi đến ban quản trị {clanName}. Sau khi
-          được xét duyệt, bạn sẽ được thêm vào gia phả.
+        <p className="text-gray-600">
+          {t('pages.registerMember.successBody', { clanName })}
         </p>
-        <div className='flex gap-3 justify-center'>
-          <Link href='/' className='text-sm text-primary hover:underline'>
-            Về trang chủ
+        <div className="flex justify-center gap-3">
+          <Link href="/" className="text-sm text-primary hover:underline">
+            {t('pages.registerMember.backHome')}
           </Link>
-          <span className='text-gray-300'>|</span>
-          <Link
-            href='/council'
-            className='text-sm text-primary hover:underline'>
-            Xem hội đồng gia tộc
+          <span className="text-gray-300">|</span>
+          <Link href="/council" className="text-sm text-primary hover:underline">
+            {t('pages.registerMember.viewCouncil')}
           </Link>
         </div>
       </div>
@@ -102,190 +101,195 @@ export function RegisterMemberForm() {
   }
 
   return (
-    <div className='max-w-2xl mx-auto px-4 py-12 space-y-8'>
-      <div className='text-center space-y-3'>
-        <h1 className='text-3xl font-bold text-gray-900 flex items-center justify-center gap-2'>
-          <UserPlus className='h-7 w-7' />
-          Đăng ký thành viên
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-12">
+      <div className="space-y-3 text-center">
+        <h1 className="flex items-center justify-center gap-2 text-3xl font-bold text-gray-900">
+          <UserPlus className="h-7 w-7" />
+          {t('pages.registerMember.title')}
         </h1>
-        <p className='text-gray-600'>
-          Dành cho con cháu {clanName} sống xa muốn ghi danh vào gia phả
+        <p className="text-gray-600">
+          {t('pages.registerMember.forDescendants', { clanName })}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className='text-base'>Thông tin ghi danh</CardTitle>
+          <CardTitle className="text-base">
+            {t('pages.registerMember.formTitle')}
+          </CardTitle>
           <CardDescription>
-            Điền thông tin bên dưới. Ban quản trị sẽ xét duyệt và liên hệ lại.
-            Trường có dấu (*) là bắt buộc.
+            {t('pages.registerMember.formDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className='space-y-5'>
-            {/* Honeypot — hidden from real users */}
-            <div className='absolute left-[-9999px]' aria-hidden='true'>
-              <label htmlFor='website'>Website</label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="absolute left-[-9999px]" aria-hidden="true">
+              <label htmlFor="website">Website</label>
               <input
-                id='website'
-                name='website'
-                type='text'
+                id="website"
+                name="website"
+                type="text"
                 tabIndex={-1}
-                autoComplete='off'
+                autoComplete="off"
                 value={honeypot}
-                onChange={e => setHoneypot(e.target.value)}
+                onChange={(e) => setHoneypot(e.target.value)}
               />
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label>Họ và tên *</Label>
+                <Label>{t('pages.registerMember.fullName')}</Label>
                 <Input
                   value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder='Nguyễn Văn A'
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder={t('pages.registerMember.fullNamePlaceholder')}
                   required
-                  className='mt-1'
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Giới tính *</Label>
+                <Label>{t('pages.registerMember.gender')}</Label>
                 <Select value={gender} onValueChange={setGender} required>
-                  <SelectTrigger className='mt-1'>
-                    <SelectValue placeholder='Chọn giới tính' />
+                  <SelectTrigger className="mt-1">
+                    <SelectValue
+                      placeholder={t('pages.registerMember.selectGender')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='1'>Nam</SelectItem>
-                    <SelectItem value='2'>Nữ</SelectItem>
+                    <SelectItem value="1">{tCommon('male')}</SelectItem>
+                    <SelectItem value="2">{tCommon('female')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label>Năm sinh</Label>
+                <Label>{t('pages.registerMember.birthYear')}</Label>
                 <Input
-                  type='number'
+                  type="number"
                   value={birthYear}
-                  onChange={e => setBirthYear(e.target.value)}
-                  placeholder='1990'
+                  onChange={(e) => setBirthYear(e.target.value)}
+                  placeholder="1990"
                   min={1900}
                   max={2030}
-                  className='mt-1'
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Nơi sinh / Quê quán</Label>
+                <Label>{t('pages.registerMember.birthPlace')}</Label>
                 <Input
                   value={birthPlace}
-                  onChange={e => setBirthPlace(e.target.value)}
-                  placeholder='Hà Nội'
-                  className='mt-1'
+                  onChange={(e) => setBirthPlace(e.target.value)}
+                  placeholder={t('pages.registerMember.birthPlacePlaceholder')}
+                  className="mt-1"
                 />
               </div>
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label>Điện thoại</Label>
+                <Label>{t('pages.registerMember.phone')}</Label>
                 <Input
                   value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  placeholder='0912 345 678'
-                  className='mt-1'
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0912 345 678"
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>{t('pages.registerMember.email')}</Label>
                 <Input
-                  type='email'
+                  type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder='email@example.com'
-                  className='mt-1'
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  className="mt-1"
                 />
               </div>
             </div>
 
             <div>
-              <Label>Tên cha/mẹ (để đối chiếu)</Label>
+              <Label>{t('pages.registerMember.parentName')}</Label>
               <Input
                 value={parentName}
-                onChange={e => setParentName(e.target.value)}
-                placeholder='Họ tên cha/mẹ để đối chiếu'
-                className='mt-1'
+                onChange={(e) => setParentName(e.target.value)}
+                placeholder={t('pages.registerMember.parentPlaceholder')}
+                className="mt-1"
               />
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <Label>Đời (tự khai)</Label>
+                <Label>{t('pages.registerMember.generation')}</Label>
                 <Input
-                  type='number'
+                  type="number"
                   value={generation}
-                  onChange={e => setGeneration(e.target.value)}
-                  placeholder='5'
+                  onChange={(e) => setGeneration(e.target.value)}
+                  placeholder="5"
                   min={1}
                   max={30}
-                  className='mt-1'
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Chi (tự khai)</Label>
+                <Label>{t('pages.registerMember.chi')}</Label>
                 <Input
-                  type='number'
+                  type="number"
                   value={chi}
-                  onChange={e => setChi(e.target.value)}
-                  placeholder='1'
+                  onChange={(e) => setChi(e.target.value)}
+                  placeholder="1"
                   min={1}
                   max={20}
-                  className='mt-1'
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Quan hệ</Label>
+                <Label>{t('pages.registerMember.relationship')}</Label>
                 <Input
                   value={relationship}
-                  onChange={e => setRelationship(e.target.value)}
-                  placeholder='Cháu ông X'
-                  className='mt-1'
+                  onChange={(e) => setRelationship(e.target.value)}
+                  placeholder={t(
+                    'pages.registerMember.relationshipPlaceholder'
+                  )}
+                  className="mt-1"
                 />
               </div>
             </div>
 
             <div>
-              <Label>Ghi chú</Label>
+              <Label>{t('pages.registerMember.notes')}</Label>
               <Textarea
                 value={notes}
-                onChange={e => setNotes(e.target.value)}
+                onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                placeholder='Thông tin bổ sung...'
-                className='mt-1'
+                placeholder={t('pages.registerMember.notesPlaceholder')}
+                className="mt-1"
               />
             </div>
 
             {submitMutation.isError && (
-              <p className='text-sm text-red-500'>
-                Lỗi khi gửi đơn. Vui lòng thử lại.
+              <p className="text-sm text-red-500">
+                {t('pages.registerMember.submitError')}
               </p>
             )}
 
             <Button
-              type='submit'
-              className='w-full'
+              type="submit"
+              className="w-full"
               disabled={
                 submitMutation.isPending || !fullName.trim() || !gender
-              }>
+              }
+            >
               {submitMutation.isPending ? (
                 <>
-                  <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang gửi...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('pages.registerMember.submitting')}
                 </>
               ) : (
                 <>
-                  <UserPlus className='h-4 w-4 mr-2' />
-                  Gửi đơn ghi danh
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {t('pages.registerMember.submit')}
                 </>
               )}
             </Button>
@@ -293,13 +297,13 @@ export function RegisterMemberForm() {
         </CardContent>
       </Card>
 
-      <div className='flex flex-wrap gap-3 justify-center'>
-        <Link href='/' className='text-sm text-primary hover:underline'>
-          Trang chủ
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link href="/" className="text-sm text-primary hover:underline">
+          {t('pageNav.home')}
         </Link>
-        <span className='text-gray-300'>|</span>
-        <Link href='/council' className='text-sm text-primary hover:underline'>
-          Hội đồng gia tộc
+        <span className="text-gray-300">|</span>
+        <Link href="/council" className="text-sm text-primary hover:underline">
+          {t('pageNav.council')}
         </Link>
       </div>
     </div>

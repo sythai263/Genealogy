@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/directory/directory-filters.tsx
  * @description Search and filter controls for the family directory
- * @version 1.1.0
- * @updated 2026-07-19
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 import {
   Card,
@@ -22,8 +23,8 @@ import {
   SelectValue,
 } from '@components/ui';
 import {
-  DIRECTORY_GENDER_FILTER_OPTIONS,
-  DIRECTORY_STATUS_FILTER_OPTIONS,
+  DIRECTORY_GENDER_FILTER_VALUES,
+  DIRECTORY_STATUS_FILTER_VALUES,
   isDirectoryGenderFilter,
   isDirectoryStatusFilter,
 } from '@constants';
@@ -41,6 +42,23 @@ interface DirectoryFiltersProps {
   onStatusFilterChange: (value: DirectoryStatusFilter) => void;
 }
 
+function genderFilterLabel(
+  value: DirectoryGenderFilter,
+  t: ReturnType<typeof useTranslations<'Directory'>>
+): string {
+  if (value === 'all') return t('filters.all');
+  if (value === '1') return t('filters.male');
+  return t('filters.female');
+}
+
+function statusFilterLabel(
+  value: DirectoryStatusFilter,
+  t: ReturnType<typeof useTranslations<'Directory'>>
+): string {
+  if (value === 'all') return t('filters.all');
+  return t(`filters.${value}`);
+}
+
 export function DirectoryFilters({
   search,
   onSearchChange,
@@ -52,10 +70,12 @@ export function DirectoryFilters({
   statusFilter,
   onStatusFilterChange,
 }: DirectoryFiltersProps) {
+  const t = useTranslations('Directory');
+
   return (
     <Card className="mb-6">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Bộ lọc</CardTitle>
+        <CardTitle className="text-base">{t('filterTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -63,7 +83,7 @@ export function DirectoryFilters({
             <div className="relative">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Tìm theo tên..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
                 className="pl-9"
@@ -75,13 +95,13 @@ export function DirectoryFilters({
             onValueChange={onGenerationFilterChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Đời" />
+              <SelectValue placeholder={t('fields.generation')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả đời</SelectItem>
+              <SelectItem value="all">{t('allGenerations')}</SelectItem>
               {generations.map((generation) => (
                 <SelectItem key={generation} value={String(generation)}>
-                  Đời {generation}
+                  {t('generationValue', { generation })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -93,12 +113,12 @@ export function DirectoryFilters({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Giới tính" />
+              <SelectValue placeholder={t('filters.gender')} />
             </SelectTrigger>
             <SelectContent>
-              {DIRECTORY_GENDER_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {DIRECTORY_GENDER_FILTER_VALUES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {genderFilterLabel(value, t)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -110,12 +130,12 @@ export function DirectoryFilters({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder={t('filters.status')} />
             </SelectTrigger>
             <SelectContent>
-              {DIRECTORY_STATUS_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {DIRECTORY_STATUS_FILTER_VALUES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {statusFilterLabel(value, t)}
                 </SelectItem>
               ))}
             </SelectContent>

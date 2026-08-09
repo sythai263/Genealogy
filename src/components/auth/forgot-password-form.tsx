@@ -1,7 +1,16 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/forgot-password-form.tsx
+ * @description Forgot password request form
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -24,16 +33,19 @@ import {
 import { useForgotPassword } from '@hooks';
 import { CLAN_INITIAL } from '@lib';
 import {
-  forgotPasswordSchema,
+  createForgotPasswordSchema,
   type ForgotPasswordFormData,
 } from '@schemas';
 
 export function ForgotPasswordForm() {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
   const [sentEmail, setSentEmail] = useState<string | null>(null);
   const forgotPassword = useForgotPassword();
+  const schema = createForgotPasswordSchema(tValidation);
 
   const form = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: { email: '' },
   });
 
@@ -41,10 +53,10 @@ export function ForgotPasswordForm() {
     forgotPassword.mutate(data.email, {
       onSuccess: () => {
         setSentEmail(data.email);
-        toast.success('Email đặt lại mật khẩu đã được gửi!');
+        toast.success(t('forgotPassword.success'));
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Gửi email thất bại');
+        toast.error(error.message || t('forgotPassword.failed'));
       },
     });
   }
@@ -56,10 +68,8 @@ export function ForgotPasswordForm() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-xl font-bold text-white">
             {CLAN_INITIAL}
           </div>
-          <CardTitle>Quên mật khẩu</CardTitle>
-          <CardDescription>
-            Nhập email để nhận link đặt lại mật khẩu
-          </CardDescription>
+          <CardTitle>{t('forgotPassword.title')}</CardTitle>
+          <CardDescription>{t('forgotPassword.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           {sentEmail ? (
@@ -68,14 +78,14 @@ export function ForgotPasswordForm() {
                 <Mail className="h-6 w-6 text-emerald-600" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Email đặt lại mật khẩu đã được gửi đến{' '}
-                <strong>{sentEmail}</strong>. Vui lòng kiểm tra hộp thư (bao gồm
-                thư rác).
+                {t.rich('forgotPassword.sentTo', {
+                  email: () => <strong>{sentEmail}</strong>,
+                })}
               </p>
               <Button variant="outline" asChild className="w-full">
                 <Link href="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Quay lại đăng nhập
+                  {t('forgotPassword.backToLogin')}
                 </Link>
               </Button>
             </div>
@@ -91,7 +101,7 @@ export function ForgotPasswordForm() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('forgotPassword.email')}</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -109,8 +119,8 @@ export function ForgotPasswordForm() {
                     disabled={forgotPassword.isPending}
                   >
                     {forgotPassword.isPending
-                      ? 'Đang gửi...'
-                      : 'Gửi link đặt lại mật khẩu'}
+                      ? t('forgotPassword.submitting')
+                      : t('forgotPassword.submit')}
                   </Button>
                 </form>
               </Form>
@@ -121,7 +131,7 @@ export function ForgotPasswordForm() {
                   className="inline-flex items-center text-emerald-600 hover:underline"
                 >
                   <ArrowLeft className="mr-1 h-3 w-3" />
-                  Quay lại đăng nhập
+                  {t('forgotPassword.backToLogin')}
                 </Link>
               </div>
             </>

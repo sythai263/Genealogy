@@ -1,36 +1,43 @@
 /**
  * @project AncestorTree
  * @file src/schemas/profile.ts
- * @description Zod schemas for profile and password change forms
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description Zod schemas for profile and password forms (i18n via Validation factory)
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import { z } from 'zod';
+import type { useTranslations } from 'next-intl';
 
-export const profileFormSchema = z.object({
-  full_name: z
-    .string()
-    .trim()
-    .min(1, 'Tên hiển thị là bắt buộc')
-    .max(100, 'Tên hiển thị quá dài'),
-});
+type ValidationT = ReturnType<typeof useTranslations<'Validation'>>;
 
-export type ProfileFormData = z.infer<typeof profileFormSchema>;
-
-export const changePasswordSchema = z
-  .object({
-    newPassword: z
+export function createProfileFormSchema(t: ValidationT) {
+  return z.object({
+    full_name: z
       .string()
-      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
-    confirmPassword: z.string().min(1, 'Xác nhận mật khẩu là bắt buộc'),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Mật khẩu không khớp',
-    path: ['confirmPassword'],
+      .trim()
+      .min(1, t('profile.displayNameRequired'))
+      .max(100, t('profile.displayNameTooLong')),
   });
+}
 
-export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export type ProfileFormData = z.infer<ReturnType<typeof createProfileFormSchema>>;
+
+export function createChangePasswordSchema(t: ValidationT) {
+  return z
+    .object({
+      newPassword: z.string().min(8, t('profile.passwordMin8')),
+      confirmPassword: z.string().min(1, t('profile.confirmPasswordRequired')),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: t('profile.passwordMismatch'),
+      path: ['confirmPassword'],
+    });
+}
+
+export type ChangePasswordFormData = z.infer<
+  ReturnType<typeof createChangePasswordSchema>
+>;
 
 export const defaultChangePasswordValues: ChangePasswordFormData = {
   newPassword: '',

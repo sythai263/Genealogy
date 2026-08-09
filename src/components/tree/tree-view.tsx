@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/tree/tree-view.tsx
  * @description Family tree page — interactive or elderly list + GEDCOM export
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Download, GitBranchPlus, List, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
@@ -20,6 +21,7 @@ import { ElderlyTreeView } from './elderly-tree-view';
 import { InteractiveTreeSection } from './interactive-tree-section';
 
 export function TreeView() {
+  const t = useTranslations('Tree');
   const { data: treeData } = useTreeData();
   const { elderlyMode } = useElderly();
   const { isAdmin, isEditor } = useAuth();
@@ -28,16 +30,16 @@ export function TreeView() {
 
   function handleExport() {
     if (!treeData) {
-      toast.error('Chưa có dữ liệu để xuất');
+      toast.error(t('toasts.exportEmpty'));
       return;
     }
     setIsExporting(true);
     try {
       const content = generateGedcom(treeData);
       downloadGedcom(content);
-      toast.success('Xuất file GEDCOM thành công');
+      toast.success(t('toasts.exportSuccess'));
     } catch {
-      toast.error('Lỗi khi xuất file');
+      toast.error(t('toasts.exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -53,14 +55,10 @@ export function TreeView() {
             ) : (
               <GitBranchPlus className="h-6 w-6" />
             )}
-            {elderlyMode
-              ? 'Danh sách thành viên theo đời'
-              : 'Cây Gia Phả'}
+            {elderlyMode ? t('listTitle') : t('title')}
           </h1>
           <p className="text-muted-foreground">
-            {elderlyMode
-              ? 'Xem danh sách thành viên phân theo từng đời — nhấn vào tên để xem chi tiết'
-              : 'Sơ đồ phả hệ trực quan - Click vào từng thành viên để xem chi tiết'}
+            {elderlyMode ? t('listSubtitle') : t('interactiveSubtitle')}
           </p>
         </div>
         {canExport && !elderlyMode && (
@@ -75,7 +73,7 @@ export function TreeView() {
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            Xuất GEDCOM
+            {t('actions.exportGedcom')}
           </Button>
         )}
       </div>

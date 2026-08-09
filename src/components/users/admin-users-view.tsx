@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/users/admin-users-view.tsx
  * @description Admin user management — role + tree mapping + bulk actions (FR-507~509)
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
@@ -10,6 +10,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -65,8 +66,8 @@ import {
 } from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
-  ROUTE_ERROR_TITLES,
-  USER_ROLE_META,
+  USER_ROLE_COLORS,
+  USER_ROLE_ORDER,
   type ListPageSize,
 } from '@constants';
 import {
@@ -83,7 +84,35 @@ import type { Profile, UserRole } from '@types';
 import { PersonName } from './person-name';
 import { TreeMappingDialog } from './tree-mapping-dialog';
 
+function roleLabel(
+  role: UserRole,
+  t: ReturnType<typeof useTranslations<'Admin'>>
+): string {
+  const labels: Record<UserRole, string> = {
+    admin: t('users.roles.admin.label'),
+    editor: t('users.roles.editor.label'),
+    viewer: t('users.roles.viewer.label'),
+  };
+  return labels[role];
+}
+
+function roleDescription(
+  role: UserRole,
+  t: ReturnType<typeof useTranslations<'Admin'>>
+): string {
+  const descriptions: Record<UserRole, string> = {
+    admin: t('users.roles.admin.description'),
+    editor: t('users.roles.editor.description'),
+    viewer: t('users.roles.viewer.description'),
+  };
+  return descriptions[role];
+}
+
 export function AdminUsersView() {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
+  const tLayout = useTranslations('Layout');
+  const locale = useLocale();
   const { profile: currentProfile } = useAuth();
   const [showUnverifiedOnly, setShowUnverifiedOnly] = useState(false);
   const [pageSize, setPageSize] = useState<ListPageSize>(
@@ -115,7 +144,6 @@ export function AdminUsersView() {
     user: Profile;
   } | null>(null);
 
-  // Bulk selection state
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [bulkSuspendDialog, setBulkSuspendDialog] = useState(false);
   const [bulkSuspendReason, setBulkSuspendReason] = useState('');
@@ -143,6 +171,8 @@ export function AdminUsersView() {
 
   const [mappingUser, setMappingUser] = useState<Profile | null>(null);
 
+  const dateLocale = locale === 'vi' ? 'vi-VN' : 'en-US';
+
   const handleRoleChange = (
     userId: string,
     newRole: UserRole,
@@ -160,9 +190,11 @@ export function AdminUsersView() {
         userId: confirmDialog.userId,
         role: confirmDialog.newRole,
       });
-      toast.success(`Đã cập nhật quyền cho ${confirmDialog.userName}`);
+      toast.success(
+        t('users.toasts.roleSuccess', { name: confirmDialog.userName })
+      );
     } catch (err) {
-      toast.error('Lỗi khi cập nhật quyền');
+      toast.error(t('users.toasts.roleError'));
       console.error(err);
     } finally {
       setConfirmDialog(null);
@@ -171,16 +203,16 @@ export function AdminUsersView() {
 
   const confirmSuspend = async () => {
     if (!suspendDialog) return;
+    const name =
+      suspendDialog.user.full_name || suspendDialog.user.email;
     try {
       await suspendMutation.mutateAsync({
         userId: suspendDialog.user.user_id,
         reason: suspendReason.trim() || undefined,
       });
-      toast.success(
-        `Đã khoá tài khoản ${suspendDialog.user.full_name || suspendDialog.user.email}`
-      );
+      toast.success(t('users.toasts.suspendSuccess', { name }));
     } catch (err) {
-      toast.error('Lỗi khi khoá tài khoản');
+      toast.error(t('users.toasts.suspendError'));
       console.error(err);
     } finally {
       setSuspendDialog(null);
@@ -189,24 +221,24 @@ export function AdminUsersView() {
   };
 
   const confirmUnsuspend = async (user: Profile) => {
+    const name = user.full_name || user.email;
     try {
       await unsuspendMutation.mutateAsync(user.user_id);
-      toast.success(`Đã mở khoá tài khoản ${user.full_name || user.email}`);
+      toast.success(t('users.toasts.unsuspendSuccess', { name }));
     } catch (err) {
-      toast.error('Lỗi khi mở khoá tài khoản');
+      toast.error(t('users.toasts.unsuspendError'));
       console.error(err);
     }
   };
 
   const confirmDelete = async () => {
     if (!deleteDialog) return;
+    const name = deleteDialog.user.full_name || deleteDialog.user.email;
     try {
       await deleteMutation.mutateAsync(deleteDialog.user.user_id);
-      toast.success(
-        `Đã xoá tài khoản ${deleteDialog.user.full_name || deleteDialog.user.email}`
-      );
+      toast.success(t('users.toasts.deleteSuccess', { name }));
     } catch (err) {
-      toast.error('Lỗi khi xoá tài khoản');
+      toast.error(t('users.toasts.deleteError'));
       console.error(err);
     } finally {
       setDeleteDialog(null);
@@ -214,7 +246,7 @@ export function AdminUsersView() {
   };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('vi-VN', {
+    new Date(dateStr).toLocaleDateString(dateLocale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -222,7 +254,6 @@ export function AdminUsersView() {
 
   const isSelf = (user: Profile) => user.user_id === currentProfile?.user_id;
 
-  // Selectable users = displayed profiles minus self
   const selectableUsers = useMemo(
     () => displayedProfiles.filter(u => u.user_id !== currentProfile?.user_id),
     [displayedProfiles, currentProfile?.user_id]
@@ -250,7 +281,6 @@ export function AdminUsersView() {
     });
   }, []);
 
-  // Get selected profile objects for display (current page only)
   const selectedProfiles = useMemo(
     () => displayedProfiles.filter(p => selectedUsers.has(p.user_id)),
     [displayedProfiles, selectedUsers]
@@ -262,7 +292,6 @@ export function AdminUsersView() {
     p => !p.is_suspended
   ).length;
 
-  // Bulk action handlers
   const handleBulkVerify = async () => {
     setBulkProcessing(true);
     const targets = selectedProfiles.filter(p => !p.is_verified);
@@ -273,8 +302,12 @@ export function AdminUsersView() {
     );
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
-    if (succeeded > 0) toast.success(`Đã duyệt ${succeeded} tài khoản`);
-    if (failed > 0) toast.error(`Lỗi khi duyệt ${failed} tài khoản`);
+    if (succeeded > 0) {
+      toast.success(t('users.toasts.bulkVerifySuccess', { count: succeeded }));
+    }
+    if (failed > 0) {
+      toast.error(t('users.toasts.bulkVerifyError', { count: failed }));
+    }
     setSelectedUsers(new Set());
     setBulkProcessing(false);
   };
@@ -292,8 +325,12 @@ export function AdminUsersView() {
     );
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
-    if (succeeded > 0) toast.success(`Đã khoá ${succeeded} tài khoản`);
-    if (failed > 0) toast.error(`Lỗi khi khoá ${failed} tài khoản`);
+    if (succeeded > 0) {
+      toast.success(t('users.toasts.bulkSuspendSuccess', { count: succeeded }));
+    }
+    if (failed > 0) {
+      toast.error(t('users.toasts.bulkSuspendError', { count: failed }));
+    }
     setSelectedUsers(new Set());
     setBulkSuspendDialog(false);
     setBulkSuspendReason('');
@@ -307,8 +344,12 @@ export function AdminUsersView() {
     );
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
-    if (succeeded > 0) toast.success(`Đã xoá ${succeeded} tài khoản`);
-    if (failed > 0) toast.error(`Lỗi khi xoá ${failed} tài khoản`);
+    if (succeeded > 0) {
+      toast.success(t('users.toasts.bulkDeleteSuccess', { count: succeeded }));
+    }
+    if (failed > 0) {
+      toast.error(t('users.toasts.bulkDeleteError', { count: failed }));
+    }
     setSelectedUsers(new Set());
     setBulkDeleteDialog(false);
     setBulkProcessing(false);
@@ -316,49 +357,42 @@ export function AdminUsersView() {
 
   return (
     <div className='container mx-auto p-4 space-y-6'>
-      {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
         <div className='flex items-center gap-4'>
           <Button asChild variant='ghost' size='sm'>
             <Link href='/admin'>
               <ArrowLeft className='h-4 w-4 mr-2' />
-              Quản trị
+              {tLayout('groups.admin')}
             </Link>
           </Button>
           <div>
             <h1 className='text-2xl font-bold flex items-center gap-2'>
               <UserCog className='h-6 w-6' />
-              Quản lý người dùng
+              {t('users.title')}
             </h1>
-            <p className='text-muted-foreground'>
-              Phân quyền, gắn tài khoản vào cây gia phả
-            </p>
+            <p className='text-muted-foreground'>{t('users.subtitle')}</p>
           </div>
         </div>
       </div>
 
-      {/* Role Legend */}
       <Card>
         <CardHeader className='pb-3'>
           <CardTitle className='text-base flex items-center gap-2'>
             <Shield className='h-4 w-4' />
-            Cấp độ phân quyền
+            {t('users.roleLegend.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-            {(
-              Object.entries(USER_ROLE_META) as [
-                UserRole,
-                (typeof USER_ROLE_META)[UserRole],
-              ][]
-            ).map(([role, info]) => (
+            {USER_ROLE_ORDER.map(role => (
               <div
                 key={role}
                 className='flex items-start gap-3 p-3 rounded-lg border'>
-                <Badge className={info.color}>{info.label}</Badge>
+                <Badge className={USER_ROLE_COLORS[role]}>
+                  {roleLabel(role, t)}
+                </Badge>
                 <span className='text-sm text-muted-foreground'>
-                  {info.description}
+                  {roleDescription(role, t)}
                 </span>
               </div>
             ))}
@@ -366,18 +400,19 @@ export function AdminUsersView() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
       <Card>
         <CardHeader>
           <CardTitle className='text-base flex items-center gap-2'>
             <Users className='h-4 w-4' />
-            Danh sách người dùng
+            {t('users.listTitle')}
           </CardTitle>
           <CardDescription>
-            {isLoading ? 'Đang tải...' : `${total} người dùng đã đăng ký`}
+            {isLoading
+              ? t('users.loading')
+              : t('users.totalRegistered', { count: total })}
             {unverifiedCount > 0 && !isLoading && (
               <span className='ml-2 text-amber-600'>
-                ({unverifiedCount} chờ xác nhận)
+                {t('users.pendingInline', { count: unverifiedCount })}
               </span>
             )}
           </CardDescription>
@@ -389,8 +424,8 @@ export function AdminUsersView() {
               onClick={() => setShowUnverifiedOnly(!showUnverifiedOnly)}>
               <Clock className='h-3.5 w-3.5 mr-1.5' />
               {showUnverifiedOnly
-                ? 'Hiện tất cả'
-                : `Chờ xác nhận (${unverifiedCount})`}
+                ? t('users.showAll')
+                : t('users.pendingVerify', { count: unverifiedCount })}
             </Button>
           )}
         </CardHeader>
@@ -399,7 +434,7 @@ export function AdminUsersView() {
             <QueryBoundary
               isLoading={isLoading}
               error={error}
-              errorTitle={ROUTE_ERROR_TITLES.adminUsers}
+              errorTitle={tCommon('routeErrors.adminUsers')}
               onRetry={() => window.location.reload()}
               skeletonRows={3}
               surface='plain'>
@@ -420,261 +455,262 @@ export function AdminUsersView() {
                               : false
                         }
                         onCheckedChange={toggleSelectAll}
-                        aria-label='Chọn tất cả'
+                        aria-label={t('users.selectAll')}
                       />
                     </TableHead>
-                    <TableHead>Người dùng</TableHead>
+                    <TableHead>{t('users.columns.user')}</TableHead>
                     <TableHead className='hidden sm:table-cell'>
-                      Email
+                      {t('users.columns.email')}
                     </TableHead>
-                    <TableHead>Vai trò</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>{t('users.columns.role')}</TableHead>
+                    <TableHead>{t('users.columns.status')}</TableHead>
                     <TableHead className='hidden lg:table-cell'>
-                      Cây gia phả
+                      {t('users.columns.tree')}
                     </TableHead>
                     <TableHead className='hidden md:table-cell'>
-                      Ngày tạo
+                      {t('users.columns.createdAt')}
                     </TableHead>
-                    <TableHead className='text-right'>Thao tác</TableHead>
+                    <TableHead className='text-right'>
+                      {t('users.columns.actions')}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayedProfiles.map(user => (
-                    <TableRow
-                      key={user.id}
-                      className={
-                        selectedUsers.has(user.user_id) ? 'bg-accent/50' : ''
-                      }>
-                      <TableCell>
-                        {isSelf(user) ? (
-                          <div className='w-4' />
-                        ) : (
-                          <Checkbox
-                            checked={selectedUsers.has(user.user_id)}
-                            onCheckedChange={() =>
-                              toggleSelectUser(user.user_id)
-                            }
-                            aria-label={`Chọn ${user.full_name || user.email}`}
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className='flex items-center gap-3'>
-                          <Avatar className='h-9 w-9'>
-                            <AvatarImage src={user.avatar_url} />
-                            <AvatarFallback>
-                              {(user.full_name || user.email)
-                                .charAt(0)
-                                .toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className='font-medium flex items-center gap-1.5'>
-                              {user.full_name || 'Chưa cập nhật'}
-                              {user.is_suspended && (
-                                <Badge
-                                  variant='destructive'
-                                  className='text-[10px] px-1 py-0 h-4'>
-                                  Đã khoá
-                                </Badge>
-                              )}
-                            </p>
-                            <p className='text-xs text-muted-foreground sm:hidden'>
-                              {user.email}
-                            </p>
-                            {user.is_suspended && user.suspension_reason && (
-                              <p className='text-xs text-destructive mt-0.5 truncate max-w-45'>
-                                {user.suspension_reason}
+                  {displayedProfiles.map(user => {
+                    const displayName = user.full_name || user.email;
+                    return (
+                      <TableRow
+                        key={user.id}
+                        className={
+                          selectedUsers.has(user.user_id) ? 'bg-accent/50' : ''
+                        }>
+                        <TableCell>
+                          {isSelf(user) ? (
+                            <div className='w-4' />
+                          ) : (
+                            <Checkbox
+                              checked={selectedUsers.has(user.user_id)}
+                              onCheckedChange={() =>
+                                toggleSelectUser(user.user_id)
+                              }
+                              aria-label={t('users.selectUser', {
+                                name: displayName,
+                              })}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className='flex items-center gap-3'>
+                            <Avatar className='h-9 w-9'>
+                              <AvatarImage src={user.avatar_url} />
+                              <AvatarFallback>
+                                {displayName.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className='font-medium flex items-center gap-1.5'>
+                                {user.full_name || t('users.notUpdated')}
+                                {user.is_suspended && (
+                                  <Badge
+                                    variant='destructive'
+                                    className='text-[10px] px-1 py-0 h-4'>
+                                    {t('users.status.suspended')}
+                                  </Badge>
+                                )}
                               </p>
+                              <p className='text-xs text-muted-foreground sm:hidden'>
+                                {user.email}
+                              </p>
+                              {user.is_suspended && user.suspension_reason && (
+                                <p className='text-xs text-destructive mt-0.5 truncate max-w-45'>
+                                  {user.suspension_reason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell'>
+                          {user.email}
+                        </TableCell>
+                        <TableCell>
+                          {isSelf(user) ? (
+                            <Badge className={USER_ROLE_COLORS[user.role]}>
+                              {roleLabel(user.role, t)}
+                            </Badge>
+                          ) : (
+                            <Select
+                              value={user.role}
+                              onValueChange={value =>
+                                handleRoleChange(
+                                  user.user_id,
+                                  value as UserRole,
+                                  user.role,
+                                  displayName
+                                )
+                              }>
+                              <SelectTrigger className='w-35 h-8'>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {USER_ROLE_ORDER.map(role => (
+                                  <SelectItem key={role} value={role}>
+                                    <span className='flex items-center gap-2'>
+                                      <span
+                                        className={`h-2 w-2 rounded-full ${
+                                          role === 'admin'
+                                            ? 'bg-red-500'
+                                            : role === 'editor'
+                                              ? 'bg-blue-500'
+                                              : 'bg-gray-500'
+                                        }`}
+                                      />
+                                      {roleLabel(role, t)}
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.is_verified ? (
+                            <Badge className='bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
+                              <CheckCircle className='h-3 w-3 mr-1' />
+                              {t('users.columns.verified')}
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant='outline'
+                              className='text-amber-600 border-amber-300'>
+                              <Clock className='h-3 w-3 mr-1' />
+                              {t('users.status.pending')}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className='hidden lg:table-cell'>
+                          <div className='space-y-0.5'>
+                            {user.linked_person ? (
+                              <div className='flex items-center gap-1 text-xs'>
+                                <Link2 className='h-3 w-3 text-green-600 shrink-0' />
+                                <PersonName personId={user.linked_person} />
+                              </div>
+                            ) : (
+                              <span className='text-xs text-muted-foreground'>
+                                {t('users.notLinked')}
+                              </span>
+                            )}
+                            {user.edit_root_person_id && (
+                              <div className='flex items-center gap-1 text-xs text-blue-600'>
+                                <GitBranch className='h-3 w-3 shrink-0' />
+                                <PersonName
+                                  personId={user.edit_root_person_id}
+                                />
+                              </div>
                             )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className='hidden sm:table-cell'>
-                        {user.email}
-                      </TableCell>
-                      <TableCell>
-                        {isSelf(user) ? (
-                          <Badge className={USER_ROLE_META[user.role].color}>
-                            {USER_ROLE_META[user.role].label}
-                          </Badge>
-                        ) : (
-                          <Select
-                            value={user.role}
-                            onValueChange={value =>
-                              handleRoleChange(
-                                user.user_id,
-                                value as UserRole,
-                                user.role,
-                                user.full_name || user.email
-                              )
-                            }>
-                            <SelectTrigger className='w-35 h-8'>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value='admin'>
-                                <span className='flex items-center gap-2'>
-                                  <span className='h-2 w-2 rounded-full bg-red-500' />
-                                  Quản trị viên
-                                </span>
-                              </SelectItem>
-                              <SelectItem value='editor'>
-                                <span className='flex items-center gap-2'>
-                                  <span className='h-2 w-2 rounded-full bg-blue-500' />
-                                  Biên tập viên
-                                </span>
-                              </SelectItem>
-                              <SelectItem value='viewer'>
-                                <span className='flex items-center gap-2'>
-                                  <span className='h-2 w-2 rounded-full bg-gray-500' />
-                                  Người xem
-                                </span>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {user.is_verified ? (
-                          <Badge className='bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'>
-                            <CheckCircle className='h-3 w-3 mr-1' />
-                            Đã xác nhận
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant='outline'
-                            className='text-amber-600 border-amber-300'>
-                            <Clock className='h-3 w-3 mr-1' />
-                            Chờ duyệt
-                          </Badge>
-                        )}
-                      </TableCell>
-                      {/* Tree mapping column */}
-                      <TableCell className='hidden lg:table-cell'>
-                        <div className='space-y-0.5'>
-                          {user.linked_person ? (
-                            <div className='flex items-center gap-1 text-xs'>
-                              <Link2 className='h-3 w-3 text-green-600 shrink-0' />
-                              <PersonName personId={user.linked_person} />
-                            </div>
-                          ) : (
-                            <span className='text-xs text-muted-foreground'>
-                              Chưa gắn
-                            </span>
-                          )}
-                          {user.edit_root_person_id && (
-                            <div className='flex items-center gap-1 text-xs text-blue-600'>
-                              <GitBranch className='h-3 w-3 shrink-0' />
-                              <PersonName personId={user.edit_root_person_id} />
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className='hidden md:table-cell'>
-                        {formatDate(user.created_at)}
-                      </TableCell>
-                      <TableCell className='text-right'>
-                        <div className='flex items-center justify-end gap-2'>
-                          {/* Verify button — only for unverified users */}
-                          {!isSelf(user) && !user.is_verified && (
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='h-8 px-2.5 text-green-600 border-green-200 hover:bg-green-50'
-                              onClick={async () => {
-                                try {
-                                  await verifyMutation.mutateAsync({
-                                    userId: user.user_id,
-                                    verified: true,
-                                  });
-                                  toast.success(
-                                    `Đã duyệt tài khoản ${user.full_name || user.email}`
-                                  );
-                                } catch {
-                                  toast.error('Lỗi khi duyệt tài khoản');
-                                }
-                              }}
-                              disabled={verifyMutation.isPending}
-                              title='Duyệt tài khoản'>
-                              {verifyMutation.isPending ? (
-                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                              ) : (
-                                <>
-                                  <ShieldCheck className='h-3.5 w-3.5 mr-1' />
-                                  Duyệt
-                                </>
-                              )}
-                            </Button>
-                          )}
-
-                          {/* Tree mapping button */}
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-8 w-8 p-0'
-                            onClick={() => setMappingUser(user)}
-                            title='Gắn vào cây gia phả'
-                            disabled={isSelf(user)}>
-                            <Link2 className='h-3.5 w-3.5' />
-                          </Button>
-
-                          {/* Suspend / unsuspend button */}
-                          {!isSelf(user) &&
-                            (user.is_suspended ? (
+                        </TableCell>
+                        <TableCell className='hidden md:table-cell'>
+                          {formatDate(user.created_at)}
+                        </TableCell>
+                        <TableCell className='text-right'>
+                          <div className='flex items-center justify-end gap-2'>
+                            {!isSelf(user) && !user.is_verified && (
                               <Button
                                 variant='outline'
                                 size='sm'
-                                className='h-8 w-8 p-0 text-green-600 border-green-200 hover:bg-green-50'
-                                onClick={() => confirmUnsuspend(user)}
-                                disabled={unsuspendMutation.isPending}
-                                title='Mở khoá tài khoản'>
-                                {unsuspendMutation.isPending ? (
+                                className='h-8 px-2.5 text-green-600 border-green-200 hover:bg-green-50'
+                                onClick={async () => {
+                                  try {
+                                    await verifyMutation.mutateAsync({
+                                      userId: user.user_id,
+                                      verified: true,
+                                    });
+                                    toast.success(
+                                      t('users.toasts.verifySuccess', {
+                                        name: displayName,
+                                      })
+                                    );
+                                  } catch {
+                                    toast.error(t('users.toasts.verifyError'));
+                                  }
+                                }}
+                                disabled={verifyMutation.isPending}
+                                title={t('users.actions.verifyAccount')}>
+                                {verifyMutation.isPending ? (
                                   <Loader2 className='h-3.5 w-3.5 animate-spin' />
                                 ) : (
-                                  <ShieldCheck className='h-3.5 w-3.5' />
+                                  <>
+                                    <ShieldCheck className='h-3.5 w-3.5 mr-1' />
+                                    {t('users.actions.verify')}
+                                  </>
                                 )}
                               </Button>
-                            ) : (
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                className='h-8 w-8 p-0 text-amber-600 border-amber-200 hover:bg-amber-50'
-                                onClick={() => {
-                                  setSuspendReason('');
-                                  setSuspendDialog({ open: true, user });
-                                }}
-                                title='Khoá tài khoản'>
-                                <Ban className='h-3.5 w-3.5' />
-                              </Button>
-                            ))}
+                            )}
 
-                          {/* Delete button */}
-                          {!isSelf(user) && (
                             <Button
                               variant='outline'
                               size='sm'
-                              className='h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10'
-                              onClick={() =>
-                                setDeleteDialog({ open: true, user })
-                              }
-                              title='Xoá tài khoản'>
-                              <Trash2 className='h-3.5 w-3.5' />
+                              className='h-8 w-8 p-0'
+                              onClick={() => setMappingUser(user)}
+                              title={t('users.actions.mapTree')}
+                              disabled={isSelf(user)}>
+                              <Link2 className='h-3.5 w-3.5' />
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+
+                            {!isSelf(user) &&
+                              (user.is_suspended ? (
+                                <Button
+                                  variant='outline'
+                                  size='sm'
+                                  className='h-8 w-8 p-0 text-green-600 border-green-200 hover:bg-green-50'
+                                  onClick={() => confirmUnsuspend(user)}
+                                  disabled={unsuspendMutation.isPending}
+                                  title={t('users.actions.unsuspendAccount')}>
+                                  {unsuspendMutation.isPending ? (
+                                    <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                                  ) : (
+                                    <ShieldCheck className='h-3.5 w-3.5' />
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant='outline'
+                                  size='sm'
+                                  className='h-8 w-8 p-0 text-amber-600 border-amber-200 hover:bg-amber-50'
+                                  onClick={() => {
+                                    setSuspendReason('');
+                                    setSuspendDialog({ open: true, user });
+                                  }}
+                                  title={t('users.actions.suspendAccount')}>
+                                  <Ban className='h-3.5 w-3.5' />
+                                </Button>
+                              ))}
+
+                            {!isSelf(user) && (
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10'
+                                onClick={() =>
+                                  setDeleteDialog({ open: true, user })
+                                }
+                                title={t('users.actions.deleteAccount')}>
+                                <Trash2 className='h-3.5 w-3.5' />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
 
-              {/* Bulk action bar */}
               {selectedUsers.size > 0 && (
                 <div className='sticky bottom-4 mt-4 mx-auto w-fit flex items-center gap-3 rounded-lg border bg-background px-4 py-3 shadow-lg'>
                   <div className='flex items-center gap-2 text-sm font-medium'>
                     <CheckSquare className='h-4 w-4 text-primary' />
-                    Đã chọn {selectedUsers.size} người dùng
+                    {t('users.bulk.selected', { count: selectedUsers.size })}
                   </div>
                   <div className='h-5 w-px bg-border' />
                   {selectedUnverifiedCount > 0 && (
@@ -689,7 +725,9 @@ export function AdminUsersView() {
                       ) : (
                         <ShieldCheck className='h-3.5 w-3.5 mr-1.5' />
                       )}
-                      Duyệt ({selectedUnverifiedCount})
+                      {t('users.bulk.verifyCount', {
+                        count: selectedUnverifiedCount,
+                      })}
                     </Button>
                   )}
                   {selectedActiveCount > 0 && (
@@ -703,7 +741,9 @@ export function AdminUsersView() {
                       }}
                       disabled={bulkProcessing}>
                       <Ban className='h-3.5 w-3.5 mr-1.5' />
-                      Khoá ({selectedActiveCount})
+                      {t('users.bulk.suspendCount', {
+                        count: selectedActiveCount,
+                      })}
                     </Button>
                   )}
                   <Button
@@ -713,7 +753,7 @@ export function AdminUsersView() {
                     onClick={() => setBulkDeleteDialog(true)}
                     disabled={bulkProcessing}>
                     <Trash2 className='h-3.5 w-3.5 mr-1.5' />
-                    Xoá ({selectedUsers.size})
+                    {t('users.bulk.deleteCount', { count: selectedUsers.size })}
                   </Button>
                   <div className='h-5 w-px bg-border' />
                   <Button
@@ -722,7 +762,7 @@ export function AdminUsersView() {
                     className='h-8'
                     onClick={() => setSelectedUsers(new Set())}>
                     <X className='h-3.5 w-3.5 mr-1' />
-                    Bỏ chọn
+                    {t('users.bulk.deselect')}
                   </Button>
                 </div>
               )}
@@ -734,7 +774,7 @@ export function AdminUsersView() {
                   total={total}
                   onPageChange={setPage}
                   onPageSizeChange={setPageSize}
-                  itemLabel='người dùng'
+                  itemLabel={t('users.countLabel')}
                   disabled={isLoading}
                 />
               </div>
@@ -742,53 +782,52 @@ export function AdminUsersView() {
           ) : (
             <EmptyState
               icon={Users}
-              title='Chưa có người dùng nào đăng ký'
+              title={t('users.empty')}
               surface='plain'
             />
           )}
         </CardContent>
       </Card>
 
-      {/* Confirm role change dialog */}
       <AlertDialog
         open={confirmDialog?.open}
         onOpenChange={open => !open && setConfirmDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận thay đổi quyền</AlertDialogTitle>
+            <AlertDialogTitle>{t('users.roleDialog.confirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc muốn thay đổi quyền của{' '}
-              <strong>{confirmDialog?.userName}</strong> từ{' '}
+              {t('users.roleDialog.confirmPrompt', {
+                name: confirmDialog?.userName ?? '',
+              })}{' '}
+              {t('users.roleDialog.from')}{' '}
               <Badge
                 className={
-                  USER_ROLE_META[confirmDialog?.currentRole || 'viewer'].color
+                  USER_ROLE_COLORS[confirmDialog?.currentRole ?? 'viewer']
                 }>
-                {USER_ROLE_META[confirmDialog?.currentRole || 'viewer'].label}
+                {roleLabel(confirmDialog?.currentRole ?? 'viewer', t)}
               </Badge>{' '}
-              sang{' '}
+              {t('users.roleDialog.to')}{' '}
               <Badge
-                className={
-                  USER_ROLE_META[confirmDialog?.newRole || 'viewer'].color
-                }>
-                {USER_ROLE_META[confirmDialog?.newRole || 'viewer'].label}
+                className={USER_ROLE_COLORS[confirmDialog?.newRole ?? 'viewer']}>
+                {roleLabel(confirmDialog?.newRole ?? 'viewer', t)}
               </Badge>
               ?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRoleChange}
               disabled={updateRole.isPending}>
               {updateRole.isPending ? (
                 <>
                   <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang xử lý...
+                  {tCommon('loading')}
                 </>
               ) : (
                 <>
                   <CheckCircle className='h-4 w-4 mr-2' />
-                  Xác nhận
+                  {tCommon('confirm')}
                 </>
               )}
             </AlertDialogAction>
@@ -796,7 +835,6 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Suspend dialog */}
       <AlertDialog
         open={suspendDialog?.open}
         onOpenChange={open => {
@@ -809,32 +847,32 @@ export function AdminUsersView() {
           <AlertDialogHeader>
             <AlertDialogTitle className='flex items-center gap-2'>
               <Ban className='h-5 w-5 text-amber-600' />
-              Khoá tài khoản
+              {t('users.suspendDialog.title')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Tài khoản{' '}
-              <strong>
-                {suspendDialog?.user.full_name || suspendDialog?.user.email}
-              </strong>{' '}
-              sẽ bị khoá. Người dùng sẽ bị đăng xuất và không thể đăng nhập cho
-              đến khi được mở khoá.
+              {t('users.suspendDialog.description', {
+                name:
+                  suspendDialog?.user.full_name ||
+                  suspendDialog?.user.email ||
+                  '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className='px-1 py-2'>
             <Label htmlFor='suspend-reason' className='text-sm font-medium'>
-              Lý do khoá (tùy chọn)
+              {t('users.suspendDialog.reasonOptional')}
             </Label>
             <Textarea
               id='suspend-reason'
               className='mt-1.5'
-              placeholder='Nhập lý do khoá tài khoản...'
+              placeholder={t('users.suspendDialog.reasonPlaceholder')}
               value={suspendReason}
               onChange={e => setSuspendReason(e.target.value)}
               rows={2}
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmSuspend}
               disabled={suspendMutation.isPending}
@@ -842,12 +880,12 @@ export function AdminUsersView() {
               {suspendMutation.isPending ? (
                 <>
                   <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang xử lý...
+                  {tCommon('loading')}
                 </>
               ) : (
                 <>
                   <Ban className='h-4 w-4 mr-2' />
-                  Khoá tài khoản
+                  {t('users.suspendDialog.confirm')}
                 </>
               )}
             </AlertDialogAction>
@@ -855,7 +893,6 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete dialog */}
       <AlertDialog
         open={deleteDialog?.open}
         onOpenChange={open => {
@@ -865,20 +902,19 @@ export function AdminUsersView() {
           <AlertDialogHeader>
             <AlertDialogTitle className='flex items-center gap-2 text-destructive'>
               <Trash2 className='h-5 w-5' />
-              Xoá tài khoản vĩnh viễn
+              {t('users.deleteDialog.titlePermanent')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Tài khoản{' '}
-              <strong>
-                {deleteDialog?.user.full_name || deleteDialog?.user.email}
-              </strong>{' '}
-              sẽ bị xoá hoàn toàn. Hành động này{' '}
-              <strong>không thể hoàn tác</strong> — mọi dữ liệu liên kết cũng sẽ
-              bị xoá.
+              {t('users.deleteDialog.descriptionNamed', {
+                name:
+                  deleteDialog?.user.full_name ||
+                  deleteDialog?.user.email ||
+                  '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
@@ -886,12 +922,12 @@ export function AdminUsersView() {
               {deleteMutation.isPending ? (
                 <>
                   <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang xoá...
+                  {tCommon('deleting')}
                 </>
               ) : (
                 <>
                   <Trash2 className='h-4 w-4 mr-2' />
-                  Xoá tài khoản
+                  {t('users.actions.deleteAccount')}
                 </>
               )}
             </AlertDialogAction>
@@ -899,7 +935,6 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk suspend dialog */}
       <AlertDialog
         open={bulkSuspendDialog}
         onOpenChange={open => {
@@ -912,10 +947,12 @@ export function AdminUsersView() {
           <AlertDialogHeader>
             <AlertDialogTitle className='flex items-center gap-2'>
               <Ban className='h-5 w-5 text-amber-600' />
-              Khoá hàng loạt — {selectedActiveCount} tài khoản
+              {t('users.bulkSuspendDialog.title', {
+                count: selectedActiveCount,
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Các tài khoản sau sẽ bị khoá và không thể đăng nhập:
+              {t('users.bulkSuspendDialog.description')}
               <span className='block mt-2 text-sm font-medium text-foreground max-h-24 overflow-y-auto'>
                 {selectedProfiles
                   .filter(p => !p.is_suspended)
@@ -928,19 +965,21 @@ export function AdminUsersView() {
             <Label
               htmlFor='bulk-suspend-reason'
               className='text-sm font-medium'>
-              Lý do khoá (tùy chọn)
+              {t('users.suspendDialog.reasonOptional')}
             </Label>
             <Textarea
               id='bulk-suspend-reason'
               className='mt-1.5'
-              placeholder='Nhập lý do khoá tài khoản...'
+              placeholder={t('users.suspendDialog.reasonPlaceholder')}
               value={bulkSuspendReason}
               onChange={e => setBulkSuspendReason(e.target.value)}
               rows={2}
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={bulkProcessing}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={bulkProcessing}>
+              {tCommon('cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBulkSuspend}
               disabled={bulkProcessing}
@@ -948,12 +987,14 @@ export function AdminUsersView() {
               {bulkProcessing ? (
                 <>
                   <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang xử lý...
+                  {tCommon('loading')}
                 </>
               ) : (
                 <>
                   <Ban className='h-4 w-4 mr-2' />
-                  Khoá {selectedActiveCount} tài khoản
+                  {t('users.bulkSuspendDialog.confirm', {
+                    count: selectedActiveCount,
+                  })}
                 </>
               )}
             </AlertDialogAction>
@@ -961,7 +1002,6 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk delete dialog */}
       <AlertDialog
         open={bulkDeleteDialog}
         onOpenChange={open => {
@@ -971,18 +1011,21 @@ export function AdminUsersView() {
           <AlertDialogHeader>
             <AlertDialogTitle className='flex items-center gap-2 text-destructive'>
               <Trash2 className='h-5 w-5' />
-              Xoá hàng loạt — {selectedUsers.size} tài khoản
+              {t('users.bulkDeleteDialog.title', {
+                count: selectedUsers.size,
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Các tài khoản sau sẽ bị <strong>xoá vĩnh viễn</strong>. Hành động
-              này không thể hoàn tác.
+              {t('users.bulkDeleteDialog.description')}
               <span className='block mt-2 text-sm font-medium text-foreground max-h-24 overflow-y-auto'>
                 {selectedProfiles.map(p => p.full_name || p.email).join(', ')}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={bulkProcessing}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={bulkProcessing}>
+              {tCommon('cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBulkDelete}
               disabled={bulkProcessing}
@@ -990,12 +1033,14 @@ export function AdminUsersView() {
               {bulkProcessing ? (
                 <>
                   <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Đang xoá...
+                  {tCommon('deleting')}
                 </>
               ) : (
                 <>
                   <Trash2 className='h-4 w-4 mr-2' />
-                  Xoá {selectedUsers.size} tài khoản
+                  {t('users.bulkDeleteDialog.confirm', {
+                    count: selectedUsers.size,
+                  })}
                 </>
               )}
             </AlertDialogAction>
@@ -1003,7 +1048,6 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Tree mapping dialog */}
       {mappingUser && (
         <TreeMappingDialog
           user={mappingUser}

@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/settings/profile-settings-view.tsx
  * @description Profile settings page layout — info + password cards
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import Link from 'next/link';
-import { ArrowLeft, KeyRound, User } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
+import { ArrowLeft, KeyRound, Languages, User } from 'lucide-react';
 import {
   Button,
   Card,
@@ -16,39 +17,52 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
+import { LocaleSwitcher } from '@components/layout';
 import { PasswordForm } from './password-form';
 import { ProfileForm } from './profile-form';
 
-export function ProfileSettingsView() {
+export async function ProfileSettingsView() {
+  const t = await getTranslations('Settings');
+  const tLayout = await getTranslations('Layout');
+
   return (
     <div className="container mx-auto max-w-2xl space-y-6 p-4">
       <div className="flex items-center gap-4">
         <Button asChild variant="ghost" size="sm">
           <Link href="/admin">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Trang chủ
+            {tLayout('nav.home')}
           </Link>
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <User className="h-6 w-6" />
-            Hồ sơ cá nhân
+            {t('profile.title')}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Thông tin tài khoản và cài đặt cá nhân
-          </p>
+          <p className="text-sm text-muted-foreground">{t('profile.subtitle')}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <User className="h-4 w-4" />
-            Thông tin cá nhân
+            <Languages className="h-4 w-4" />
+            {t('profile.language')}
           </CardTitle>
-          <CardDescription>
-            Cập nhật tên hiển thị của bạn trong hệ thống.
-          </CardDescription>
+          <CardDescription>{t('profile.languageDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LocaleSwitcher size="default" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="h-4 w-4" />
+            {t('profile.title')}
+          </CardTitle>
+          <CardDescription>{t('profile.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ProfileForm />
@@ -59,11 +73,9 @@ export function ProfileSettingsView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <KeyRound className="h-4 w-4" />
-            Đổi mật khẩu
+            {t('password.title')}
           </CardTitle>
-          <CardDescription>
-            Mật khẩu mới phải có ít nhất 8 ký tự.
-          </CardDescription>
+          <CardDescription>{t('password.title')}</CardDescription>
         </CardHeader>
         <CardContent>
           <PasswordForm />

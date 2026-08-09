@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/fund/fund-view.tsx
  * @description Education fund dashboard - Quỹ khuyến học
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { BookOpen, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageSkeleton } from '@components/shared';
@@ -27,7 +28,12 @@ import {
   useResettablePage,
   useScholarships,
 } from '@hooks';
-import { getAllFundTransactions, getAllScholarships, getPeopleByIds } from '@lib';
+import {
+  formatVND,
+  getAllFundTransactions,
+  getAllScholarships,
+  getPeopleByIds,
+} from '@lib';
 import type { Person } from '@types';
 import { exportFundReport } from './export-fund-report';
 import { FundDonationsTab } from './fund-donations-tab';
@@ -36,6 +42,8 @@ import { FundScholarshipsTab } from './fund-scholarships-tab';
 import { FundStats } from './fund-stats';
 
 export function FundView() {
+  const t = useTranslations('Fund');
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState('scholarships');
   const [isExporting, setIsExporting] = useState(false);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
@@ -47,7 +55,6 @@ export function FundView() {
 
   const { data: balance, isLoading: balanceLoading } = useFundBalance();
 
-  // Paginated per-tab queries — never load the full tables for display.
   const { data: scholarshipsPage, isLoading: schLoading } = useScholarships({
     type: 'hoc_bong',
     page: schPage,
@@ -58,15 +65,17 @@ export function FundView() {
     page: rewardPage,
     pageSize,
   });
-  const { data: donationsPage, isLoading: donationLoading } = useFundTransactions({
-    type: 'income',
-    page: donationPage,
-    pageSize,
-  });
-  const { data: historyPageData, isLoading: historyLoading } = useFundTransactions({
-    page: historyPage,
-    pageSize,
-  });
+  const { data: donationsPage, isLoading: donationLoading } =
+    useFundTransactions({
+      type: 'income',
+      page: donationPage,
+      pageSize,
+    });
+  const { data: historyPageData, isLoading: historyLoading } =
+    useFundTransactions({
+      page: historyPage,
+      pageSize,
+    });
 
   const hocBong = useMemo(
     () => scholarshipsPage?.items ?? [],
@@ -84,8 +93,8 @@ export function FundView() {
   const personIds = useMemo(() => {
     const ids = new Set<string>();
     for (const s of [...hocBong, ...khenThuong]) ids.add(s.person_id);
-    for (const t of [...donations, ...history]) {
-      if (t.donor_person_id) ids.add(t.donor_person_id);
+    for (const tx of [...donations, ...history]) {
+      if (tx.donor_person_id) ids.add(tx.donor_person_id);
     }
     return [...ids];
   }, [hocBong, khenThuong, donations, history]);
@@ -100,7 +109,11 @@ export function FundView() {
   }, [people]);
 
   const isLoading =
-    balanceLoading || schLoading || rewardLoading || donationLoading || historyLoading;
+    balanceLoading ||
+    schLoading ||
+    rewardLoading ||
+    donationLoading ||
+    historyLoading;
 
   async function handleExport() {
     setIsExporting(true);
@@ -113,15 +126,54 @@ export function FundView() {
         ...new Set([
           ...allScholarships.map((s) => s.person_id),
           ...allTransactions
-            .map((t) => t.donor_person_id)
+            .map((tx) => tx.donor_person_id)
             .filter((id): id is string => Boolean(id)),
         ]),
       ];
       const exportPeople = await getPeopleByIds(exportPersonIds);
       const exportPeopleMap = new Map(exportPeople.map((p) => [p.id, p]));
-      exportFundReport(balance, allTransactions, allScholarships, exportPeopleMap);
+      const clanName = t('report.clanName');
+      exportFundReport(
+        balance,
+        allTransactions,
+        allScholarships,
+        exportPeopleMap,
+        {
+          header: t('report.header', { clanName }),
+          exportDate: t('report.exportDate', {
+            date: new Date().toLocaleDateString(locale),
+          }),
+          overview: t('report.overview'),
+          totalIncome: t('report.totalIncome', {
+            amount: formatVND(balance?.income || 0),
+          }),
+          totalExpense: t('report.totalExpense', {
+            amount: formatVND(balance?.expense || 0),
+          }),
+          balanceLine: t('report.balanceLine', {
+            amount: formatVND(balance?.balance || 0),
+          }),
+          scholarshipsHeading: t('report.scholarshipsHeading'),
+          scholarshipColumns: t('report.scholarshipColumns'),
+          transactionsHeading: t('report.transactionsHeading'),
+          transactionColumns: t('report.transactionColumns'),
+          income: t('income'),
+          expense: t('expense'),
+          unknown: t('unknown'),
+          typeLabels: {
+            hoc_bong: t('scholarshipTypes.hoc_bong'),
+            khen_thuong: t('scholarshipTypes.khen_thuong'),
+          },
+          statusLabels: {
+            pending: t('scholarshipStatuses.pending'),
+            approved: t('scholarshipStatuses.approved'),
+            paid: t('scholarshipStatuses.paid'),
+          },
+          dateLocale: locale,
+        }
+      );
     } catch {
-      toast.error('Lỗi khi xuất báo cáo');
+      toast.error(t('exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -137,11 +189,9 @@ export function FundView() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <BookOpen className="h-6 w-6" />
-            Quỹ Khuyến học
+            {t('title')}
           </h1>
-          <p className="text-muted-foreground">
-            Quản lý quỹ khuyến học, học bổng và khen thưởng
-          </p>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2 print:hidden">
           <Button
@@ -151,11 +201,11 @@ export function FundView() {
             onClick={handleExport}
           >
             <Download className="mr-2 h-4 w-4" />
-            {isExporting ? 'Đang xuất...' : 'Xuất CSV'}
+            {isExporting ? t('exporting') : t('exportCsv')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
-            In báo cáo
+            {t('printReport')}
           </Button>
         </div>
       </div>
@@ -164,9 +214,11 @@ export function FundView() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="scholarships">Học bổng & Khen thưởng</TabsTrigger>
-          <TabsTrigger value="donations">Đóng góp</TabsTrigger>
-          <TabsTrigger value="history">Lịch sử</TabsTrigger>
+          <TabsTrigger value="scholarships">
+            {t('tabs.scholarships')}
+          </TabsTrigger>
+          <TabsTrigger value="donations">{t('tabs.donations')}</TabsTrigger>
+          <TabsTrigger value="history">{t('tabs.history')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="scholarships">

@@ -1,10 +1,12 @@
 /**
  * @project AncestorTree
  * @file src/constants/api.ts
- * @description Shared API status codes, error messages and MIME lookups
- * @version 1.0.0
+ * @description Shared API status codes and error message keys (copy via next-intl)
+ * @version 1.1.0
  * @updated 2026-08-09
  */
+
+import { vi } from '@messages/vi';
 
 export const API_STATUS = {
   ok: 200,
@@ -19,21 +21,11 @@ export const API_STATUS = {
   notImplemented: 501,
 } as const;
 
-export const API_ERROR_MESSAGES = {
-  badRequest: 'Yêu cầu không hợp lệ',
-  unauthorized: 'Bạn cần đăng nhập để thực hiện thao tác này',
-  forbidden: 'Bạn không có quyền thực hiện thao tác này',
-  notFound: 'Không tìm thấy dữ liệu',
-  serverMisconfigured: 'Máy chủ chưa được cấu hình đúng',
-  serverError: 'Đã xảy ra lỗi, vui lòng thử lại',
-  noFile: 'Không tìm thấy file',
-  fileTooLarge: 'File quá lớn',
-  unsupportedFileType: 'Định dạng file không được hỗ trợ',
-  backupFailed: 'Sao lưu thất bại',
-  restoreFailed: 'Khôi phục thất bại',
-  exportFailed: 'Xuất dữ liệu thất bại',
-  notImplemented: 'Chức năng này chưa được triển khai',
-} as const;
+/**
+ * Default (Vietnamese) API error strings — single source with Common.apiErrors.
+ * Prefer `apiErrorMessage(key)` in route handlers for locale-aware responses.
+ */
+export const API_ERROR_MESSAGES = vi.Common.apiErrors;
 
 /** Roles allowed to run privileged export/admin API operations */
 export const API_ADMIN_ROLES = ['admin', 'editor'] as const;

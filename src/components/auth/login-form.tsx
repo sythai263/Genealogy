@@ -1,7 +1,16 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/login-form.tsx
+ * @description Login page with password / OTP tabs and TOTP step
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { KeyRound, Mail } from 'lucide-react';
 import {
@@ -25,6 +34,7 @@ import type { LoginPasswordFormData } from '@schemas';
 import type { LoginMethod } from '@types';
 
 export function LoginForm() {
+  const t = useTranslations('Auth');
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -70,11 +80,9 @@ export function LoginForm() {
 
   useEffect(() => {
     if (searchParams.get('error') === 'suspended') {
-      toast.error(
-        'Tài khoản của bạn đã bị khoá. Vui lòng liên hệ quản trị viên.'
-      );
+      toast.error(t('login.suspended'));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   async function onPasswordSubmit(data: LoginPasswordFormData) {
     if (isLocked) return;
@@ -93,20 +101,18 @@ export function LoginForm() {
         return;
       }
 
-      toast.success('Đăng nhập thành công!');
+      toast.success(t('login.success'));
       window.location.replace('/admin');
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Đăng nhập thất bại';
+        error instanceof Error ? error.message : t('login.failed');
       const newFails = failCount + 1;
       setFailCount(newFails);
       const lockSec = getLoginLockoutSec(newFails);
       if (lockSec > 0) {
         setLockedUntil(Date.now() + lockSec * 1000);
         setRemainingSec(lockSec);
-        toast.error(
-          `Sai thông tin đăng nhập nhiều lần. Thử lại sau ${lockSec} giây.`
-        );
+        toast.error(t('login.lockout', { seconds: lockSec }));
       } else {
         toast.error(message);
       }
@@ -124,14 +130,14 @@ export function LoginForm() {
     setTotpFactorId(null);
   }
 
-  let cardTitle = 'Đăng nhập';
-  let cardDescription = 'Cổng thông tin gia phả';
+  let cardTitle = t('login.title');
+  let cardDescription = t('login.description');
   if (totpFactorId) {
-    cardTitle = 'Xác thực 2 bước';
-    cardDescription = 'Nhập mã từ ứng dụng xác thực';
+    cardTitle = t('login.totpTitle');
+    cardDescription = t('login.totpDescription');
   } else if (activeTab === 'otp') {
-    cardTitle = 'Đăng nhập bằng mã OTP';
-    cardDescription = 'Không cần mật khẩu';
+    cardTitle = t('login.otpTitle');
+    cardDescription = t('login.otpDescription');
   }
 
   return (
@@ -166,7 +172,7 @@ export function LoginForm() {
                     )}
                   >
                     <KeyRound className="h-3.5 w-3.5" />
-                    Mật khẩu
+                    {t('login.tabPassword')}
                   </button>
                   <button
                     type="button"
@@ -179,7 +185,7 @@ export function LoginForm() {
                     )}
                   >
                     <Mail className="h-3.5 w-3.5" />
-                    Mã OTP
+                    {t('login.tabOtp')}
                   </button>
                 </div>
               )}

@@ -2,10 +2,13 @@
  * @project AncestorTree
  * @file src/components/fund/fund-donations-tab.tsx
  * @description Donations list for education fund
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent } from '@components/ui';
 import { ListPagination } from '@components/shared';
 import type { ListPageSize } from '@constants';
@@ -31,15 +34,18 @@ export function FundDonationsTab({
   onPageSizeChange,
   peopleMap,
 }: FundDonationsTabProps) {
+  const t = useTranslations('Fund');
+  const locale = useLocale();
+
   return (
     <div className="mt-4 space-y-4">
       <h3 className="text-base font-semibold">
-        Danh sách đóng góp ({total})
+        {t('donationsSection.title', { count: total })}
       </h3>
       {donations.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            Chưa có đóng góp nào
+            {t('donationsSection.empty')}
           </CardContent>
         </Card>
       ) : (
@@ -55,7 +61,7 @@ export function FundDonationsTab({
                     <p className="text-sm font-medium">
                       {transaction.donor_name ||
                         person?.display_name ||
-                        'Ẩn danh'}
+                        t('anonymous')}
                     </p>
                     {transaction.description && (
                       <p className="text-xs text-muted-foreground">
@@ -70,7 +76,7 @@ export function FundDonationsTab({
                     <p className="text-xs text-muted-foreground">
                       {new Date(
                         transaction.transaction_date
-                      ).toLocaleDateString('vi-VN')}
+                      ).toLocaleDateString(locale)}
                     </p>
                   </div>
                 </CardContent>
@@ -85,7 +91,7 @@ export function FundDonationsTab({
         total={total}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
-        itemLabel="đóng góp"
+        itemLabel={t('donationsSection.itemLabel')}
       />
     </div>
   );

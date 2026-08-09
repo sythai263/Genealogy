@@ -1,0 +1,130 @@
+/**
+ * @project AncestorTree
+ * @file src/messages/en/cauDuong.ts
+ * @description Cầu đương rotation / ceremony assignment
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
+import type { AppMessages } from '../types';
+
+export const CauDuong = {
+  title: 'Cầu đương',
+  scheduleTitle: 'Cầu đương schedule',
+  subtitle: 'Rotating ceremony duty among families',
+  scheduleSubtitle:
+    'Rotating host assignments for the main ceremony days of the year',
+  empty: 'No assignments yet',
+  emptySetup: 'Cầu đương schedule not set up yet',
+  emptySetupHint:
+    'An administrator needs to create a Cầu đương group in Admin.',
+  year: 'Year',
+  yearLabel: 'Year {year}',
+  pool: 'Group',
+  assignment: 'Assignment',
+  unassigned: 'Not assigned',
+  assignmentYear: 'Schedule for {year}',
+  eligibleCount: '{count} eligible members in the rotation',
+  poolCriteria:
+    'Generation {min} and below • Under {max} lunar years • Married men',
+  delegatedInline: '(Delegated: {name})',
+  delegatedShort: '(delegated)',
+  scheduledDate: 'Scheduled: {date}',
+  actualDate: 'Performed: {date}',
+  dateLabel: 'Date: {date}',
+  rotationTitle: 'Rotation list',
+  rotationDescription:
+    'Order by family tree (DFS preorder) — older generations first, then family order within each generation',
+  rotationCustom: 'Custom order — use arrows to adjust',
+  rotationDefault:
+    'DFS preorder — older generations first, then family order within each generation',
+  noEligible: 'No eligible members yet',
+  ageLunar: '{age} lunar years',
+  ageYears: '{age} years',
+  born: 'born {year}',
+  chiLabel: 'Branch {chi}',
+  generationLabel: 'Generation {generation}',
+  defaultOrder: 'Default',
+  defaultSuffix: ' ← default',
+  nextInRotation: 'Next in rotation',
+  selectMember: 'Select a member',
+  assignTitle: 'Assign {ceremony}',
+  assignConfirm: 'Assign to {name}',
+  delegateTitle: 'Delegate Cầu đương',
+  confirmDelegate: 'Confirm delegation',
+  rescheduleTitle: 'Reschedule performance date',
+  confirmReschedule: 'Confirm reschedule',
+  editAssignment: 'Edit assignment',
+  currentHost: 'Current:',
+  changeTo: 'Change to *',
+  changeToConfirm: 'Change to {name}',
+  tabs: {
+    schedule: 'Schedule',
+    members: 'Members ({count})',
+  },
+  statuses: {
+    scheduled: 'Assigned',
+    completed: 'Completed',
+    delegated: 'Delegated',
+    rescheduled: 'Rescheduled',
+    cancelled: 'Cancelled',
+  },
+  ceremonies: {
+    tet: 'Lunar New Year (1/1 lunar)',
+    ram_thang_gieng: 'First Full Moon (15/1 lunar)',
+    gio_to: 'Ancestor memorial Can Thăng (15/3 lunar)',
+    ram_thang_bay: 'Seventh Full Moon (15/7 lunar)',
+  },
+  form: {
+    poolName: 'Group name',
+    poolNameRequired: 'Group name *',
+    poolNamePlaceholder: 'e.g. Branch of Lê Sỹ Nhân',
+    ancestor: 'Ancestor',
+    ancestorLabel: 'Ancestor (group root) *',
+    minGeneration: 'Minimum generation',
+    maxAgeLunar: 'Maximum lunar age',
+    maxAgeLunarUnder: 'Maximum lunar age (under)',
+    requireMarried: 'Must be married',
+    requireMarriedDetail:
+      'Only married men (with spouse/children in the system)',
+    description: 'Description',
+    descriptionPlaceholder:
+      'Rotate married men under 70 lunar years...',
+    delegateHost: 'Acting host',
+    delegateHostRequired: 'Acting host *',
+    assignPerson: 'Assigned person',
+    assignPersonRequired: 'Assigned person *',
+    actualDate: 'Actual date',
+    actualDateRequired: 'Actual date *',
+    reason: 'Reason',
+    reasonDelegatePlaceholder: 'Away on business...',
+    reasonReschedulePlaceholder: 'Family commitment...',
+  },
+  actions: {
+    createPool: 'Create group',
+    generate: 'Generate assignments',
+    assign: 'Assign',
+    complete: 'Complete',
+    delegate: 'Delegate',
+    reschedule: 'Reschedule',
+    restoreOrder: 'Restore default order',
+  },
+  toasts: {
+    createPoolSuccess: 'Cầu đương group created',
+    createPoolError: 'Failed to create group',
+    updatePoolSuccess: 'Group updated',
+    updatePoolError: 'Failed to update group',
+    assignSuccess: 'Assigned {ceremony} to {name}',
+    assignError: 'Failed to update assignment',
+    assignErrorGeneric: 'Failed to assign',
+    delegateSuccess: 'Delegation recorded',
+    delegateError: 'Failed to delegate',
+    rescheduleSuccess: 'Actual date updated',
+    rescheduleError: 'Failed to reschedule',
+    completeSuccess: 'Completion recorded',
+    completeError: 'Failed to update',
+    reorderError: 'Failed to update order',
+    restoreSuccess: 'Default order restored',
+    restoreError: 'Failed to restore',
+  },
+} as const satisfies AppMessages['CauDuong'];

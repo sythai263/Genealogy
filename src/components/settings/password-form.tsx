@@ -2,12 +2,14 @@
  * @project AncestorTree
  * @file src/components/settings/password-form.tsx
  * @description Change-password form for profile settings
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { KeyRound, Loader2 } from 'lucide-react';
@@ -24,14 +26,21 @@ import {
 } from '@components/ui';
 import { supabase } from '@lib';
 import {
-  changePasswordSchema,
+  createChangePasswordSchema,
   defaultChangePasswordValues,
   type ChangePasswordFormData,
 } from '@schemas';
 
 export function PasswordForm() {
+  const t = useTranslations('Settings');
+  const tValidation = useTranslations('Validation');
+  const schema = useMemo(
+    () => createChangePasswordSchema(tValidation),
+    [tValidation]
+  );
+
   const form = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: defaultChangePasswordValues,
   });
 
@@ -41,10 +50,10 @@ export function PasswordForm() {
         password: data.newPassword,
       });
       if (error) throw error;
-      toast.success('Đã đổi mật khẩu thành công');
+      toast.success(t('password.toastSuccess'));
       form.reset(defaultChangePasswordValues);
     } catch {
-      toast.error('Lỗi khi đổi mật khẩu');
+      toast.error(t('password.toastError'));
     }
   }
 
@@ -56,11 +65,11 @@ export function PasswordForm() {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mật khẩu mới</FormLabel>
+              <FormLabel>{t('password.newPassword')}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="Tối thiểu 8 ký tự"
+                  placeholder={t('password.newPasswordPlaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -73,11 +82,11 @@ export function PasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Xác nhận mật khẩu mới</FormLabel>
+              <FormLabel>{t('password.confirmPassword')}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="Nhập lại mật khẩu mới"
+                  placeholder={t('password.confirmPasswordPlaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -94,12 +103,12 @@ export function PasswordForm() {
           {form.formState.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang đổi...
+              {t('password.submitting')}
             </>
           ) : (
             <>
               <KeyRound className="mr-2 h-4 w-4" />
-              Đổi mật khẩu
+              {t('password.submit')}
             </>
           )}
         </Button>

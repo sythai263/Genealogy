@@ -2,15 +2,15 @@
  * @project AncestorTree
  * @file src/components/people/people-list-view.tsx
  * @description People list with Supabase search, filter, and pagination
- * @version 1.2.0
- * @updated 2026-07-19
+ * @version 1.3.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useResettablePage } from '@hooks';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Plus, Users } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ErrorState, QueryBoundary } from '@components/shared';
@@ -18,13 +18,13 @@ import { Button } from '@components/ui';
 import {
   PAGE_CONTAINER_CLASS,
   PEOPLE_DEFAULT_PAGE_SIZE,
-  ROUTE_ERROR_TITLES,
   type PeoplePageSize,
   type PeopleStatusFilter,
 } from '@constants';
 import {
   usePeopleFilterOptions,
   usePeopleList,
+  useResettablePage,
   useStats,
 } from '@hooks';
 import type { PeopleListFilters } from '@types';
@@ -41,6 +41,8 @@ function statusToIsLiving(
 }
 
 export function PeopleListView() {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
   const { isEditor } = useAuth();
   const { data: stats } = useStats();
   const { data: filterOptions } = usePeopleFilterOptions();
@@ -99,7 +101,7 @@ export function PeopleListView() {
   if (error) {
     return (
       <div className={PAGE_CONTAINER_CLASS}>
-        <ErrorState error={error} title={ROUTE_ERROR_TITLES.people} />
+        <ErrorState error={error} title={tCommon('routeErrors.people')} />
       </div>
     );
   }
@@ -110,19 +112,22 @@ export function PeopleListView() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Users className="h-6 w-6" />
-            Thành viên
+            {t('title')}
           </h1>
           <p className="text-muted-foreground">
             {stats
-              ? `${stats.totalPeople} người trong ${stats.totalGenerations} đời`
-              : 'Đang tải...'}
+              ? t('stats', {
+                  count: stats.totalPeople,
+                  generations: stats.totalGenerations,
+                })
+              : tCommon('loading')}
           </p>
         </div>
         {isEditor && (
           <Button asChild>
             <Link href="/people/new">
               <Plus className="mr-2 h-4 w-4" />
-              Thêm mới
+              {t('addNew')}
             </Link>
           </Button>
         )}
@@ -157,20 +162,16 @@ export function PeopleListView() {
           isLoading={isLoading}
           isEmpty={people.length === 0}
           emptyIcon={Users}
-          emptyTitle={
-            hasFilters
-              ? 'Không tìm thấy kết quả phù hợp'
-              : 'Chưa có dữ liệu thành viên'
-          }
+          emptyTitle={hasFilters ? t('noResults') : t('empty')}
           emptyAction={
             hasFilters ? (
               <Button variant="link" onClick={clearFilters}>
-                Xóa bộ lọc
+                {t('clearFilters')}
               </Button>
             ) : (
               isEditor && (
                 <Button asChild variant="link">
-                  <Link href="/people/new">Thêm thành viên đầu tiên</Link>
+                  <Link href="/people/new">{t('addFirst')}</Link>
                 </Button>
               )
             )

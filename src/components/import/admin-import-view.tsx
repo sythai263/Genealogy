@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/import/admin-import-view.tsx
  * @description Admin GEDCOM import wizard — upload + preview (DB insert planned for future sprint)
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   AlertCircle,
@@ -38,6 +39,8 @@ import { AccessDenied } from '@components/shared';
 type Step = 'upload' | 'preview';
 
 export function AdminImportView() {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
   const { isEditor } = useAuth();
   const { data: treeData } = useTreeData();
   const [step, setStep] = useState<Step>('upload');
@@ -51,12 +54,12 @@ export function AdminImportView() {
       if (!file) return;
 
       if (!file.name.endsWith('.ged')) {
-        toast.error('Vui lòng chọn file .ged (GEDCOM)');
+        toast.error(t('import.toasts.invalidFile'));
         return;
       }
 
       if (file.size > GEDCOM_IMPORT_MAX_BYTES) {
-        toast.error('File quá lớn (tối đa 10MB)');
+        toast.error(t('import.toasts.tooLarge'));
         return;
       }
 
@@ -69,12 +72,12 @@ export function AdminImportView() {
         setSummary(result);
         setStep('preview');
       } catch {
-        toast.error('Lỗi khi đọc file GEDCOM');
+        toast.error(t('import.toasts.readError'));
       } finally {
         setIsProcessing(false);
       }
     },
-    [treeData]
+    [treeData, t]
   );
 
   if (!isEditor) {
@@ -93,20 +96,18 @@ export function AdminImportView() {
   return (
     <div className='container mx-auto px-4 py-8 space-y-6'>
       <div>
-        <h1 className='text-2xl font-bold'>Nhập dữ liệu GEDCOM</h1>
-        <p className='text-muted-foreground'>
-          Import file .ged (GEDCOM 7.0 hoặc 5.5.1) vào hệ thống
-        </p>
+        <h1 className='text-2xl font-bold'>{t('import.title')}</h1>
+        <p className='text-muted-foreground'>{t('import.subtitle')}</p>
       </div>
 
       {/* Step indicator */}
       <div className='flex items-center gap-2 text-sm'>
         <Badge variant={step === 'upload' ? 'default' : 'outline'}>
-          1. Upload
+          {t('import.stepUpload')}
         </Badge>
         <ArrowRight className='h-3 w-3 text-muted-foreground' />
         <Badge variant={step === 'preview' ? 'default' : 'outline'}>
-          2. Xem trước
+          {t('import.stepPreview')}
         </Badge>
       </div>
 
@@ -116,12 +117,9 @@ export function AdminImportView() {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <Upload className='h-5 w-5' />
-              Chọn file GEDCOM
+              {t('import.selectGedcom')}
             </CardTitle>
-            <CardDescription>
-              Hỗ trợ GEDCOM 7.0 và 5.5.1. Tương thích FamilySearch, MyHeritage,
-              Gramps, Ancestry.
-            </CardDescription>
+            <CardDescription>{t('import.supportedFormats')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div className='border-2 border-dashed rounded-lg p-8 text-center'>
@@ -141,11 +139,15 @@ export function AdminImportView() {
                     ) : (
                       <Upload className='h-4 w-4 mr-2' />
                     )}
-                    {isProcessing ? 'Đang xử lý...' : 'Chọn file .ged'}
+                    {isProcessing
+                      ? t('import.processing')
+                      : t('import.selectFile')}
                   </span>
                 </Button>
               </label>
-              <p className='text-xs text-muted-foreground mt-2'>Tối đa 10MB</p>
+              <p className='text-xs text-muted-foreground mt-2'>
+                {t('import.maxSize')}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -157,12 +159,14 @@ export function AdminImportView() {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <FileText className='h-5 w-5' />
-              Xem trước: {fileName}
+              {t('import.previewTitle', { fileName })}
             </CardTitle>
             <CardDescription>
               GEDCOM {summary.parseResult.header.version}
               {summary.parseResult.header.source
-                ? ` — Nguồn: ${summary.parseResult.header.source}`
+                ? t('import.source', {
+                    source: summary.parseResult.header.source,
+                  })
                 : ''}
             </CardDescription>
           </CardHeader>
@@ -173,19 +177,25 @@ export function AdminImportView() {
                 <p className='text-2xl font-bold'>
                   {summary.validation.stats.individualCount}
                 </p>
-                <p className='text-xs text-muted-foreground'>Cá nhân</p>
+                <p className='text-xs text-muted-foreground'>
+                  {t('import.statsIndividuals')}
+                </p>
               </div>
               <div className='rounded-md border p-3 text-center'>
                 <p className='text-2xl font-bold'>
                   {summary.validation.stats.familyCount}
                 </p>
-                <p className='text-xs text-muted-foreground'>Gia đình</p>
+                <p className='text-xs text-muted-foreground'>
+                  {t('import.statsFamilies')}
+                </p>
               </div>
               <div className='rounded-md border p-3 text-center'>
                 <p className='text-2xl font-bold'>
                   {summary.validation.stats.duplicateCount}
                 </p>
-                <p className='text-xs text-muted-foreground'>Trùng lặp</p>
+                <p className='text-xs text-muted-foreground'>
+                  {t('import.statsDuplicates')}
+                </p>
               </div>
             </div>
 
@@ -194,7 +204,9 @@ export function AdminImportView() {
               <div className='rounded-md border border-red-200 bg-red-50 p-3 space-y-1'>
                 <div className='flex items-center gap-1.5 text-red-700 font-medium text-sm'>
                   <AlertCircle className='h-4 w-4' />
-                  {summary.validation.errors.length} lỗi
+                  {t('import.errorsCount', {
+                    count: summary.validation.errors.length,
+                  })}
                 </div>
                 <ul className='text-xs text-red-600 space-y-0.5 ml-6'>
                   {summary.validation.errors
@@ -204,7 +216,9 @@ export function AdminImportView() {
                     ))}
                   {summary.validation.errors.length > 10 && (
                     <li>
-                      ... và {summary.validation.errors.length - 10} lỗi khác
+                      {t('import.moreErrors', {
+                        count: summary.validation.errors.length - 10,
+                      })}
                     </li>
                   )}
                 </ul>
@@ -216,7 +230,9 @@ export function AdminImportView() {
               <div className='rounded-md border border-amber-200 bg-amber-50 p-3 space-y-1'>
                 <div className='flex items-center gap-1.5 text-amber-700 font-medium text-sm'>
                   <AlertTriangle className='h-4 w-4' />
-                  {summary.validation.warnings.length} cảnh báo
+                  {t('import.warningsCount', {
+                    count: summary.validation.warnings.length,
+                  })}
                 </div>
                 <ul className='text-xs text-amber-600 space-y-0.5 ml-6'>
                   {summary.validation.warnings
@@ -226,8 +242,9 @@ export function AdminImportView() {
                     ))}
                   {summary.validation.warnings.length > 5 && (
                     <li>
-                      ... và {summary.validation.warnings.length - 5} cảnh báo
-                      khác
+                      {t('import.moreWarnings', {
+                        count: summary.validation.warnings.length - 5,
+                      })}
                     </li>
                   )}
                 </ul>
@@ -238,7 +255,7 @@ export function AdminImportView() {
             {summary.validation.duplicates.length > 0 && (
               <div className='rounded-md border p-3 space-y-2'>
                 <p className='text-sm font-medium'>
-                  Trùng lặp tiềm ẩn với dữ liệu hiện có:
+                  {t('import.potentialDuplicates')}
                 </p>
                 <div className='space-y-1'>
                   {summary.validation.duplicates.slice(0, 5).map((dup, index) => (
@@ -264,7 +281,7 @@ export function AdminImportView() {
               summary.validation.errors.length === 0 && (
                 <div className='flex items-center gap-2 text-green-700 text-sm'>
                   <CheckCircle className='h-4 w-4' />
-                  File hợp lệ, sẵn sàng nhập dữ liệu
+                  {t('import.validReady')}
                 </div>
               )}
 
@@ -272,21 +289,22 @@ export function AdminImportView() {
             <div className='flex gap-2'>
               <Button variant='outline' onClick={handleReset}>
                 <ArrowLeft className='h-4 w-4 mr-1.5' />
-                Quay lại
+                {tCommon('back')}
               </Button>
-              <Button disabled={!isImportReady} title='Tính năng đang phát triển'>
+              <Button
+                disabled={!isImportReady}
+                title={t('import.comingSoon')}>
                 <CheckCircle className='h-4 w-4 mr-2' />
-                Nhập dữ liệu
+                {t('import.importData')}
                 <Badge variant='secondary' className='ml-2 text-[10px]'>
-                  Sắp ra mắt
+                  {t('import.comingSoonBadge')}
                 </Badge>
               </Button>
             </div>
 
             {!isImportReady && (
               <p className='text-xs text-muted-foreground'>
-                Chức năng nhập dữ liệu vào CSDL đang được phát triển. Hiện tại
-                chỉ hỗ trợ xem trước và kiểm tra file GEDCOM.
+                {t('import.prototypeNote')}
               </p>
             )}
           </CardContent>

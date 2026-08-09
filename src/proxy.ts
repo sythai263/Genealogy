@@ -141,8 +141,13 @@ export async function proxy(request: NextRequest) {
     const { allowed, retryAfterSec } = _checkRateLimit(ip, pathname);
     if (!allowed) {
       mwLog('WARN', 'rate_limit_exceeded', { pathname, ip, retryAfterSec });
+      const locale = request.cookies.get('NEXT_LOCALE')?.value;
+      const rateLimitMessage =
+        locale === 'en'
+          ? 'Too many requests. Please try again later.'
+          : 'Quá nhiều yêu cầu. Vui lòng thử lại sau.';
       return new NextResponse(
-        JSON.stringify({ error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau.', retryAfter: retryAfterSec }),
+        JSON.stringify({ error: rateLimitMessage, retryAfter: retryAfterSec }),
         {
           status: 429,
           headers: {

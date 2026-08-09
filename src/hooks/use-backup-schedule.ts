@@ -2,14 +2,13 @@
  * @project AncestorTree
  * @file src/hooks/use-backup-schedule.ts
  * @description Hook for managing backup schedule settings stored in localStorage.
- * @version 1.1.0
- * @updated 2026-07-17
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useCallback, useState } from 'react';
-import { BACKUP_INTERVAL_LABELS } from '@constants';
 import type { BackupInterval, BackupSchedule } from '@types';
 
 const STORAGE_KEY = 'ancestortree_backup_schedule';
@@ -84,7 +83,5 @@ export function useBackupSchedule() {
     recordBackup,
     isDue: isBackupDue(schedule),
     nextDue: nextDueDate(schedule),
-    intervalLabel: BACKUP_INTERVAL_LABELS[schedule.interval],
-    INTERVAL_LABELS: BACKUP_INTERVAL_LABELS,
   };
 }

@@ -2,14 +2,15 @@
  * @project AncestorTree
  * @file src/components/achievements/achievement-form.tsx
  * @description Achievement create/edit form with searchable person picker
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-08-09
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonCombobox } from '@components/people';
 import {
@@ -31,11 +32,11 @@ import {
 } from '@components/ui';
 import { usePerson } from '@hooks';
 import {
-  achievementSchema,
+  createAchievementSchema,
   defaultAchievementValues,
   type AchievementFormData,
 } from '@schemas';
-import { ACHIEVEMENT_FORM_CATEGORIES } from '@constants';
+import { ACHIEVEMENT_FORM_CATEGORY_VALUES } from '@constants';
 import type { Achievement, Person } from '@types';
 
 interface AchievementFormProps {
@@ -49,11 +50,18 @@ export function AchievementForm({
   onSubmit,
   isPending,
 }: AchievementFormProps) {
+  const t = useTranslations('Achievements');
+  const tCommon = useTranslations('Common');
+  const tValidation = useTranslations('Validation');
+  const schema = useMemo(
+    () => createAchievementSchema(tValidation),
+    [tValidation]
+  );
   const { data: loadedPerson } = usePerson(achievement?.person_id);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
 
   const form = useForm<AchievementFormData>({
-    resolver: zodResolver(achievementSchema),
+    resolver: zodResolver(schema),
     defaultValues: achievement
       ? {
           person_id: achievement.person_id,
@@ -92,7 +100,7 @@ export function AchievementForm({
             <FormItem>
               <FormControl>
                 <PersonCombobox
-                  label="Thành viên *"
+                  label={`${t('form.person')} *`}
                   selected={selectedPerson}
                   onSelect={handlePersonSelect}
                 />
@@ -106,10 +114,10 @@ export function AchievementForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tiêu đề *</FormLabel>
+              <FormLabel>{t('form.title')} *</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Thủ khoa Đại học Bách Khoa"
+                  placeholder={t('form.titlePlaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -123,7 +131,7 @@ export function AchievementForm({
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Danh mục</FormLabel>
+                <FormLabel>{t('form.category')}</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
@@ -131,9 +139,9 @@ export function AchievementForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {ACHIEVEMENT_FORM_CATEGORIES.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                    {ACHIEVEMENT_FORM_CATEGORY_VALUES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {t(`categories.${category}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -147,7 +155,7 @@ export function AchievementForm({
             name="year"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Năm</FormLabel>
+                <FormLabel>{t('form.year')}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -161,9 +169,12 @@ export function AchievementForm({
           name="awarded_by"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Trao bởi</FormLabel>
+              <FormLabel>{t('form.awardedBy')}</FormLabel>
               <FormControl>
-                <Input placeholder="Sở GD&ĐT Thanh Hóa" {...field} />
+                <Input
+                  placeholder={t('form.awardedByPlaceholder')}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -174,7 +185,7 @@ export function AchievementForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mô tả</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <Textarea rows={3} {...field} />
               </FormControl>
@@ -193,16 +204,16 @@ export function AchievementForm({
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Nổi bật (hiển thị trên trang chủ)</FormLabel>
+              <FormLabel>{t('form.isFeatured')}</FormLabel>
             </FormItem>
           )}
         />
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending
-            ? 'Đang lưu...'
+            ? tCommon('saving')
             : achievement
-              ? 'Cập nhật'
-              : 'Thêm mới'}
+              ? tCommon('update')
+              : tCommon('create')}
         </Button>
       </form>
     </Form>

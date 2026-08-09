@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/settings/profile-form.tsx
  * @description Profile display-name form with account info
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle, Loader2, Mail, Shield } from 'lucide-react';
@@ -30,21 +31,29 @@ import {
   Label,
   Separator,
 } from '@components/ui';
-import { PROFILE_ROLE_LABELS } from '@constants';
+import { PROFILE_ROLE_COLORS } from '@constants';
 import { useUpdateProfile } from '@hooks';
-import { getInitials, supabase, cn } from '@lib';
+import { cn, getInitials, supabase } from '@lib';
 import {
-  profileFormSchema,
+  createProfileFormSchema,
   type ProfileFormData,
 } from '@schemas';
 import type { UserRole } from '@types';
 
 export function ProfileForm() {
+  const t = useTranslations('Settings');
+  const tValidation = useTranslations('Validation');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const { user, profile, refreshProfile } = useAuth();
   const updateProfile = useUpdateProfile();
+  const schema = useMemo(
+    () => createProfileFormSchema(tValidation),
+    [tValidation]
+  );
 
   const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: { full_name: profile?.full_name ?? '' },
   });
 
@@ -53,9 +62,9 @@ export function ProfileForm() {
   }, [profile?.full_name, form]);
 
   const role: UserRole = profile?.role ?? 'viewer';
-  const roleInfo = PROFILE_ROLE_LABELS[role];
-  const initialsSource =
-    profile?.full_name?.trim() || user?.email || '?';
+  const roleLabel = t(`roles.${role}`);
+  const roleColor = PROFILE_ROLE_COLORS[role];
+  const initialsSource = profile?.full_name?.trim() || user?.email || '?';
 
   async function onSubmit(data: ProfileFormData) {
     if (!profile?.user_id) return;
@@ -66,10 +75,10 @@ export function ProfileForm() {
       });
       await supabase.auth.updateUser({ data: { full_name: data.full_name } });
       await refreshProfile();
-      toast.success('Đã lưu thông tin cá nhân');
+      toast.success(t('profile.toastSuccess'));
       form.reset({ full_name: data.full_name });
     } catch {
-      toast.error('Lỗi khi lưu');
+      toast.error(t('profile.toastError'));
     }
   }
 
@@ -85,12 +94,10 @@ export function ProfileForm() {
           </Avatar>
           <div>
             <p className="text-lg font-semibold">
-              {profile?.full_name || 'Chưa cập nhật tên'}
+              {profile?.full_name || t('profile.nameUnset')}
             </p>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
-            <Badge className={cn('mt-1 text-xs', roleInfo.color)}>
-              {roleInfo.label}
-            </Badge>
+            <Badge className={cn('mt-1 text-xs', roleColor)}>{roleLabel}</Badge>
           </div>
         </div>
 
@@ -101,10 +108,10 @@ export function ProfileForm() {
           name="full_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tên hiển thị</FormLabel>
+              <FormLabel>{t('profile.fullName')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Nguyễn Văn A"
+                  placeholder={t('profile.fullNamePlaceholder')}
                   maxLength={100}
                   {...field}
                 />
@@ -117,7 +124,7 @@ export function ProfileForm() {
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Mail className="h-3.5 w-3.5" />
-            Email
+            {t('profile.email')}
           </Label>
           <div className="flex items-center gap-2">
             <Input
@@ -126,27 +133,25 @@ export function ProfileForm() {
               className="cursor-not-allowed bg-muted"
             />
             {user?.email_confirmed_at && (
-              <span title="Email đã xác thực">
+              <span title={t('profile.emailVerified')}>
                 <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
               </span>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Email không thể thay đổi qua giao diện này.
+            {t('profile.emailReadonly')}
           </p>
         </div>
 
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5" />
-            Vai trò
+            {t('profile.role')}
           </Label>
           <div className="flex h-9 items-center gap-2 rounded-md border bg-muted px-3 text-sm">
-            <Badge className={cn('text-xs', roleInfo.color)}>
-              {roleInfo.label}
-            </Badge>
+            <Badge className={cn('text-xs', roleColor)}>{roleLabel}</Badge>
             <span className="text-xs text-muted-foreground">
-              — do quản trị viên phân quyền
+              {t('profile.roleHint')}
             </span>
           </div>
         </div>
@@ -154,21 +159,21 @@ export function ProfileForm() {
         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
           <div>
             <p className="mb-0.5 text-xs font-medium text-foreground">
-              Ngày tạo
+              {t('profile.createdAt')}
             </p>
             <p>
               {profile?.created_at
-                ? new Date(profile.created_at).toLocaleDateString('vi-VN')
+                ? new Date(profile.created_at).toLocaleDateString(locale)
                 : '—'}
             </p>
           </div>
           <div>
             <p className="mb-0.5 text-xs font-medium text-foreground">
-              Cập nhật lần cuối
+              {t('profile.updatedAt')}
             </p>
             <p>
               {profile?.updated_at
-                ? new Date(profile.updated_at).toLocaleDateString('vi-VN')
+                ? new Date(profile.updated_at).toLocaleDateString(locale)
                 : '—'}
             </p>
           </div>
@@ -182,12 +187,12 @@ export function ProfileForm() {
           {updateProfile.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang lưu...
+              {tCommon('saving')}
             </>
           ) : (
             <>
               <CheckCircle className="mr-2 h-4 w-4" />
-              Lưu thay đổi
+              {t('profile.save')}
             </>
           )}
         </Button>

@@ -1,9 +1,20 @@
+/**
+ * @project AncestorTree
+ * @file src/components/achievements/achievement-card.tsx
+ * @description Single achievement card for the public board
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Star } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
 import type { Achievement, Person } from '@types';
 import {
   ACHIEVEMENT_CATEGORY_ICONS,
-  getAchievementCategoryLabel,
+  getAchievementCategoryIcon,
 } from '@constants';
 
 interface AchievementCardProps {
@@ -12,8 +23,10 @@ interface AchievementCardProps {
 }
 
 export function AchievementCard({ achievement, person }: AchievementCardProps) {
+  const t = useTranslations('Achievements');
   const CategoryIcon =
-    ACHIEVEMENT_CATEGORY_ICONS[achievement.category] ?? ACHIEVEMENT_CATEGORY_ICONS.other;
+    getAchievementCategoryIcon(achievement.category) ??
+    ACHIEVEMENT_CATEGORY_ICONS.other;
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -26,8 +39,16 @@ export function AchievementCard({ achievement, person }: AchievementCardProps) {
             <h3 className="text-sm font-semibold">{achievement.title}</h3>
             {person && (
               <p className="text-sm text-muted-foreground">
-                {person.display_name} · Đời {person.generation}
-                {person.chi ? ` · Chi ${person.chi}` : ''}
+                {person.chi
+                  ? t('personMetaChi', {
+                      name: person.display_name,
+                      generation: person.generation,
+                      chi: person.chi,
+                    })
+                  : t('personMeta', {
+                      name: person.display_name,
+                      generation: person.generation,
+                    })}
               </p>
             )}
             {achievement.description && (
@@ -37,7 +58,7 @@ export function AchievementCard({ achievement, person }: AchievementCardProps) {
             )}
             <div className="mt-2 flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                {getAchievementCategoryLabel(achievement.category)}
+                {t(`categories.${achievement.category}`)}
               </Badge>
               {achievement.year && (
                 <Badge variant="secondary" className="text-xs">

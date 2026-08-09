@@ -9,6 +9,7 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { Person, Family, ClanSettings } from '@types';
+import { vi } from '@messages/vi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,8 @@ export interface TreeData {
   families: Family[];
   children: { family_id: string; person_id: string; sort_order: number }[];
 }
+
+type PdfLabels = typeof vi.Documents.pdf;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -59,12 +62,15 @@ const COLOR_PINK_BD  = '#fda4af';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Warn user when the tree is very large */
-export function getExportWarning(nodeCount: number): string | null {
+export function getExportWarning(
+  nodeCount: number,
+  labels: PdfLabels = vi.Documents.pdf
+): string | null {
   if (nodeCount > 100) {
-    return 'Cây quá lớn (>100 người). Vui lòng lọc theo nhánh trước khi xuất để đảm bảo chất lượng.';
+    return labels.warningHuge;
   }
   if (nodeCount > 50) {
-    return 'Cây khá lớn (>50 người). Chất lượng PDF có thể bị giảm.';
+    return labels.warningLarge;
   }
   return null;
 }
@@ -347,11 +353,11 @@ function biographyPageHtml(people: Person[], families: Family[], clanName: strin
   const generations = Array.from(byGen.entries()).sort(([a], [b]) => a - b);
 
   const stats = [
-    { label: 'Tổng thành viên', value: people.length },
-    { label: 'Còn sống', value: people.filter((p) => p.is_living).length },
-    { label: 'Đã mất', value: people.filter((p) => !p.is_living).length },
-    { label: 'Số đời', value: generations.length },
-    { label: 'Số gia đình', value: families.length },
+    { label: vi.Documents.pdf.totalMembers, value: people.length },
+    { label: vi.Documents.pdf.living, value: people.filter((p) => p.is_living).length },
+    { label: vi.Documents.pdf.deceased, value: people.filter((p) => !p.is_living).length },
+    { label: vi.Documents.pdf.generations, value: generations.length },
+    { label: vi.Documents.pdf.families, value: families.length },
   ];
 
   return `
@@ -361,9 +367,9 @@ function biographyPageHtml(people: Person[], families: Family[], clanName: strin
   <!-- Page header -->
   <div style="text-align:center;margin-bottom:28px;padding-bottom:16px;
               border-bottom:3px solid ${COLOR_BORDER};">
-    <div style="font-size:11px;letter-spacing:4px;color:${COLOR_GRAY};margin-bottom:4px;">GIA PHẢ ĐIỆN TỬ</div>
+    <div style="font-size:11px;letter-spacing:4px;color:${COLOR_GRAY};margin-bottom:4px;">${vi.Documents.pdf.digitalGenealogy}</div>
     <h1 style="font-size:22px;font-weight:800;color:${COLOR_DARK};margin:0;">
-      Lý Lịch Thành Viên
+      ${vi.Documents.pdf.memberProfiles}
     </h1>
     <div style="font-size:12px;color:${COLOR_GRAY};margin-top:4px;">${clanName}</div>
   </div>
@@ -382,7 +388,7 @@ function biographyPageHtml(people: Person[], families: Family[], clanName: strin
   <div style="margin-bottom:24px;">
     <div style="background:${COLOR_AMBER};color:#ffffff;padding:8px 16px;border-radius:6px;
                 font-size:13px;font-weight:700;margin-bottom:12px;">
-      Đời thứ ${gen} &nbsp;&nbsp; <span style="font-weight:400;font-size:11px;">(${members.length} người)</span>
+      ${vi.Documents.pdf.generationTitle.replace('{gen}', String(gen))} &nbsp;&nbsp; <span style="font-weight:400;font-size:11px;">${vi.Documents.pdf.peopleCount.replace('{count}', String(members.length))}</span>
     </div>
     ${members.map(personCard).join('')}
   </div>
@@ -391,7 +397,7 @@ function biographyPageHtml(people: Person[], families: Family[], clanName: strin
   <!-- Footer -->
   <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e5e7eb;
               font-size:10px;color:#d4d4d4;text-align:center;">
-    AncestorTree · Gia Phả Điện Tử
+    ${vi.Documents.pdf.footer}
   </div>
 </div>`;
 }

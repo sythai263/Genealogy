@@ -1,6 +1,15 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/password-login-form.tsx
+ * @description Email/password login form fields
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -14,7 +23,7 @@ import {
   Input,
 } from '@components/ui';
 import {
-  loginPasswordSchema,
+  createLoginPasswordSchema,
   type LoginPasswordFormData,
 } from '@schemas';
 
@@ -31,8 +40,12 @@ export function PasswordLoginForm({
   remainingSec,
   onSubmit,
 }: PasswordLoginFormProps) {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
+  const schema = createLoginPasswordSchema(tValidation);
+
   const form = useForm<LoginPasswordFormData>({
-    resolver: zodResolver(loginPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   });
 
@@ -45,7 +58,7 @@ export function PasswordLoginForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t('login.email')}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -62,7 +75,7 @@ export function PasswordLoginForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mật khẩu</FormLabel>
+                <FormLabel>{t('login.password')}</FormLabel>
                 <FormControl>
                   <Input type="password" placeholder="••••••••" {...field} />
                 </FormControl>
@@ -75,7 +88,7 @@ export function PasswordLoginForm({
               href="/forgot-password"
               className="text-sm text-emerald-600 hover:underline"
             >
-              Quên mật khẩu?
+              {t('login.forgotPassword')}
             </Link>
           </div>
           <Button
@@ -84,18 +97,18 @@ export function PasswordLoginForm({
             disabled={isLoading || isLocked}
           >
             {isLoading
-              ? 'Đang đăng nhập...'
+              ? t('login.submitting')
               : isLocked
-                ? `Thử lại sau ${remainingSec}s`
-                : 'Đăng nhập'}
+                ? t('login.retryAfter', { seconds: remainingSec })
+                : t('login.submit')}
           </Button>
         </form>
       </Form>
 
       <div className="mt-4 text-center text-sm">
-        <span className="text-muted-foreground">Chưa có tài khoản? </span>
+        <span className="text-muted-foreground">{t('login.noAccount')} </span>
         <Link href="/register" className="text-emerald-600 hover:underline">
-          Đăng ký
+          {t('login.registerLink')}
         </Link>
       </div>
     </>

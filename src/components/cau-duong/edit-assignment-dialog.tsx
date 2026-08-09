@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/cau-duong/edit-assignment-dialog.tsx
  * @description Dialog sửa người được phân công Cầu đương
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { Pencil } from 'lucide-react';
 import {
   Button,
@@ -32,10 +33,13 @@ import {
   SelectValue,
 } from '@components/ui';
 import {
-  cauDuongAssignSchema,
+  createCauDuongAssignSchema,
   type CauDuongAssignFormData,
 } from '@schemas';
-import type { CauDuongAssignmentWithPeople, CauDuongEligibleMember } from '@types';
+import type {
+  CauDuongAssignmentWithPeople,
+  CauDuongEligibleMember,
+} from '@types';
 
 interface EditAssignmentDialogProps {
   assignment: CauDuongAssignmentWithPeople;
@@ -50,15 +54,20 @@ export function EditAssignmentDialog({
   onConfirm,
   isPending,
 }: EditAssignmentDialogProps) {
+  const t = useTranslations('CauDuong');
+  const tCommon = useTranslations('Common');
+  const tValidation = useTranslations('Validation');
+  const schema = createCauDuongAssignSchema(tValidation);
+
   const [open, setOpen] = useState(false);
   const form = useForm<CauDuongAssignFormData>({
-    resolver: zodResolver(cauDuongAssignSchema),
+    resolver: zodResolver(schema),
     defaultValues: { person_id: '' },
   });
 
   const selectedId = form.watch('person_id');
   const selectedName =
-    eligibleMembers.find((member) => member.person.id === selectedId)?.person
+    eligibleMembers.find(member => member.person.id === selectedId)?.person
       .display_name ?? '...';
 
   function handleOpenChange(isOpen: boolean) {
@@ -76,49 +85,52 @@ export function EditAssignmentDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pencil className="mr-1 h-3.5 w-3.5" />
-          Sửa
+        <Button variant='outline' size='sm'>
+          <Pencil className='mr-1 h-3.5 w-3.5' />
+          {tCommon('edit')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Sửa phân công</DialogTitle>
+          <DialogTitle>{t('editAssignment')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-4'>
             <div>
               <FormLabel>
-                Hiện tại:{' '}
-                <span className="font-medium">
+                {t('currentHost')}{' '}
+                <span className='font-medium'>
                   {assignment.host_person?.display_name ?? '—'}
                 </span>
               </FormLabel>
             </div>
             <FormField
               control={form.control}
-              name="person_id"
+              name='person_id'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Đổi sang *</FormLabel>
+                  <FormLabel>{t('changeTo')}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn thành viên" />
+                        <SelectValue placeholder={t('selectMember')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {eligibleMembers.map((member, index) => (
                         <SelectItem
                           key={member.person.id}
-                          value={member.person.id}
-                        >
+                          value={member.person.id}>
                           {index + 1}. {member.person.display_name}
                           {member.person.generation
-                            ? ` (Đời ${member.person.generation})`
+                            ? ` (${t('generationLabel', {
+                                generation: member.person.generation,
+                              })})`
                             : ''}
                           {member.ageLunar > 0
-                            ? ` — ${member.ageLunar} tuổi`
+                            ? ` — ${t('ageYears', { age: member.ageLunar })}`
                             : ''}
                         </SelectItem>
                       ))}
@@ -129,15 +141,16 @@ export function EditAssignmentDialog({
               )}
             />
             <Button
-              type="submit"
+              type='submit'
               disabled={
                 isPending ||
                 !selectedId ||
                 selectedId === (assignment.host_person_id ?? '')
               }
-              className="w-full"
-            >
-              {isPending ? 'Đang lưu...' : `Đổi sang ${selectedName}`}
+              className='w-full'>
+              {isPending
+                ? tCommon('saving')
+                : t('changeToConfirm', { name: selectedName })}
             </Button>
           </form>
         </Form>

@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/contributions/contributions-view.tsx
  * @description Member contributions list and create dialog
- * @version 1.0.0
- * @updated 2026-07-27
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
@@ -41,6 +42,8 @@ import { ContributionForm } from './contribution-form';
 import { ContributionListItem } from './contribution-list-item';
 
 export function ContributionsView() {
+  const t = useTranslations('Contributions');
+  const tCommon = useTranslations('Common');
   const { user, profile, isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const authorId = isAdmin ? undefined : profile?.id;
@@ -68,10 +71,10 @@ export function ContributionsView() {
       <div className="container mx-auto px-4 py-8">
         <EmptyState
           icon={ClipboardList}
-          title="Vui lòng đăng nhập để gửi đề xuất chỉnh sửa"
+          title={t('loginRequired')}
           action={
             <Button asChild>
-              <Link href="/login">Đăng nhập</Link>
+              <Link href="/login">{t('loginAction')}</Link>
             </Button>
           }
         />
@@ -84,22 +87,19 @@ export function ContributionsView() {
       <PageHeader
         className="mb-8"
         icon={ClipboardList}
-        title="Đề xuất chỉnh sửa"
-        description="Gửi yêu cầu cập nhật thông tin thành viên"
+        title={t('title')}
+        description={t('subtitle')}
         actions={
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
-                <Plus className="h-4 w-4" /> Đề xuất mới
+                <Plus className="h-4 w-4" /> {t('newSuggestion')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Đề xuất chỉnh sửa</DialogTitle>
-                <DialogDescription>
-                  Gửi yêu cầu cập nhật thông tin. Quản trị viên sẽ xem xét và phê
-                  duyệt.
-                </DialogDescription>
+                <DialogTitle>{t('title')}</DialogTitle>
+                <DialogDescription>{t('dialogDescription')}</DialogDescription>
               </DialogHeader>
               <ContributionForm onClose={() => setDialogOpen(false)} />
             </DialogContent>
@@ -110,7 +110,7 @@ export function ContributionsView() {
       <Card>
         <CardHeader className="pb-3">
           <CardDescription>
-            {isLoading ? 'Đang tải...' : `${total} đề xuất`}
+            {isLoading ? tCommon('loading') : t('count', { count: total })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -118,7 +118,7 @@ export function ContributionsView() {
             isLoading={isLoading}
             isEmpty={items.length === 0}
             emptyIcon={ClipboardList}
-            emptyTitle="Bạn chưa có đề xuất nào"
+            emptyTitle={t('emptyOwn')}
             skeletonRows={3}
             surface="plain"
           >
@@ -143,7 +143,7 @@ export function ContributionsView() {
                 total={total}
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
-                itemLabel="đề xuất"
+                itemLabel={t('itemLabel')}
               />
             </div>
           </QueryBoundary>

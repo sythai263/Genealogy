@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/events/events-list-panel.tsx
  * @description Filterable event list with optional delete for editors
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -33,8 +33,9 @@ import {
 import { QueryBoundary } from '@components/shared';
 import { EVENT_TYPE_META, EVENT_TYPE_ORDER, isEventType } from '@constants';
 import { cn } from '@lib';
-import type { Event, Person } from '@types';
+import type { Event, EventType, Person } from '@types';
 import { CalendarDays, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 interface EventsListPanelProps {
@@ -56,12 +57,21 @@ export function EventsListPanel({
   onTypeFilterChange,
   onDelete,
 }: EventsListPanelProps) {
+  const t = useTranslations('Events');
+  const tCommon = useTranslations('Common');
+
+  function typeLabel(eventType: EventType) {
+    return t(`types.${eventType}`);
+  }
+
   return (
     <Card>
       <CardHeader className='pb-3'>
         <div className='flex items-center justify-between'>
           <CardDescription>
-            {isLoading ? 'Đang tải...' : `${events.length} sự kiện`}
+            {isLoading
+              ? tCommon('loading')
+              : t('eventCount', { count: events.length })}
           </CardDescription>
           <Select
             value={typeFilter}
@@ -74,10 +84,10 @@ export function EventsListPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>Tất cả</SelectItem>
+              <SelectItem value='all'>{tCommon('all')}</SelectItem>
               {EVENT_TYPE_ORDER.map(eventType => (
                 <SelectItem key={eventType} value={eventType}>
-                  {EVENT_TYPE_META[eventType].label}
+                  {typeLabel(eventType)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -89,7 +99,7 @@ export function EventsListPanel({
           isLoading={isLoading}
           isEmpty={events.length === 0}
           emptyIcon={CalendarDays}
-          emptyTitle='Chưa có sự kiện nào'
+          emptyTitle={t('emptyTitle')}
           skeletonRows={4}
           surface='plain'>
           <div className='space-y-3'>
@@ -114,7 +124,9 @@ export function EventsListPanel({
                     <div className='font-medium'>{event.title}</div>
                     <div className='text-sm text-muted-foreground'>
                       {event.event_lunar && (
-                        <span>{event.event_lunar} (ÂL)</span>
+                        <span>
+                          {event.event_lunar} {t('lunarSuffix')}
+                        </span>
                       )}
                       {event.event_date && (
                         <span>
@@ -138,10 +150,12 @@ export function EventsListPanel({
                     </div>
                   </div>
                   <div className='flex shrink-0 items-center gap-2'>
-                    <Badge variant='outline'>{typeInfo.label}</Badge>
+                    <Badge variant='outline'>
+                      {typeLabel(event.event_type)}
+                    </Badge>
                     {event.recurring && (
                       <Badge variant='secondary' className='text-xs'>
-                        Hàng năm
+                        {t('recurringShort')}
                       </Badge>
                     )}
                     {isEditor && (
@@ -156,18 +170,23 @@ export function EventsListPanel({
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Xóa sự kiện</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              {t('deleteConfirm.titleSimple')}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Bạn có chắc muốn xóa &ldquo;{event.title}
-                              &rdquo;? Hành động này không thể hoàn tác.
+                              {t('deleteConfirm.descriptionWithTitle', {
+                                title: event.title,
+                              })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogCancel>
+                              {tCommon('cancel')}
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => onDelete(event.id)}
                               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
-                              Xóa
+                              {tCommon('delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

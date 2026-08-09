@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/documents/document-form.tsx
  * @description Form for creating and editing clan documents
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { PersonCombobox } from '@components/people';
 import {
@@ -22,12 +23,21 @@ import {
   SelectValue,
   Textarea,
 } from '@components/ui';
-import {
-  DOCUMENT_CATEGORY_OPTIONS,
-} from '@constants';
+import { DOCUMENT_CATEGORY_ORDER, DOCUMENT_PRIVACY_LEVELS } from '@constants';
 import { usePerson } from '@hooks';
 import { formatFileSize } from '@lib';
-import type { ClanDocument, CreateClanDocumentInput, DocumentCategory, Person } from '@types';
+import type {
+  ClanDocument,
+  CreateClanDocumentInput,
+  DocumentCategory,
+  Person,
+} from '@types';
+
+const PRIVACY_DETAIL_KEYS = [
+  'privacy.publicDetail',
+  'privacy.membersDetail',
+  'privacy.internalDetail',
+] as const;
 
 interface DocumentFormProps {
   document?: ClanDocument;
@@ -40,9 +50,13 @@ export function DocumentForm({
   onSubmit,
   isPending,
 }: DocumentFormProps) {
+  const t = useTranslations('Documents');
+  const tCommon = useTranslations('Common');
   const { data: loadedPerson } = usePerson(doc?.person_id);
   const [title, setTitle] = useState(doc?.title || '');
-  const [category, setCategory] = useState<DocumentCategory>(doc?.category || 'khac');
+  const [category, setCategory] = useState<DocumentCategory>(
+    doc?.category || 'khac'
+  );
   const [description, setDescription] = useState(doc?.description || '');
   const [tags, setTags] = useState(doc?.tags || '');
   // `undefined` = user has not touched the picker yet, so fall back to the
@@ -58,45 +72,52 @@ export function DocumentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) {
-      toast.error('Vui lòng nhập tiêu đề');
+      toast.error(t('toasts.titleRequired'));
       return;
     }
     if (!doc && !file) {
-      toast.error('Vui lòng chọn file tải lên');
+      toast.error(t('toasts.fileRequired'));
       return;
     }
-    onSubmit({
-      title,
-      category,
-      description: description || undefined,
-      tags: tags || undefined,
-      person_id: selectedPerson?.id ?? undefined,
-      file_url: doc?.file_url || '',
-      file_type: file?.type || doc?.file_type,
-      file_size: file?.size || doc?.file_size,
-      privacy_level: privacyLevel,
-    }, file || undefined);
+    onSubmit(
+      {
+        title,
+        category,
+        description: description || undefined,
+        tags: tags || undefined,
+        person_id: selectedPerson?.id ?? undefined,
+        file_url: doc?.file_url || '',
+        file_type: file?.type || doc?.file_type,
+        file_size: file?.size || doc?.file_size,
+        privacy_level: privacyLevel,
+      },
+      file || undefined
+    );
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label>Tiêu đề *</Label>
-        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ảnh nhà thờ tổ năm 1960" />
+        <Label>{t('form.titleRequired')}</Label>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t('form.titlePlaceholder')}
+        />
       </div>
       {!doc && (
         <div>
-          <Label>File *</Label>
+          <Label>{t('form.fileRequired')}</Label>
           <div className="flex items-center gap-2">
             <Input
               ref={fileInputRef}
               type="file"
               accept="image/*,.pdf,.doc,.docx,.mp4,.webm"
-              onChange={e => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </div>
           {file && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               {file.name} ({formatFileSize(file.size)})
             </p>
           )}
@@ -104,45 +125,72 @@ export function DocumentForm({
       )}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Danh mục</Label>
-          <Select value={category} onValueChange={v => setCategory(v as DocumentCategory)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+          <Label>{t('form.category')}</Label>
+          <Select
+            value={category}
+            onValueChange={(v) => setCategory(v as DocumentCategory)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {DOCUMENT_CATEGORY_OPTIONS.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              {DOCUMENT_CATEGORY_ORDER.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`categories.${value}`)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
           <PersonCombobox
-            label="Thành viên liên quan"
+            label={t('form.relatedPerson')}
             selected={selectedPerson}
             onSelect={setPickedPerson}
           />
         </div>
       </div>
       <div>
-        <Label>Mô tả</Label>
-        <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Mô tả ngắn về tài liệu" />
+        <Label>{t('form.description')}</Label>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          placeholder={t('form.descriptionPlaceholder')}
+        />
       </div>
       <div>
-        <Label>Tags (phân cách bằng dấu phẩy)</Label>
-        <Input value={tags} onChange={e => setTags(e.target.value)} placeholder="nhà thờ, lịch sử, 1960" />
+        <Label>{t('form.tags')}</Label>
+        <Input
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder={t('form.tagsPlaceholder')}
+        />
       </div>
       <div>
-        <Label>Quyền riêng tư</Label>
-        <Select value={privacyLevel.toString()} onValueChange={v => setPrivacyLevel(parseInt(v))}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Label>{t('form.privacy')}</Label>
+        <Select
+          value={privacyLevel.toString()}
+          onValueChange={(v) => setPrivacyLevel(parseInt(v))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="0">Công khai (ai cũng xem được)</SelectItem>
-            <SelectItem value="1">Thành viên (đăng nhập mới xem)</SelectItem>
-            <SelectItem value="2">Nội bộ (chỉ quản trị viên)</SelectItem>
+            {DOCUMENT_PRIVACY_LEVELS.map((level) => (
+              <SelectItem key={level} value={level.toString()}>
+                {t(PRIVACY_DETAIL_KEYS[level])}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? 'Đang lưu...' : (doc ? 'Cập nhật' : 'Tải lên')}
+        {isPending
+          ? tCommon('saving')
+          : doc
+            ? tCommon('update')
+            : tCommon('upload')}
       </Button>
     </form>
   );

@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/cau-duong/admin-cau-duong-view.tsx
  * @description Admin view: quản lý nhóm và phân công Cầu đương
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Pencil,
   Plus,
@@ -41,7 +42,7 @@ import {
   useUpdateCauDuongAssignment,
   useUpdateCauDuongPool,
 } from '@hooks';
-import { CAU_DUONG_CEREMONY_LABELS, CAU_DUONG_YEAR_OPTIONS, getCauDuongCurrentYear } from '@constants';
+import { CAU_DUONG_YEAR_OPTIONS, getCauDuongCurrentYear } from '@constants';
 import type { CauDuongPoolFormData } from '@schemas';
 import type { CauDuongCeremonyType, CauDuongPool } from '@types';
 import { AssignmentList } from './assignment-list';
@@ -49,7 +50,21 @@ import { PoolForm } from './pool-form';
 import { RotationList } from './rotation-list';
 import { AccessDenied } from '@components/shared';
 
+function isCauDuongCeremonyType(
+  value: string
+): value is CauDuongCeremonyType {
+  return (
+    value === 'tet' ||
+    value === 'ram_thang_gieng' ||
+    value === 'gio_to' ||
+    value === 'ram_thang_bay'
+  );
+}
+
 export function AdminCauDuongView() {
+  const t = useTranslations('Admin');
+  const tCauDuong = useTranslations('CauDuong');
+  const tCommon = useTranslations('Common');
   const { isEditor, profile } = useAuth();
   const [selectedYear, setSelectedYear] = useState(getCauDuongCurrentYear());
   const [poolDialogOpen, setPoolDialogOpen] = useState(false);
@@ -69,6 +84,13 @@ export function AdminCauDuongView() {
   const createAssignmentMutation = useCreateCauDuongAssignment();
   const updateAssignmentMutation = useUpdateCauDuongAssignment();
 
+  function getCeremonyLabel(ceremonyType: CauDuongCeremonyType): string {
+    if (isCauDuongCeremonyType(ceremonyType)) {
+      return tCauDuong(`ceremonies.${ceremonyType}`);
+    }
+    return ceremonyType;
+  }
+
   if (!isEditor) {
     return <AccessDenied />;
   }
@@ -78,11 +100,11 @@ export function AdminCauDuongView() {
       { ...data, is_active: true },
       {
         onSuccess: () => {
-          toast.success('Đã tạo nhóm Cầu đương');
+          toast.success(tCauDuong('toasts.createPoolSuccess'));
           setPoolDialogOpen(false);
         },
         onError: () => {
-          toast.error('Lỗi khi tạo nhóm');
+          toast.error(tCauDuong('toasts.createPoolError'));
         },
       }
     );
@@ -97,12 +119,12 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          toast.success('Đã cập nhật nhóm');
+          toast.success(tCauDuong('toasts.updatePoolSuccess'));
           setPoolDialogOpen(false);
           setEditingPool(undefined);
         },
         onError: () => {
-          toast.error('Lỗi khi cập nhật nhóm');
+          toast.error(tCauDuong('toasts.updatePoolError'));
         },
       }
     );
@@ -133,11 +155,16 @@ export function AdminCauDuongView() {
             (member) => member.person.id === hostPersonId
           )?.person.display_name;
           toast.success(
-            `Đã phân công ${CAU_DUONG_CEREMONY_LABELS[ceremonyType]} cho ${hostName}`
+            t('features.cauDuong.assignSuccess', {
+              ceremony: getCeremonyLabel(ceremonyType),
+              host: hostName ?? tCommon('unknown'),
+            })
           );
         },
         onError: (error) => {
-          toast.error(error.message || 'Lỗi khi phân công');
+          toast.error(
+            error.message || t('features.cauDuong.assignError')
+          );
         },
       }
     );
@@ -158,12 +185,12 @@ export function AdminCauDuongView() {
           )?.person.display_name;
           toast.success(
             hostName
-              ? `Đã đổi phân công cho ${hostName}`
-              : 'Đã đổi phân công'
+              ? t('features.cauDuong.reassignSuccess', { host: hostName })
+              : t('features.cauDuong.reassignSuccessGeneric')
           );
         },
         onError: () => {
-          toast.error('Lỗi khi sửa phân công');
+          toast.error(tCauDuong('toasts.assignErrorGeneric'));
         },
       }
     );
@@ -187,10 +214,10 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          toast.success('Đã ghi nhận ủy quyền');
+          toast.success(tCauDuong('toasts.delegateSuccess'));
         },
         onError: () => {
-          toast.error('Lỗi khi ủy quyền');
+          toast.error(tCauDuong('toasts.delegateError'));
         },
       }
     );
@@ -210,10 +237,10 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          toast.success('Đã cập nhật ngày thực hiện');
+          toast.success(tCauDuong('toasts.rescheduleSuccess'));
         },
         onError: () => {
-          toast.error('Lỗi khi đổi ngày');
+          toast.error(tCauDuong('toasts.rescheduleError'));
         },
       }
     );
@@ -232,10 +259,10 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          toast.success('Đã ghi nhận hoàn thành');
+          toast.success(tCauDuong('toasts.completeSuccess'));
         },
         onError: () => {
-          toast.error('Lỗi khi cập nhật');
+          toast.error(tCauDuong('toasts.completeError'));
         },
       }
     );
@@ -250,7 +277,7 @@ export function AdminCauDuongView() {
       },
       {
         onError: () => {
-          toast.error('Lỗi khi cập nhật thứ tự');
+          toast.error(tCauDuong('toasts.reorderError'));
         },
       }
     );
@@ -265,10 +292,10 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          toast.success('Đã khôi phục thứ tự mặc định');
+          toast.success(tCauDuong('toasts.restoreSuccess'));
         },
         onError: () => {
-          toast.error('Lỗi khi khôi phục');
+          toast.error(tCauDuong('toasts.restoreError'));
         },
       }
     );
@@ -285,10 +312,10 @@ export function AdminCauDuongView() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <RotateCcw className="h-6 w-6 text-primary" />
-            Quản lý Cầu đương
+            {t('features.cauDuong.title')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Cấu hình nhóm xoay vòng và phân công chủ lễ
+            {t('features.cauDuong.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -302,7 +329,7 @@ export function AdminCauDuongView() {
             <SelectContent>
               {CAU_DUONG_YEAR_OPTIONS.map((year) => (
                 <SelectItem key={year} value={year.toString()}>
-                  Năm {year}
+                  {tCauDuong('yearLabel', { year })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -315,13 +342,17 @@ export function AdminCauDuongView() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                {firstPool ? 'Sửa nhóm' : 'Tạo nhóm'}
+                {firstPool
+                  ? t('features.cauDuong.editPool')
+                  : t('features.cauDuong.createPool')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {editingPool ? 'Sửa nhóm Cầu đương' : 'Tạo nhóm Cầu đương'}
+                  {editingPool
+                    ? t('features.cauDuong.editPoolTitle')
+                    : t('features.cauDuong.createPoolTitle')}
                 </DialogTitle>
               </DialogHeader>
               <PoolForm
@@ -347,8 +378,10 @@ export function AdminCauDuongView() {
         <Card className="border-dashed">
           <CardContent className="py-10 text-center text-muted-foreground">
             <RotateCcw className="mx-auto mb-3 h-10 w-10 opacity-30" />
-            <p className="mb-1 font-medium">Chưa có nhóm Cầu đương</p>
-            <p className="text-sm">Nhấn &quot;Tạo nhóm&quot; để bắt đầu cấu hình</p>
+            <p className="mb-1 font-medium">
+              {t('features.cauDuong.emptyPool')}
+            </p>
+            <p className="text-sm">{t('features.cauDuong.emptyPoolHint')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -357,8 +390,10 @@ export function AdminCauDuongView() {
             <div className="text-sm">
               <span className="font-medium">{firstPool.name}</span>
               <span className="ml-2 text-muted-foreground">
-                · Đời {firstPool.min_generation}+ · Dưới {firstPool.max_age_lunar}{' '}
-                tuổi âm
+                {t('features.cauDuong.poolSummary', {
+                  min: firstPool.min_generation,
+                  max: firstPool.max_age_lunar,
+                })}
               </span>
             </div>
             <Button
@@ -370,7 +405,7 @@ export function AdminCauDuongView() {
               }}
             >
               <Pencil className="mr-1 h-3.5 w-3.5" />
-              Chỉnh sửa
+              {tCommon('edit')}
             </Button>
           </CardContent>
         </Card>

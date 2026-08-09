@@ -40,7 +40,6 @@ import {
   Input,
 } from '@components/ui';
 import {
-  DOCUMENT_CATEGORY_LABELS,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
@@ -55,9 +54,13 @@ import {
 } from '@hooks';
 import { formatFileSize } from '@lib';
 import type { ClanDocument, CreateClanDocumentInput, Person } from '@types';
+import { useTranslations } from 'next-intl';
 import { DocumentForm } from './document-form';
 
 export function AdminDocumentsView() {
+  const t = useTranslations('Admin');
+  const tDocuments = useTranslations('Documents');
+  const tCommon = useTranslations('Common');
   const { isEditor } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ClanDocument | undefined>();
@@ -104,12 +107,12 @@ export function AdminDocumentsView() {
         file_type: file.type,
         file_size: file.size,
       });
-      toast.success('Đã tải lên tài liệu');
+      toast.success(t('features.documents.uploadSuccess'));
       setDialogOpen(false);
     } catch (err) {
       console.error('Document upload error:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
-      toast.error(`Lỗi khi tải lên: ${message}`);
+      toast.error(t('features.documents.uploadError', { message }));
     }
   };
 
@@ -127,36 +130,44 @@ export function AdminDocumentsView() {
           privacy_level: data.privacy_level,
         },
       });
-      toast.success('Đã cập nhật tài liệu');
+      toast.success(t('features.documents.updateSuccess'));
       setDialogOpen(false);
       setEditingItem(undefined);
     } catch {
-      toast.error('Lỗi khi cập nhật');
+      toast.error(t('features.documents.updateError'));
     }
   };
 
   const handleDelete = async (doc: ClanDocument) => {
     try {
       await deleteMutation.mutateAsync({ id: doc.id, fileUrl: doc.file_url });
-      toast.success('Đã xóa tài liệu');
+      toast.success(t('features.documents.deleteSuccess'));
     } catch {
-      toast.error('Lỗi khi xóa');
+      toast.error(t('features.documents.deleteError'));
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <PageHeader
-        title="Quản lý Kho tài liệu"
-        description="Tải lên, sửa, xóa tài liệu dòng họ"
+        title={t('features.documents.title')}
+        description={t('features.documents.subtitle')}
         actions={
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(undefined); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" /><Upload className="h-4 w-4 mr-2" />Tải lên</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 mr-2" />
+                {tCommon('upload')}
+              </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{editingItem ? 'Sửa tài liệu' : 'Tải lên tài liệu mới'}</DialogTitle>
+                <DialogTitle>
+                  {editingItem
+                    ? t('features.documents.edit')
+                    : t('features.documents.add')}
+                </DialogTitle>
               </DialogHeader>
               <DocumentForm
                 key={editingItem?.id || 'new'}
@@ -170,7 +181,7 @@ export function AdminDocumentsView() {
       />
 
       <Input
-        placeholder="Tìm kiếm theo tiêu đề, tags, hoặc thành viên..."
+        placeholder={t('features.documents.searchPlaceholder')}
         value={search}
         onChange={e => setSearch(e.target.value)}
         className="max-w-md"
@@ -180,7 +191,7 @@ export function AdminDocumentsView() {
         isLoading={isLoading}
         isEmpty={items.length === 0}
         emptyIcon={Archive}
-        emptyTitle="Chưa có tài liệu nào"
+        emptyTitle={t('features.documents.empty')}
         skeletonRows={3}
       >
         <div className="space-y-4">
@@ -195,16 +206,22 @@ export function AdminDocumentsView() {
                         <p className="font-medium text-sm truncate">{doc.title}</p>
                         <p className="text-xs text-muted-foreground">
                           <Badge variant="outline" className="mr-1 text-xs">
-                            {DOCUMENT_CATEGORY_LABELS[doc.category]}
+                            {tDocuments(`categories.${doc.category}`)}
                           </Badge>
                           {doc.privacy_level === 0 && (
-                            <Badge className="mr-1 text-xs bg-green-100 text-green-800">Công khai</Badge>
+                            <Badge className="mr-1 text-xs bg-green-100 text-green-800">
+                              {tDocuments('privacy.public')}
+                            </Badge>
                           )}
                           {doc.privacy_level === 1 && (
-                            <Badge className="mr-1 text-xs bg-blue-100 text-blue-800">Thành viên</Badge>
+                            <Badge className="mr-1 text-xs bg-blue-100 text-blue-800">
+                              {tDocuments('privacy.members')}
+                            </Badge>
                           )}
                           {doc.privacy_level === 2 && (
-                            <Badge className="mr-1 text-xs bg-red-100 text-red-800">Nội bộ</Badge>
+                            <Badge className="mr-1 text-xs bg-red-100 text-red-800">
+                              {tDocuments('privacy.internal')}
+                            </Badge>
                           )}
                           {person && <span>{person.display_name} · </span>}
                           {formatFileSize(doc.file_size)}
@@ -225,14 +242,20 @@ export function AdminDocumentsView() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Xóa tài liệu?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              {t('features.documents.deleteConfirm.title')}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              File &quot;{doc.title}&quot; sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.
+                              {t('features.documents.deleteConfirm.description', {
+                                title: doc.title,
+                              })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(doc)}>Xóa</AlertDialogAction>
+                            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(doc)}>
+                              {tCommon('delete')}
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -248,7 +271,7 @@ export function AdminDocumentsView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="tài liệu"
+            itemLabel={t('features.documents.countLabel')}
           />
         </div>
       </QueryBoundary>

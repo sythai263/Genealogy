@@ -2,20 +2,21 @@
  * @project AncestorTree
  * @file src/components/feed/feed-view.tsx
  * @description Community feed page — timeline + compose + filter
- * @version 1.0.0
- * @updated 2026-07-27
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useResettablePage } from '@hooks';
 import { MessagesSquare } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { ListPagination, PageHeader, QueryBoundary } from '@components/shared';
 import { Badge } from '@components/ui';
 import {
-  FEED_FILTER_TABS,
+  FEED_FILTER_KEYS,
   LIST_DEFAULT_PAGE_SIZE,
   isFeedFilterKey,
   type FeedFilterKey,
@@ -27,6 +28,7 @@ import { ComposeBox } from './compose-box';
 import { PostCard } from './post-card';
 
 export function FeedView() {
+  const t = useTranslations('Feed');
   const { user, isAdmin, isEditor } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FeedFilterKey>('all');
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
@@ -67,24 +69,21 @@ export function FeedView() {
 
   return (
     <div className="container mx-auto max-w-2xl space-y-6 px-4 py-8">
-      <PageHeader
-        title="Góc giao lưu"
-        description="Không gian chia sẻ của con cháu dòng họ"
-      />
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       {user && <ComposeBox />}
 
       <div className="flex flex-wrap gap-1.5">
-        {FEED_FILTER_TABS.map((tab) => (
+        {FEED_FILTER_KEYS.map((key) => (
           <Badge
-            key={tab.key}
-            variant={activeFilter === tab.key ? 'default' : 'outline'}
+            key={key}
+            variant={activeFilter === key ? 'default' : 'outline'}
             className="cursor-pointer"
             onClick={() => {
-              if (isFeedFilterKey(tab.key)) setActiveFilter(tab.key);
+              if (isFeedFilterKey(key)) setActiveFilter(key);
             }}
           >
-            {tab.label}
+            {t(`types.${key}`)}
           </Badge>
         ))}
       </div>
@@ -94,12 +93,10 @@ export function FeedView() {
         isEmpty={items.length === 0}
         emptyIcon={MessagesSquare}
         emptyTitle={
-          activeFilter !== 'all'
-            ? 'Không có bài viết nào trong mục này'
-            : 'Chưa có bài viết nào'
+          activeFilter !== 'all' ? t('emptyFiltered') : t('empty')
         }
         emptyDescription={
-          activeFilter === 'all' ? 'Hãy là người đầu tiên chia sẻ!' : undefined
+          activeFilter === 'all' ? t('emptyCta') : undefined
         }
         skeletonVariant="feed"
       >
@@ -121,7 +118,7 @@ export function FeedView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="bài viết"
+            itemLabel={t('itemLabel')}
           />
         </div>
       </QueryBoundary>

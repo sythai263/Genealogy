@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/documents/gedcom-export-card.tsx
  * @description GEDCOM export card for the documents hub
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -33,6 +34,7 @@ import {
 } from '@lib';
 
 export function GedcomExportCard() {
+  const t = useTranslations('Documents');
   const { data: treeData, isLoading: isTreeLoading } = useTreeData();
   const [isExporting, setIsExporting] = useState(false);
 
@@ -44,7 +46,7 @@ export function GedcomExportCard() {
 
   function handleExportGedcom() {
     if (!treeData) {
-      toast.error('Chưa có dữ liệu gia phả để xuất');
+      toast.error(t('toasts.gedcomEmpty'));
       return;
     }
 
@@ -55,14 +57,14 @@ export function GedcomExportCard() {
 
       if (!validation.valid) {
         toast.warning(
-          `File GEDCOM có ${validation.errors.length} cảnh báo nhưng vẫn có thể sử dụng`
+          t('gedcom.warning', { count: validation.errors.length })
         );
       }
 
       downloadGedcom(content);
-      toast.success('Xuất file GEDCOM thành công');
+      toast.success(t('toasts.gedcomSuccess'));
     } catch {
-      toast.error('Lỗi khi xuất file GEDCOM');
+      toast.error(t('toasts.gedcomError'));
     } finally {
       setIsExporting(false);
     }
@@ -76,29 +78,23 @@ export function GedcomExportCard() {
             <Download className="h-5 w-5 text-emerald-600" />
           </div>
           <div>
-            <CardTitle>Xuất GEDCOM</CardTitle>
-            <CardDescription>
-              Xuất dữ liệu theo chuẩn quốc tế GEDCOM 5.5.1
-            </CardDescription>
+            <CardTitle>{t('gedcom.title')}</CardTitle>
+            <CardDescription>{t('gedcom.description')}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          File GEDCOM (.ged) là chuẩn trao đổi dữ liệu phả hệ quốc tế, tương
-          thích với hầu hết phần mềm gia phả như FamilySearch, Gramps,
-          MyHeritage.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('gedcom.body')}</p>
 
         {treeData && (
           <div className="flex gap-4 text-sm">
             <span className="flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              {peopleCount} thành viên
+              {t('gedcom.peopleCount', { count: peopleCount })}
             </span>
             <span className="flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              {familyCount} gia đình
+              {t('gedcom.familyCount', { count: familyCount })}
             </span>
           </div>
         )}
@@ -106,8 +102,9 @@ export function GedcomExportCard() {
         <div className="flex items-center gap-2 rounded bg-amber-50 p-2 text-xs text-amber-600">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>
-            Thông tin cá nhân (privacy_level ={' '}
-            {DOCUMENTS_PRIVATE_PRIVACY_LEVEL}) sẽ không được xuất
+            {t('gedcom.privacyNote', {
+              level: DOCUMENTS_PRIVATE_PRIVACY_LEVEL,
+            })}
           </span>
         </div>
 
@@ -121,7 +118,7 @@ export function GedcomExportCard() {
           ) : (
             <Download className="mr-2 h-4 w-4" />
           )}
-          {isTreeLoading ? 'Đang tải dữ liệu...' : 'Tải file GEDCOM'}
+          {isTreeLoading ? t('gedcom.loading') : t('gedcom.download')}
         </Button>
       </CardContent>
     </Card>

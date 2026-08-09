@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/duplicates/admin-duplicates-view.tsx
  * @description Admin duplicate detection review page
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertTriangle, CheckCircle, Users, X } from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { AccessDenied, ListPagination } from '@components/shared';
@@ -34,6 +35,7 @@ import { DuplicatePersonCard } from './duplicate-person-card';
 import { ScoreBar } from './score-bar';
 
 export function AdminDuplicatesView() {
+  const t = useTranslations('Admin');
   const { isEditor } = useAuth();
   const { data: duplicates, isLoading } = useDuplicates();
   const [dismissed, setDismissed] = useState<Set<string>>(() =>
@@ -73,10 +75,8 @@ export function AdminDuplicatesView() {
   return (
     <div className='container mx-auto px-4 py-8 space-y-6'>
       <div>
-        <h1 className='text-2xl font-bold'>Phát hiện trùng lặp</h1>
-        <p className='text-muted-foreground'>
-          Phát hiện thành viên có thể bị nhập trùng
-        </p>
+        <h1 className='text-2xl font-bold'>{t('duplicates.title')}</h1>
+        <p className='text-muted-foreground'>{t('duplicates.subtitle')}</p>
       </div>
 
       {/* Summary */}
@@ -86,15 +86,17 @@ export function AdminDuplicatesView() {
         ) : visiblePairs.length === 0 ? (
           <div className='flex items-center gap-2 text-green-600'>
             <CheckCircle className='h-4 w-4' />
-            <span>Không tìm thấy cặp trùng lặp nào</span>
+            <span>{t('duplicates.empty')}</span>
           </div>
         ) : (
           <>
-            <Badge variant='destructive'>{highCount} nghi ngờ cao</Badge>
+            <Badge variant='destructive'>
+              {t('duplicates.highCount', { count: highCount })}
+            </Badge>
             <Badge
               variant='outline'
               className='bg-yellow-50 text-yellow-800 border-yellow-200'>
-              {mediumCount} trung bình
+              {t('duplicates.mediumCount', { count: mediumCount })}
             </Badge>
           </>
         )}
@@ -145,7 +147,7 @@ export function AdminDuplicatesView() {
                       className='h-7 text-xs'
                       onClick={() => handleDismiss(pair)}>
                       <X className='h-3 w-3 mr-1' />
-                      Bỏ qua
+                      {t('duplicates.dismiss')}
                     </Button>
                   </div>
                 </CardHeader>
@@ -158,11 +160,11 @@ export function AdminDuplicatesView() {
                     <DuplicatePersonCard person={pair.personB} />
                   </div>
                   <div className='grid grid-cols-2 sm:grid-cols-5 gap-2'>
-                    <ScoreBar label='Tên' value={pair.score.name} />
-                    <ScoreBar label='Cha' value={pair.score.father} />
-                    <ScoreBar label='Năm sinh' value={pair.score.birthYear} />
-                    <ScoreBar label='Đời' value={pair.score.generation} />
-                    <ScoreBar label='Giới' value={pair.score.gender} />
+                    <ScoreBar label={t('duplicates.name')} value={pair.score.name} />
+                    <ScoreBar label={t('duplicates.father')} value={pair.score.father} />
+                    <ScoreBar label={t('duplicates.birthYear')} value={pair.score.birthYear} />
+                    <ScoreBar label={t('duplicates.generation')} value={pair.score.generation} />
+                    <ScoreBar label={t('duplicates.gender')} value={pair.score.gender} />
                   </div>
                 </CardContent>
               </Card>
@@ -174,7 +176,7 @@ export function AdminDuplicatesView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="cặp trùng"
+            itemLabel={t('duplicates.countLabel')}
           />
         </div>
       )}
@@ -183,22 +185,10 @@ export function AdminDuplicatesView() {
       <Card>
         <CardContent className='py-4'>
           <CardDescription className='text-xs space-y-1'>
-            <p>
-              <strong>Cách tính điểm:</strong> Tên (30%) + Cha (25%) + Năm sinh
-              (20%) + Đời (15%) + Giới tính (10%)
-            </p>
-            <p>
-              <strong>Ngưỡng:</strong> Cao ≥ 85%, Trung bình 60-84%. Dưới 60%
-              được ẩn tự động.
-            </p>
-            <p>
-              <strong>Loại trừ:</strong> Khác giới tính hoặc chênh năm sinh
-              &gt; 10 năm.
-            </p>
-            <p>
-              Các cặp đã &quot;Bỏ qua&quot; được lưu trên trình duyệt này. Xóa
-              dữ liệu trình duyệt để hiện lại.
-            </p>
+            <p>{t('duplicates.infoScoring')}</p>
+            <p>{t('duplicates.infoThreshold')}</p>
+            <p>{t('duplicates.infoExclusion')}</p>
+            <p>{t('duplicates.infoDismiss')}</p>
           </CardDescription>
         </CardContent>
       </Card>

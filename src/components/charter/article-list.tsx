@@ -2,10 +2,13 @@
  * @project AncestorTree
  * @file src/components/charter/article-list.tsx
  * @description List of featured quotes and regular charter articles
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { ScrollText } from 'lucide-react';
 import type { ClanArticle } from '@types';
 import { ArticleCard } from './article-card';
@@ -16,6 +19,7 @@ interface ArticleListProps {
 }
 
 export function ArticleList({ articles }: ArticleListProps) {
+  const t = useTranslations('Charter');
   const featured = articles.filter((article) => article.is_featured);
   const regular = articles.filter((article) => !article.is_featured);
 
@@ -23,7 +27,7 @@ export function ArticleList({ articles }: ArticleListProps) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <ScrollText className="mx-auto mb-2 h-10 w-10 opacity-50" />
-        <p>Chưa có bài viết nào</p>
+        <p>{t('empty')}</p>
       </div>
     );
   }

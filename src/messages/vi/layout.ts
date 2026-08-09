@@ -1,0 +1,90 @@
+/**
+ * @project AncestorTree
+ * @file src/messages/vi/layout.ts
+ * @description Sidebar navigation, theme, roles, auth footer labels
+ * @version 1.0.0
+ * @updated 2026-08-09
+ */
+
+export const Layout = {
+  groups: {
+    main: 'Menu chính',
+    account: 'Tài khoản',
+    admin: 'Quản trị',
+  },
+  nav: {
+    home: 'Trang chủ',
+    tree: 'Cây gia phả',
+    people: 'Thành viên',
+    directory: 'Danh bạ',
+    events: 'Lịch cúng lễ',
+    contributions: 'Đề xuất',
+    achievements: 'Vinh danh',
+    fund: 'Quỹ khuyến học',
+    charter: 'Hương ước',
+    relationship: 'Tìm quan hệ',
+    stats: 'Thống kê',
+    cauDuong: 'Cầu đương',
+    feed: 'Góc giao lưu',
+    notifications: 'Thông báo',
+    documents: 'Tài liệu',
+    help: 'Hướng dẫn',
+    profile: 'Hồ sơ cá nhân',
+    security: 'Bảo mật (MFA)',
+    adminDashboard: 'Bảng điều khiển',
+    adminUsers: 'Người dùng',
+    adminContributions: 'Đề xuất chỉnh sửa',
+    adminEvents: 'QL Lịch sự kiện',
+    adminAchievements: 'QL Vinh danh',
+    adminFund: 'QL Quỹ & Học bổng',
+    adminCharter: 'QL Hương ước',
+    adminCauDuong: 'QL Cầu đương',
+    adminDocuments: 'QL Tài liệu',
+    adminFeed: 'QL Bài viết',
+    adminExport: 'Xuất dữ liệu',
+    adminImport: 'Nhập GEDCOM',
+    adminSpouses: 'Nhập vợ/chồng',
+    adminDuplicates: 'Trùng lặp',
+    adminRegistrations: 'Đơn ghi danh',
+    adminSettings: 'Cài đặt',
+    adminBackup: 'Sao lưu dữ liệu',
+  },
+  auth: {
+    login: 'Đăng nhập',
+    register: 'Đăng ký',
+    logout: 'Đăng xuất',
+    profile: 'Hồ sơ cá nhân',
+    security: 'Bảo mật (MFA)',
+    account: 'Tài khoản',
+    enterAdmin: 'Quản trị',
+    enterApp: 'Vào hệ thống',
+  },
+  landingNav: {
+    tree: 'Cây gia phả',
+    council: 'Hội đồng',
+    hall: 'Nhà thờ',
+    register: 'Ghi danh',
+  },
+  theme: {
+    label: 'Giao diện',
+    modeTitle: 'Chế độ giao diện',
+    light: 'Sáng',
+    dark: 'Tối',
+    system: 'Hệ thống',
+  },
+  roles: {
+    admin: 'Quản trị viên',
+    editor: 'Biên tập viên',
+    viewer: 'Người xem',
+    guest: 'Khách',
+  },
+  elderlyMode: {
+    label: 'Chế độ người cao tuổi',
+    on: 'Bật',
+    off: 'Tắt',
+    toggleOn: 'Bật chế độ hiển thị lớn',
+    toggleOff: 'Tắt chế độ hiển thị lớn',
+    shortOn: 'Chữ lớn: BẬT',
+    shortOff: 'Chữ lớn',
+  },
+} as const;

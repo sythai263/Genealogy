@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/settings/mfa-unenroll-dialog.tsx
  * @description Confirm dialog for disabling MFA
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Loader2, ShieldOff } from 'lucide-react';
 import {
   AlertDialog,
@@ -33,21 +34,23 @@ export function MfaUnenrollDialog({
   onOpenChange,
   onConfirm,
 }: MfaUnenrollDialogProps) {
+  const t = useTranslations('Settings');
+  const tCommon = useTranslations('Common');
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <ShieldOff className="h-5 w-5 text-destructive" />
-            Tắt xác thực 2 bước?
+            {t('security.unenrollTitle')}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Sau khi tắt, tài khoản chỉ được bảo vệ bằng mật khẩu. Bạn có thể
-            bật lại bất cứ lúc nào.
+            {t('security.unenrollDescription')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isUnenrolling}
@@ -56,10 +59,10 @@ export function MfaUnenrollDialog({
             {isUnenrolling ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang tắt...
+                {t('security.unenrolling')}
               </>
             ) : (
-              'Tắt xác thực 2 bước'
+              t('security.disable')
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

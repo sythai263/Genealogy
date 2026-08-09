@@ -2,24 +2,28 @@
  * @project AncestorTree
  * @file src/components/home/featured-charter.tsx
  * @description Featured clan charter articles for homepage
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@components/ui';
+import { useTranslations } from 'next-intl';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@components/ui';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { useFeaturedArticles } from '@hooks';
 
-const categoryLabels: Record<string, string> = {
-  gia_huan: 'Gia huấn',
-  quy_uoc: 'Quy ước',
-  loi_dan: 'Lời dặn',
-};
-
 export function FeaturedCharter() {
+  const t = useTranslations('Charter');
   const { data: articles, isLoading } = useFeaturedArticles();
 
   if (isLoading || !articles || articles.length === 0) return null;
@@ -31,13 +35,13 @@ export function FeaturedCharter() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
-              Hương ước dòng họ
+              {t('featuredTitle')}
             </CardTitle>
-            <CardDescription>Gia huấn và quy ước truyền thống</CardDescription>
+            <CardDescription>{t('featuredSubtitle')}</CardDescription>
           </div>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/charter">
-              Xem tất cả
+              {t('viewAll')}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
@@ -47,13 +51,17 @@ export function FeaturedCharter() {
         <div className="space-y-4">
           {articles.slice(0, 3).map((article) => (
             <div key={article.id} className="border-l-2 border-emerald-500 pl-4">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-medium text-sm">{article.title}</h4>
+              <div className="mb-1 flex items-center gap-2">
+                <h4 className="text-sm font-medium">{article.title}</h4>
                 <Badge variant="outline" className="text-xs">
-                  {categoryLabels[article.category] || article.category}
+                  {article.category === 'gia_huan' ||
+                  article.category === 'quy_uoc' ||
+                  article.category === 'loi_dan'
+                    ? t(`categories.${article.category}`)
+                    : article.category}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="line-clamp-2 text-sm text-muted-foreground">
                 {article.content}
               </p>
             </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DatabaseBackup } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   useBackupExport,
@@ -15,6 +16,7 @@ import { BackupRestoreSection } from './backup-restore-section';
 import { BackupScheduleSection } from './backup-schedule-section';
 
 export function BackupView() {
+  const t = useTranslations('Admin');
   const [restoreResult, setRestoreResult] = useState<RestoreResult | null>(
     null
   );
@@ -26,20 +28,24 @@ export function BackupView() {
     recordBackup,
     isDue,
     nextDue,
-    intervalLabel,
   } = useBackupSchedule();
 
   const exportMutation = useBackupExport();
   const restoreMutation = useBackupRestore();
 
+  const intervalLabel =
+    schedule.interval !== 'off'
+      ? t(`backup.intervals.${schedule.interval}`)
+      : '';
+
   function runExport() {
     exportMutation.mutate(undefined, {
       onSuccess: () => {
         recordBackup();
-        toast.success('Sao lưu thành công! File đã được tải xuống.');
+        toast.success(t('backup.toasts.exportSuccess'));
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Sao lưu thất bại');
+        toast.error(error.message || t('backup.toasts.exportError'));
       },
     });
   }
@@ -47,7 +53,7 @@ export function BackupView() {
   useEffect(() => {
     if (isDue && schedule.autoDownload && !autoBackupTriggered.current) {
       autoBackupTriggered.current = true;
-      toast.info('Đã đến lịch sao lưu tự động, đang tải xuống…');
+      toast.info(t('backup.autoBackupToast'));
       runExport();
     }
     // Intentionally run once when due — export mutation is stable enough for this UX.
@@ -55,11 +61,7 @@ export function BackupView() {
   }, [isDue, schedule.autoDownload]);
 
   function handleRestore(file: File) {
-    if (
-      !window.confirm(
-        `Xác nhận khôi phục từ "${file.name}"?\n\nTOÀN BỘ dữ liệu hiện tại sẽ bị XÓA và thay thế bằng dữ liệu trong file sao lưu.\n\nHành động này KHÔNG THỂ hoàn tác.`
-      )
-    ) {
+    if (!window.confirm(t('backup.restoreConfirm', { name: file.name }))) {
       return;
     }
 
@@ -67,10 +69,12 @@ export function BackupView() {
     restoreMutation.mutate(file, {
       onSuccess: (data) => {
         setRestoreResult(data);
-        toast.success(`Khôi phục thành công — ${data.total_inserted} bản ghi`);
+        toast.success(
+          t('backup.toasts.restoreSuccess', { count: data.total_inserted })
+        );
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Khôi phục thất bại');
+        toast.error(error.message || t('backup.toasts.restoreError'));
       },
     });
   }
@@ -80,11 +84,10 @@ export function BackupView() {
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <DatabaseBackup className="h-6 w-6" />
-          Sao lưu &amp; Khôi phục
+          {t('backup.title')}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Xuất toàn bộ dữ liệu gia phả ra một file ZIP duy nhất và khôi phục khi
-          cần thiết.
+          {t('backup.subtitle')}
         </p>
       </div>
 

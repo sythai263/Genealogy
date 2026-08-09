@@ -2,12 +2,18 @@
  * @project AncestorTree
  * @file src/components/settings/mfa-enroll-panel.tsx
  * @description MFA enrollment QR + TOTP verification form
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useMemo } from 'react';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckCircle, Loader2, QrCode } from 'lucide-react';
 import {
   Button,
   Form,
@@ -19,12 +25,8 @@ import {
   Input,
 } from '@components/ui';
 import { MFA_TOTP_CODE_LENGTH } from '@constants';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { totpCodeSchema, type TotpCodeFormData } from '@schemas';
+import { createTotpCodeSchema, type TotpCodeFormData } from '@schemas';
 import type { MfaEnrollState } from '@types';
-import { CheckCircle, Loader2, QrCode } from 'lucide-react';
-import Image from 'next/image';
-import { useForm } from 'react-hook-form';
 
 interface MfaEnrollPanelProps {
   enrollState: MfaEnrollState;
@@ -39,8 +41,15 @@ export function MfaEnrollPanel({
   onVerify,
   onCancel,
 }: MfaEnrollPanelProps) {
+  const t = useTranslations('Settings');
+  const tCommon = useTranslations('Common');
+  const tValidation = useTranslations('Validation');
+  const schema = useMemo(
+    () => createTotpCodeSchema(tValidation),
+    [tValidation]
+  );
   const form = useForm<TotpCodeFormData>({
-    resolver: zodResolver(totpCodeSchema),
+    resolver: zodResolver(schema),
     defaultValues: { code: '' },
   });
 
@@ -50,20 +59,20 @@ export function MfaEnrollPanel({
   }
 
   return (
-    <div className='space-y-5'>
-      <div className='flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3'>
-        <QrCode className='mt-0.5 h-5 w-5 shrink-0 text-blue-600' />
-        <div className='space-y-1 text-sm text-blue-800'>
-          <p className='font-medium'>Bước 1: Quét mã QR</p>
-          <p>Mở Google Authenticator → Thêm tài khoản → Quét mã QR bên dưới.</p>
+    <div className="space-y-5">
+      <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+        <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+        <div className="space-y-1 text-sm text-blue-800">
+          <p className="font-medium">{t('security.step1Title')}</p>
+          <p>{t('security.step1Body')}</p>
         </div>
       </div>
 
-      <div className='flex justify-center'>
-        <div className='rounded-lg border bg-white p-3 shadow-sm'>
+      <div className="flex justify-center">
+        <div className="rounded-lg border bg-white p-3 shadow-sm">
           <Image
             src={enrollState.qrCode}
-            alt='QR code cho Google Authenticator'
+            alt={t('security.qrAlt')}
             width={180}
             height={180}
             // Inline data: URL from the MFA enrolment response — nothing to optimise
@@ -72,36 +81,36 @@ export function MfaEnrollPanel({
         </div>
       </div>
 
-      <details className='text-sm'>
-        <summary className='cursor-pointer text-muted-foreground hover:text-foreground'>
-          Không quét được mã QR? Nhập thủ công
+      <details className="text-sm">
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+          {t('security.manualEntry')}
         </summary>
-        <div className='mt-2 select-all break-all rounded bg-muted p-2 font-mono text-xs'>
+        <div className="mt-2 select-all break-all rounded bg-muted p-2 font-mono text-xs">
           {enrollState.secret}
         </div>
       </details>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-3'>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <FormField
             control={form.control}
-            name='code'
+            name="code"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Bước 2: Nhập mã xác thực ({MFA_TOTP_CODE_LENGTH} chữ số)
+                  {t('security.step2Label', { count: MFA_TOTP_CODE_LENGTH })}
                 </FormLabel>
                 <FormControl>
                   <Input
-                    type='text'
-                    inputMode='numeric'
-                    pattern='[0-9]*'
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     maxLength={MFA_TOTP_CODE_LENGTH}
-                    placeholder='000000'
+                    placeholder="000000"
                     autoFocus
-                    className='max-w-45 text-center font-mono text-xl tracking-[0.4em]'
+                    className="max-w-45 text-center font-mono text-xl tracking-[0.4em]"
                     {...field}
-                    onChange={event => {
+                    onChange={(event) => {
                       const next = event.target.value
                         .replace(/\D/g, '')
                         .slice(0, MFA_TOTP_CODE_LENGTH);
@@ -113,31 +122,33 @@ export function MfaEnrollPanel({
               </FormItem>
             )}
           />
-          <div className='flex gap-2'>
+          <div className="flex gap-2">
             <Button
-              type='submit'
+              type="submit"
               disabled={
                 isVerifying ||
                 form.watch('code').length !== MFA_TOTP_CODE_LENGTH
-              }>
+              }
+            >
               {isVerifying ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Đang xác nhận...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('security.verifying')}
                 </>
               ) : (
                 <>
-                  <CheckCircle className='mr-2 h-4 w-4' />
-                  Xác nhận & Bật
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {t('security.confirmEnable')}
                 </>
               )}
             </Button>
             <Button
-              type='button'
-              variant='outline'
+              type="button"
+              variant="outline"
               onClick={onCancel}
-              disabled={isVerifying}>
-              Hủy
+              disabled={isVerifying}
+            >
+              {tCommon('cancel')}
             </Button>
           </div>
         </form>

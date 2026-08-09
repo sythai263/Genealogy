@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useResettablePage } from '@hooks';
 import { toast } from 'sonner';
 import { Pencil, Plus, Star, Trash2, Trophy } from 'lucide-react';
@@ -32,7 +33,6 @@ import {
   Input,
 } from '@components/ui';
 import {
-  getAchievementCategoryLabel,
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
@@ -44,7 +44,12 @@ import {
   useUpdateAchievement,
 } from '@hooks';
 import type { AchievementFormData } from '@schemas';
-import type { Achievement, CreateAchievementInput, Person } from '@types';
+import type {
+  Achievement,
+  AchievementCategory,
+  CreateAchievementInput,
+  Person,
+} from '@types';
 import { AchievementForm } from './achievement-form';
 
 function toCreateInput(data: AchievementFormData): CreateAchievementInput {
@@ -59,7 +64,21 @@ function toCreateInput(data: AchievementFormData): CreateAchievementInput {
   };
 }
 
+function isAchievementCategory(
+  value: string
+): value is AchievementCategory {
+  return (
+    value === 'hoc_tap' ||
+    value === 'su_nghiep' ||
+    value === 'cong_hien' ||
+    value === 'other'
+  );
+}
+
 export function AdminAchievementsView() {
+  const t = useTranslations('Admin');
+  const tAchievements = useTranslations('Achievements');
+  const tCommon = useTranslations('Common');
   const { isEditor } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Achievement | undefined>();
@@ -92,6 +111,13 @@ export function AdminAchievementsView() {
     return map;
   }, [people]);
 
+  function getCategoryLabel(category: string): string {
+    if (isAchievementCategory(category)) {
+      return tAchievements(`categories.${category}`);
+    }
+    return category;
+  }
+
   if (!isEditor) {
     return <AccessDenied />;
   }
@@ -99,11 +125,11 @@ export function AdminAchievementsView() {
   function handleCreate(data: AchievementFormData) {
     createMutation.mutate(toCreateInput(data), {
       onSuccess: () => {
-        toast.success('Đã thêm thành tích');
+        toast.success(tAchievements('toasts.addSuccess'));
         setDialogOpen(false);
       },
       onError: () => {
-        toast.error('Lỗi khi thêm thành tích');
+        toast.error(tAchievements('toasts.addError'));
       },
     });
   }
@@ -114,12 +140,12 @@ export function AdminAchievementsView() {
       { id: editingItem.id, input: toCreateInput(data) },
       {
         onSuccess: () => {
-          toast.success('Đã cập nhật thành tích');
+          toast.success(tAchievements('toasts.updateSuccess'));
           setDialogOpen(false);
           setEditingItem(undefined);
         },
         onError: () => {
-          toast.error('Lỗi khi cập nhật');
+          toast.error(tAchievements('toasts.updateError'));
         },
       }
     );
@@ -128,10 +154,10 @@ export function AdminAchievementsView() {
   function handleDelete(id: string) {
     deleteMutation.mutate(id, {
       onSuccess: () => {
-        toast.success('Đã xóa thành tích');
+        toast.success(tAchievements('toasts.deleteSuccess'));
       },
       onError: () => {
-        toast.error('Lỗi khi xóa');
+        toast.error(tAchievements('toasts.deleteError'));
       },
     });
   }
@@ -144,20 +170,22 @@ export function AdminAchievementsView() {
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
       <PageHeader
-        title="Quản lý Vinh danh"
-        description="Thêm, sửa, xóa thành tích thành viên"
+        title={t('features.achievements.title')}
+        description={t('features.achievements.subtitle')}
         actions={
           <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Thêm thành tích
+                {t('features.achievements.add')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {editingItem ? 'Sửa thành tích' : 'Thêm thành tích mới'}
+                  {editingItem
+                    ? t('features.achievements.edit')
+                    : t('features.achievements.add')}
                 </DialogTitle>
               </DialogHeader>
               <AchievementForm
@@ -174,7 +202,7 @@ export function AdminAchievementsView() {
       />
 
       <Input
-        placeholder="Tìm kiếm theo tên hoặc tiêu đề..."
+        placeholder={t('features.achievements.searchPlaceholder')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         className="max-w-md"
@@ -184,7 +212,7 @@ export function AdminAchievementsView() {
         isLoading={isLoading}
         isEmpty={items.length === 0}
         emptyIcon={Trophy}
-        emptyTitle="Chưa có thành tích nào"
+        emptyTitle={t('features.achievements.empty')}
         skeletonRows={3}
       >
         <div className="space-y-4">
@@ -203,8 +231,8 @@ export function AdminAchievementsView() {
                           {achievement.title}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {person?.display_name ?? '?'} ·{' '}
-                          {getAchievementCategoryLabel(achievement.category)}
+                          {person?.display_name ?? tCommon('unknown')} ·{' '}
+                          {getCategoryLabel(achievement.category)}
                           {achievement.year && ` · ${achievement.year}`}
                         </p>
                       </div>
@@ -228,17 +256,21 @@ export function AdminAchievementsView() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Xóa thành tích?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              {tAchievements('deleteConfirm.title')}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Hành động này không thể hoàn tác.
+                              {tAchievements('deleteConfirm.description')}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogCancel>
+                              {tCommon('cancel')}
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(achievement.id)}
                             >
-                              Xóa
+                              {tCommon('delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -255,7 +287,7 @@ export function AdminAchievementsView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="thành tích"
+            itemLabel={t('features.achievements.countLabel')}
           />
         </div>
       </QueryBoundary>

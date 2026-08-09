@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-toolbar.tsx
  * @description Search, chi filter, zoom, orientation, and focus-root controls
- * @version 2.2.0
- * @updated 2026-07-19
+ * @version 2.3.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   ArrowDownFromLine,
   ArrowRightFromLine,
@@ -87,6 +88,8 @@ export function FamilyTreeToolbar({
   onOrientationChange,
   compact = false,
 }: FamilyTreeToolbarProps) {
+  const t = useTranslations('Tree');
+
   return (
     <div
       className={cn(
@@ -97,7 +100,7 @@ export function FamilyTreeToolbar({
     >
       <div
         className={cn(
-          'relative min-w-0 flex-1 basis-full sm:basis-auto sm:w-64',
+          'relative min-w-0 flex-1 basis-full sm:w-64 sm:basis-auto',
           compact && 'sm:flex-none'
         )}
         ref={searchContainerRef}
@@ -108,7 +111,7 @@ export function FamilyTreeToolbar({
           inputMode="search"
           enterKeyHint="search"
           autoComplete="off"
-          placeholder="Tìm theo tên..."
+          placeholder={t('searchPlaceholder')}
           value={filterSearch}
           onChange={(event) => {
             onFilterSearchChange(event.target.value);
@@ -130,7 +133,7 @@ export function FamilyTreeToolbar({
             <div className="absolute top-full z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-background shadow-lg">
               {isSearching ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
-                  Đang tìm kiếm...
+                  {t('toolbar.searching')}
                 </div>
               ) : searchResults && searchResults.length > 0 ? (
                 searchResults.map((person, index) => {
@@ -160,7 +163,10 @@ export function FamilyTreeToolbar({
                           {person.display_name}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          Chi {person.chi} - Đời {person.generation}
+                          {t('toolbar.chiGeneration', {
+                            chi: person.chi ?? '',
+                            generation: person.generation,
+                          })}
                         </p>
                       </div>
                     </button>
@@ -168,7 +174,7 @@ export function FamilyTreeToolbar({
                 })
               ) : (
                 <div className="p-3 text-center text-sm text-muted-foreground">
-                  Không tìm thấy kết quả
+                  {t('toolbar.noResults')}
                 </div>
               )}
             </div>
@@ -179,13 +185,13 @@ export function FamilyTreeToolbar({
         {chiValues.length > 0 && chiFilter != null && (
           <Select value={chiFilter} onValueChange={onChiFilterChange}>
             <SelectTrigger className="h-10 w-[7.5rem] bg-background shadow-sm sm:h-9 sm:w-32">
-              <SelectValue placeholder="Chọn chi" />
+              <SelectValue placeholder={t('toolbar.selectChi')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả chi</SelectItem>
+              <SelectItem value="all">{t('toolbar.allChi')}</SelectItem>
               {chiValues.map((chi) => (
                 <SelectItem key={chi} value={String(chi)}>
-                  Chi {chi}
+                  {t('toolbar.chiN', { n: chi })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -195,16 +201,16 @@ export function FamilyTreeToolbar({
         <div
           className="flex items-center gap-0.5 rounded-lg border bg-background p-1 shadow-sm"
           role="group"
-          aria-label="Hướng cây"
+          aria-label={t('toolbar.orientation')}
         >
           <Button
             variant={orientation === 'horizontal' ? 'secondary' : 'ghost'}
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={() => onOrientationChange('horizontal')}
-            aria-label="Hiển thị ngang"
+            aria-label={t('toolbar.horizontal')}
             aria-pressed={orientation === 'horizontal'}
-            title="Ngang (trái → phải)"
+            title={t('toolbar.horizontalTitle')}
           >
             <ArrowRightFromLine className="h-4 w-4" />
           </Button>
@@ -213,9 +219,9 @@ export function FamilyTreeToolbar({
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={() => onOrientationChange('vertical')}
-            aria-label="Hiển thị dọc"
+            aria-label={t('toolbar.vertical')}
             aria-pressed={orientation === 'vertical'}
-            title="Dọc (trên → dưới)"
+            title={t('toolbar.verticalTitle')}
           >
             <ArrowDownFromLine className="h-4 w-4" />
           </Button>
@@ -227,7 +233,7 @@ export function FamilyTreeToolbar({
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={onZoomOut}
-            aria-label="Thu nhỏ"
+            aria-label={t('actions.zoomOut')}
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -236,7 +242,7 @@ export function FamilyTreeToolbar({
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={onZoomIn}
-            aria-label="Phóng to"
+            aria-label={t('actions.zoomIn')}
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -245,7 +251,7 @@ export function FamilyTreeToolbar({
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={onResetZoom}
-            aria-label="Đặt lại zoom"
+            aria-label={t('actions.resetZoom')}
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -258,15 +264,15 @@ export function FamilyTreeToolbar({
           onClick={onExpandAll}
         >
           <Maximize2 className="h-3.5 w-3.5 sm:hidden" />
-          <span className="sm:hidden">Mở rộng</span>
-          <span className="hidden sm:inline">Mở rộng tất cả</span>
+          <span className="sm:hidden">{t('actions.expandShort')}</span>
+          <span className="hidden sm:inline">{t('actions.expandAll')}</span>
         </Button>
       </div>
 
       {focusRootPerson && (
         <div className="flex w-full items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-2 py-1.5 sm:w-auto">
           <span className="min-w-0 flex-1 truncate text-sm font-medium sm:max-w-40 sm:flex-none">
-            Đang xem: {focusRootPerson.display_name}
+            {t('toolbar.viewing', { name: focusRootPerson.display_name })}
           </span>
           <Button
             variant="ghost"
@@ -275,7 +281,7 @@ export function FamilyTreeToolbar({
             onClick={onResetFocusRoot}
           >
             <Undo2 className="h-3.5 w-3.5" />
-            <span>Về gốc</span>
+            <span>{t('actions.backToRoot')}</span>
           </Button>
         </div>
       )}

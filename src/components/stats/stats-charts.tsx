@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/stats/stats-charts.tsx
  * @description Recharts chart components for stats dashboard (client-only)
- * @version 1.1.0
- * @updated 2026-07-18
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   Bar,
   BarChart,
@@ -44,11 +45,24 @@ function formatPieLabel({ name, value }: PieLabelProps): string {
 }
 
 export function StatsCharts({ stats }: StatsChartsProps) {
+  const t = useTranslations('Stats');
+  const tCommon = useTranslations('Common');
+
+  const genderData = [
+    { name: t('charts.male'), value: stats.genderStats[0]?.value ?? 0 },
+    { name: t('charts.female'), value: stats.genderStats[1]?.value ?? 0 },
+  ];
+
+  const livingData = [
+    { name: tCommon('living'), value: stats.livingStats[0]?.value ?? 0 },
+    { name: tCommon('deceased'), value: stats.livingStats[1]?.value ?? 0 },
+  ];
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle className="text-base">Phân bố theo đời</CardTitle>
+          <CardTitle className="text-base">{t('charts.byGeneration')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -63,7 +77,7 @@ export function StatsCharts({ stats }: StatsChartsProps) {
               <Bar
                 dataKey="count"
                 fill={STATS_CHART_BLUE}
-                name="Số người"
+                name={t('charts.peopleCount')}
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -74,7 +88,7 @@ export function StatsCharts({ stats }: StatsChartsProps) {
       {stats.chiStats.length > 0 && (
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">Phân bố theo chi</CardTitle>
+            <CardTitle className="text-base">{t('charts.byChi')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -89,7 +103,7 @@ export function StatsCharts({ stats }: StatsChartsProps) {
                 <Bar
                   dataKey="count"
                   fill={STATS_CHART_AMBER}
-                  name="Số người"
+                  name={t('charts.peopleCount')}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -100,20 +114,20 @@ export function StatsCharts({ stats }: StatsChartsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tỷ lệ giới tính</CardTitle>
+          <CardTitle className="text-base">{t('charts.byGender')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={stats.genderStats}
+                data={genderData}
                 cx="50%"
                 cy="50%"
                 outerRadius={90}
                 dataKey="value"
                 label={formatPieLabel}
               >
-                {stats.genderStats.map((_, idx) => (
+                {genderData.map((_, idx) => (
                   <Cell
                     key={`gender-${idx}`}
                     fill={
@@ -131,20 +145,20 @@ export function StatsCharts({ stats }: StatsChartsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tỷ lệ còn sống / đã mất</CardTitle>
+          <CardTitle className="text-base">{t('charts.livingStatus')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={stats.livingStats}
+                data={livingData}
                 cx="50%"
                 cy="50%"
                 outerRadius={90}
                 dataKey="value"
                 label={formatPieLabel}
               >
-                {stats.livingStats.map((_, idx) => (
+                {livingData.map((_, idx) => (
                   <Cell
                     key={`living-${idx}`}
                     fill={

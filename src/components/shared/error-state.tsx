@@ -2,19 +2,15 @@
  * @project AncestorTree
  * @file src/components/shared/error-state.tsx
  * @description In-page error block for failed React Query requests
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 import { Button, Card, CardContent } from '@components/ui';
-import {
-  UI_ERROR_DEFAULT_TITLE,
-  UI_ERROR_FALLBACK_MESSAGE,
-  UI_RETRY_LABEL,
-} from '@constants';
 import { cn } from '@lib';
 import type { StateSurface } from '@types';
 
@@ -30,20 +26,23 @@ interface ErrorStateProps {
 
 export function ErrorState({
   error,
-  title = UI_ERROR_DEFAULT_TITLE,
+  title,
   description,
   onRetry,
   surface = 'card',
   className,
 }: ErrorStateProps) {
+  const t = useTranslations('Common');
+  const resolvedTitle = title ?? t('errorTitle');
+  const resolvedDescription =
+    error?.message || description || t('errorFallback');
+
   const body = (
     <div className="py-12 text-center">
       <AlertCircle className="mx-auto mb-4 h-10 w-10 text-destructive" />
-      <h2 className="mb-2 text-lg font-semibold">{title}</h2>
-      <p className="mb-4 text-muted-foreground">
-        {error?.message || description || UI_ERROR_FALLBACK_MESSAGE}
-      </p>
-      {onRetry && <Button onClick={onRetry}>{UI_RETRY_LABEL}</Button>}
+      <h2 className="mb-2 text-lg font-semibold">{resolvedTitle}</h2>
+      <p className="mb-4 text-muted-foreground">{resolvedDescription}</p>
+      {onRetry && <Button onClick={onRetry}>{t('retry')}</Button>}
     </div>
   );
 

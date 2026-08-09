@@ -2,23 +2,26 @@
  * @project AncestorTree
  * @file src/components/documents/document-library-card.tsx
  * @description Document card for the public library gallery
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Download, ExternalLink, File } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
 import {
   DOCUMENT_CATEGORY_ICONS,
-  DOCUMENT_CATEGORY_LABELS,
   DOCUMENT_PRIVACY_BADGE_CLASSES,
-  DOCUMENT_PRIVACY_LABELS,
   formatDocumentFileSize,
   isDocumentImageUrl,
 } from '@constants';
 import { cn } from '@lib';
 import type { ClanDocument } from '@types';
+
+const PRIVACY_KEYS = ['public', 'members', 'internal'] as const;
 
 function resolvePrivacyLevel(level: number): 0 | 1 | 2 | null {
   if (level === 0 || level === 1 || level === 2) return level;
@@ -37,6 +40,7 @@ export function DocumentLibraryCard({
   personName,
   fileUrl,
 }: DocumentLibraryCardProps) {
+  const t = useTranslations('Documents');
   const Icon = DOCUMENT_CATEGORY_ICONS[document.category] || File;
   const isImage = isDocumentImageUrl(document.file_url, document.file_type);
   const privacyLevel = resolvePrivacyLevel(document.privacy_level);
@@ -64,13 +68,16 @@ export function DocumentLibraryCard({
           <h3 className="line-clamp-2 text-sm font-medium">{document.title}</h3>
           <div className="flex shrink-0 gap-1">
             <Badge variant="outline" className="text-xs">
-              {DOCUMENT_CATEGORY_LABELS[document.category]}
+              {t(`categories.${document.category}`)}
             </Badge>
             {privacyLevel !== null && (
               <Badge
-                className={cn('text-xs', DOCUMENT_PRIVACY_BADGE_CLASSES[privacyLevel])}
+                className={cn(
+                  'text-xs',
+                  DOCUMENT_PRIVACY_BADGE_CLASSES[privacyLevel]
+                )}
               >
-                {DOCUMENT_PRIVACY_LABELS[privacyLevel]}
+                {t(`privacy.${PRIVACY_KEYS[privacyLevel]}`)}
               </Badge>
             )}
           </div>
@@ -101,10 +108,12 @@ export function DocumentLibraryCard({
               ) : (
                 <Download className="h-3 w-3" />
               )}
-              {isImage ? 'Xem' : 'Tải'}
+              {isImage ? t('library.view') : t('library.downloadShort')}
             </a>
           ) : (
-            <span className="text-muted-foreground/60">Đang mở khoá…</span>
+            <span className="text-muted-foreground/60">
+              {t('library.unlocking')}
+            </span>
           )}
         </div>
       </CardContent>

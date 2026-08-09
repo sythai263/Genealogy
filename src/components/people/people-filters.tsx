@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/people/people-filters.tsx
  * @description Search and filter controls for the people list
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Filter, Search, X } from 'lucide-react';
 import {
   Button,
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from '@components/ui';
 import {
-  PEOPLE_STATUS_FILTER_OPTIONS,
+  PEOPLE_STATUS_FILTER_VALUES,
   isPeopleStatusFilter,
   type PeopleStatusFilter,
 } from '@constants';
@@ -57,19 +58,22 @@ export function PeopleFilters({
   hasFilters,
   onClearFilters,
 }: PeopleFiltersProps) {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Filter className="h-4 w-4" />
-          Bộ lọc
+          {t('filters.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Tìm theo tên..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             className="pl-9"
@@ -82,13 +86,13 @@ export function PeopleFilters({
             onValueChange={onGenerationFilterChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Chọn đời" />
+              <SelectValue placeholder={t('filters.generation')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả đời</SelectItem>
+              <SelectItem value="all">{t('filters.allGenerations')}</SelectItem>
               {generations.map((generation) => (
                 <SelectItem key={generation} value={generation.toString()}>
-                  Đời {generation}
+                  {t('generationN', { n: generation })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -96,13 +100,13 @@ export function PeopleFilters({
 
           <Select value={chiFilter} onValueChange={onChiFilterChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Chọn chi" />
+              <SelectValue placeholder={t('filters.chi')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả chi</SelectItem>
+              <SelectItem value="all">{t('filters.allChi')}</SelectItem>
               {chiValues.map((chi) => (
                 <SelectItem key={chi} value={chi.toString()}>
-                  Chi {chi}
+                  {t('chiN', { n: chi })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -115,12 +119,16 @@ export function PeopleFilters({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder={t('filters.status')} />
             </SelectTrigger>
             <SelectContent>
-              {PEOPLE_STATUS_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {PEOPLE_STATUS_FILTER_VALUES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value === 'all'
+                    ? tCommon('all')
+                    : value === 'living'
+                      ? tCommon('living')
+                      : tCommon('deceased')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -130,7 +138,7 @@ export function PeopleFilters({
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={onClearFilters}>
             <X className="mr-1 h-4 w-4" />
-            Xóa bộ lọc
+            {t('clearFilters')}
           </Button>
         )}
       </CardContent>

@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/cau-duong/assign-dialog.tsx
  * @description Dialog phân công chủ lễ Cầu đương
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { Zap } from 'lucide-react';
 import {
   Button,
@@ -32,7 +33,7 @@ import {
   SelectValue,
 } from '@components/ui';
 import {
-  cauDuongAssignSchema,
+  createCauDuongAssignSchema,
   type CauDuongAssignFormData,
 } from '@schemas';
 import type { CauDuongEligibleMember } from '@types';
@@ -52,15 +53,20 @@ export function AssignDialog({
   onConfirm,
   isPending,
 }: AssignDialogProps) {
+  const t = useTranslations('CauDuong');
+  const tCommon = useTranslations('Common');
+  const tValidation = useTranslations('Validation');
+  const schema = createCauDuongAssignSchema(tValidation);
+
   const [open, setOpen] = useState(false);
   const form = useForm<CauDuongAssignFormData>({
-    resolver: zodResolver(cauDuongAssignSchema),
+    resolver: zodResolver(schema),
     defaultValues: { person_id: '' },
   });
 
   const selectedId = form.watch('person_id');
   const selectedMember = eligibleMembers.find(
-    (member) => member.person.id === selectedId
+    member => member.person.id === selectedId
   );
 
   function handleOpenChange(isOpen: boolean) {
@@ -80,52 +86,57 @@ export function AssignDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <Zap className="mr-1 h-3.5 w-3.5" />
-          Phân công
+        <Button size='sm'>
+          <Zap className='mr-1 h-3.5 w-3.5' />
+          {t('actions.assign')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Phân công {ceremonyLabel}</DialogTitle>
+          <DialogTitle>
+            {t('assignTitle', { ceremony: ceremonyLabel })}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-4'>
             <FormField
               control={form.control}
-              name="person_id"
+              name='person_id'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Người thực hiện *</FormLabel>
+                  <FormLabel>{t('form.assignPersonRequired')}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn thành viên" />
+                        <SelectValue placeholder={t('selectMember')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {eligibleMembers.map((member, index) => (
                         <SelectItem
                           key={member.person.id}
-                          value={member.person.id}
-                        >
+                          value={member.person.id}>
                           {index + 1}. {member.person.display_name}
                           {member.person.generation
-                            ? ` (Đời ${member.person.generation})`
+                            ? ` (${t('generationLabel', {
+                                generation: member.person.generation,
+                              })})`
                             : ''}
                           {member.ageLunar > 0
-                            ? ` — ${member.ageLunar} tuổi`
+                            ? ` — ${t('ageYears', { age: member.ageLunar })}`
                             : ''}
                           {member.person.id === defaultPersonId
-                            ? ' ← mặc định'
+                            ? t('defaultSuffix')
                             : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {selectedMember?.person.id === defaultPersonId && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Người tiếp theo trong vòng xoay
+                    <p className='mt-1 text-xs text-muted-foreground'>
+                      {t('nextInRotation')}
                     </p>
                   )}
                   <FormMessage />
@@ -133,13 +144,14 @@ export function AssignDialog({
               )}
             />
             <Button
-              type="submit"
+              type='submit'
               disabled={isPending || !selectedId}
-              className="w-full"
-            >
+              className='w-full'>
               {isPending
-                ? 'Đang lưu...'
-                : `Phân công cho ${selectedMember?.person.display_name ?? '...'}`}
+                ? tCommon('saving')
+                : t('assignConfirm', {
+                    name: selectedMember?.person.display_name ?? '...',
+                  })}
             </Button>
           </form>
         </Form>

@@ -1,83 +1,114 @@
+/**
+ * @project AncestorTree
+ * @file src/schemas/auth.ts
+ * @description Auth form Zod schemas (i18n via Validation translator factory)
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 import { z } from 'zod';
+import type { useTranslations } from 'next-intl';
 
-export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-});
+type ValidationT = ReturnType<typeof useTranslations<'Validation'>>;
 
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-
-export const loginPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-  password: z.string().min(1, 'Mật khẩu là bắt buộc'),
-});
-
-export type LoginPasswordFormData = z.infer<typeof loginPasswordSchema>;
-
-export const loginOtpEmailSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email là bắt buộc')
-    .email('Email không hợp lệ'),
-});
-
-export type LoginOtpEmailFormData = z.infer<typeof loginOtpEmailSchema>;
-
-export const loginOtpCodeSchema = z.object({
-  code: z
-    .string()
-    .length(6, 'Mã OTP phải có 6 chữ số')
-    .regex(/^\d{6}$/, 'Mã OTP chỉ gồm chữ số'),
-});
-
-export type LoginOtpCodeFormData = z.infer<typeof loginOtpCodeSchema>;
-
-export const totpCodeSchema = z.object({
-  code: z
-    .string()
-    .length(6, 'Mã xác thực phải có 6 chữ số')
-    .regex(/^\d{6}$/, 'Mã xác thực chỉ gồm chữ số'),
-});
-
-export type TotpCodeFormData = z.infer<typeof totpCodeSchema>;
-
-export const registerSchema = z
-  .object({
-    fullName: z
-      .string()
-      .min(1, 'Họ và tên là bắt buộc')
-      .max(100, 'Họ và tên quá dài'),
+export function createForgotPasswordSchema(t: ValidationT) {
+  return z.object({
     email: z
       .string()
-      .min(1, 'Email là bắt buộc')
-      .email('Email không hợp lệ'),
-    password: z
-      .string()
-      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
-    confirmPassword: z.string().min(1, 'Xác nhận mật khẩu là bắt buộc'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Mật khẩu không khớp',
-    path: ['confirmPassword'],
+      .min(1, t('auth.emailRequired'))
+      .email(t('auth.emailInvalid')),
   });
+}
 
-export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ForgotPasswordFormData = z.infer<
+  ReturnType<typeof createForgotPasswordSchema>
+>;
 
-export const resetPasswordSchema = z
-  .object({
-    password: z
+export function createLoginPasswordSchema(t: ValidationT) {
+  return z.object({
+    email: z
       .string()
-      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-    confirmPassword: z.string().min(1, 'Xác nhận mật khẩu là bắt buộc'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Mật khẩu không khớp',
-    path: ['confirmPassword'],
+      .min(1, t('auth.emailRequired'))
+      .email(t('auth.emailInvalid')),
+    password: z.string().min(1, t('auth.passwordRequired')),
   });
+}
 
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+export type LoginPasswordFormData = z.infer<
+  ReturnType<typeof createLoginPasswordSchema>
+>;
+
+export function createLoginOtpEmailSchema(t: ValidationT) {
+  return z.object({
+    email: z
+      .string()
+      .min(1, t('auth.emailRequired'))
+      .email(t('auth.emailInvalid')),
+  });
+}
+
+export type LoginOtpEmailFormData = z.infer<
+  ReturnType<typeof createLoginOtpEmailSchema>
+>;
+
+export function createLoginOtpCodeSchema(t: ValidationT) {
+  return z.object({
+    code: z
+      .string()
+      .length(6, t('auth.otpLength'))
+      .regex(/^\d{6}$/, t('auth.otpDigitsOnly')),
+  });
+}
+
+export type LoginOtpCodeFormData = z.infer<
+  ReturnType<typeof createLoginOtpCodeSchema>
+>;
+
+export function createTotpCodeSchema(t: ValidationT) {
+  return z.object({
+    code: z
+      .string()
+      .length(6, t('auth.totpLength'))
+      .regex(/^\d{6}$/, t('auth.totpDigitsOnly')),
+  });
+}
+
+export type TotpCodeFormData = z.infer<ReturnType<typeof createTotpCodeSchema>>;
+
+export function createRegisterSchema(t: ValidationT) {
+  return z
+    .object({
+      fullName: z
+        .string()
+        .min(1, t('auth.fullNameRequired'))
+        .max(100, t('auth.fullNameTooLong')),
+      email: z
+        .string()
+        .min(1, t('auth.emailRequired'))
+        .email(t('auth.emailInvalid')),
+      password: z.string().min(8, t('auth.passwordMin8')),
+      confirmPassword: z.string().min(1, t('auth.confirmPasswordRequired')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('auth.passwordMismatch'),
+      path: ['confirmPassword'],
+    });
+}
+
+export type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>;
+
+export function createResetPasswordSchema(t: ValidationT) {
+  return z
+    .object({
+      password: z.string().min(6, t('auth.passwordMin6')),
+      confirmPassword: z.string().min(1, t('auth.confirmPasswordRequired')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('auth.passwordMismatch'),
+      path: ['confirmPassword'],
+    });
+}
+
+export type ResetPasswordFormData = z.infer<
+  ReturnType<typeof createResetPasswordSchema>
+>;

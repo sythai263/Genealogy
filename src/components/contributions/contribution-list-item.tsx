@@ -2,18 +2,19 @@
  * @project AncestorTree
  * @file src/components/contributions/contribution-list-item.tsx
  * @description Single contribution row in the member list
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@components/ui';
 import {
-  CONTRIBUTION_CHANGE_TYPE_LABELS,
   CONTRIBUTION_STATUS_ICONS,
-  CONTRIBUTION_STATUS_LABELS,
   CONTRIBUTION_STATUS_VARIANTS,
-  getContributionFieldLabel,
+  isContributionFieldKey,
 } from '@constants';
 import { cn } from '@lib';
 import type { Contribution, Person } from '@types';
@@ -27,7 +28,16 @@ export function ContributionListItem({
   contribution,
   person,
 }: ContributionListItemProps) {
+  const t = useTranslations('Contributions');
+  const locale = useLocale();
   const StatusIcon = CONTRIBUTION_STATUS_ICONS[contribution.status];
+
+  function fieldLabel(key: string): string {
+    if (isContributionFieldKey(key)) {
+      return t(`fields.${key}`);
+    }
+    return key;
+  }
 
   return (
     <div className="flex items-start gap-3 rounded-lg border p-4">
@@ -42,7 +52,7 @@ export function ContributionListItem({
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
           <span className="font-medium">
-            {CONTRIBUTION_CHANGE_TYPE_LABELS[contribution.change_type]}
+            {t(`changeTypes.${contribution.change_type}`)}
           </span>
           {person && (
             <Link
@@ -53,28 +63,28 @@ export function ContributionListItem({
             </Link>
           )}
           <Badge variant={CONTRIBUTION_STATUS_VARIANTS[contribution.status]}>
-            {CONTRIBUTION_STATUS_LABELS[contribution.status]}
+            {t(`statuses.${contribution.status}`)}
           </Badge>
         </div>
         {contribution.reason && (
           <p className="mb-2 text-sm text-muted-foreground">
-            Lý do: {contribution.reason}
+            {t('reasonPrefix', { reason: contribution.reason })}
           </p>
         )}
         <div className="flex flex-wrap gap-2">
           {Object.entries(contribution.changes).map(([key, value]) => (
             <Badge key={key} variant="outline" className="text-xs">
-              {getContributionFieldLabel(key)}: {String(value)}
+              {fieldLabel(key)}: {String(value)}
             </Badge>
           ))}
         </div>
         {contribution.review_notes && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Ghi chú duyệt: {contribution.review_notes}
+            {t('reviewNotesPrefix', { notes: contribution.review_notes })}
           </p>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
-          {new Date(contribution.created_at).toLocaleDateString('vi-VN')}
+          {new Date(contribution.created_at).toLocaleDateString(locale)}
         </p>
       </div>
     </div>

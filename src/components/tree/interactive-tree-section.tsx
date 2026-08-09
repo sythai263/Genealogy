@@ -2,22 +2,23 @@
  * @project AncestorTree
  * @file src/components/tree/interactive-tree-section.tsx
  * @description Interactive family tree with legend and zoom guidance
- * @version 1.1.0
- * @updated 2026-07-19
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Skeleton,
-} from '@components/ui';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from '@components/ui';
 
 const FamilyTree = dynamic(
   () =>
@@ -29,22 +30,25 @@ const FamilyTree = dynamic(
 );
 
 export function InteractiveTreeSection() {
+  const t = useTranslations('Tree');
+  const tCommon = useTranslations('Common');
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Hướng dẫn</CardTitle>
+        <CardTitle className="text-base">{t('guide.title')}</CardTitle>
         <CardDescription className="space-y-1">
           <span className="block sm:inline">
-            • <span className="text-blue-500">Viền xanh</span> = Nam •{' '}
-            <span className="text-pink-500">Viền hồng</span> = Nữ
+            • <span className="text-blue-500">{t('guide.maleBorder')}</span> ={' '}
+            {tCommon('male')} •{' '}
+            <span className="text-pink-500">{t('guide.femaleBorder')}</span> ={' '}
+            {tCommon('female')}
           </span>
           <span className="block sm:inline">
-            • <span className="text-pink-400">Đường hồng</span> = Vợ chồng • † =
-            Đã mất
+            • <span className="text-pink-400">{t('guide.spouseLine')}</span> ={' '}
+            {t('node.spouse')} • † = {tCommon('deceased')}
           </span>
-          <span className="mt-1 block text-xs">
-            Trên mobile: kéo để di chuyển, dùng nút +/- để zoom
-          </span>
+          <span className="mt-1 block text-xs">{t('guide.mobileHint')}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>

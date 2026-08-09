@@ -2,14 +2,15 @@
  * @project AncestorTree
  * @file src/components/tree/family-tree-canvas.tsx
  * @description d3.tree canvas with horizontal/vertical orientation, collapse + zoom
- * @version 2.3.0
- * @updated 2026-07-19
+ * @version 2.4.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import * as d3 from 'd3';
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   COUPLE_GAP,
   NODE_HEIGHT,
@@ -245,6 +246,7 @@ export function FamilyTreeCanvas({
   className,
   compactHint = false,
 }: FamilyTreeCanvasProps) {
+  const t = useTranslations('Tree');
   const onSelectPersonRef = useRef(onSelectPerson);
   const onHierarchyMutatedRef = useRef(onHierarchyMutated);
   const hierarchyRootRef = useRef(hierarchyRoot);
@@ -582,8 +584,8 @@ export function FamilyTreeCanvas({
         )}
       >
         {compactHint
-          ? 'Kéo để di chuyển · Dùng nút +/- để zoom'
-          : 'Kéo để di chuyển · Cuộn để zoom · Click nút ± để thu/mở nhánh'}
+          ? t('canvas.hintCompact')
+          : t('canvas.hintFull')}
       </div>
     </div>
   );

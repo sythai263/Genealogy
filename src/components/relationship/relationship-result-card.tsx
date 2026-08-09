@@ -2,11 +2,14 @@
  * @project AncestorTree
  * @file src/components/relationship/relationship-result-card.tsx
  * @description Displays relationship pathfinding result with bold Hán-Việt kinship terms
- * @version 1.1.0
+ * @version 1.2.0
  * @updated 2026-08-09
  */
 
+'use client';
+
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowRight, GitBranchPlus } from 'lucide-react';
 import {
   Badge,
@@ -23,10 +26,15 @@ interface RelationshipResultCardProps {
   treeRootId: string;
 }
 
+interface KinshipTextProps {
+  text: string;
+  className?: string;
+}
+
 /**
  * Render text with **Hán Việt (diễn giải)** segments bolded.
  */
-function KinshipText({ text, className }: { text: string; className?: string }) {
+function KinshipText({ text, className }: KinshipTextProps) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
 
   return (
@@ -52,10 +60,12 @@ export function RelationshipResultCard({
   result,
   treeRootId,
 }: RelationshipResultCardProps) {
+  const t = useTranslations('Relationship');
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Kết quả</CardTitle>
+        <CardTitle className="text-base">{t('result')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
@@ -72,7 +82,7 @@ export function RelationshipResultCard({
         {result.found && result.path.length > 0 && (
           <div>
             <p className="mb-2 text-sm font-medium">
-              Đường đi ({result.distance} bậc):
+              {t('pathFound', { steps: result.distance })}
             </p>
             <div className="flex flex-wrap items-center gap-1">
               {result.path.map((person, idx) => (
@@ -104,14 +114,16 @@ export function RelationshipResultCard({
 
         {result.lca && (
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Tổ tiên chung:</span>
+            <span className="text-muted-foreground">{t('commonAncestor')}:</span>
             <Link
               href={`/people/${result.lca.id}`}
               className="font-medium hover:underline"
             >
               {result.lca.display_name}
             </Link>
-            <Badge variant="outline">Đời {result.lca.generation}</Badge>
+            <Badge variant="outline">
+              {t('generationBadge', { generation: result.lca.generation })}
+            </Badge>
           </div>
         )}
 
@@ -120,7 +132,7 @@ export function RelationshipResultCard({
             <Button variant="outline" size="sm" asChild>
               <Link href={`/tree?root=${treeRootId}`}>
                 <GitBranchPlus className="mr-1.5 h-4 w-4" />
-                Xem trên cây gia phả
+                {t('viewOnTree')}
               </Link>
             </Button>
           </div>

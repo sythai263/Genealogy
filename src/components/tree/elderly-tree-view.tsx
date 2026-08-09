@@ -2,18 +2,19 @@
  * @project AncestorTree
  * @file src/components/tree/elderly-tree-view.tsx
  * @description Simplified tree view for elderly users — list grouped by generation
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Users } from 'lucide-react';
-import { useTreeData } from '@hooks';
 import { EmptyState } from '@components/shared';
 import { Badge, Skeleton } from '@components/ui';
+import { useTreeData } from '@hooks';
 import type { Person } from '@types';
 
 interface GenerationGroup {
@@ -25,6 +26,7 @@ interface GenerationGroup {
 }
 
 export function ElderlyTreeView() {
+  const t = useTranslations('Tree');
   const { data: treeData, isLoading } = useTreeData();
 
   const groups = useMemo<GenerationGroup[]>(() => {
@@ -32,7 +34,6 @@ export function ElderlyTreeView() {
 
     const { people, families, children } = treeData;
 
-    // Build father lookup: personId → fatherId
     const familyFatherMap = new Map<string, string>();
     for (const f of families) {
       if (f.father_id) familyFatherMap.set(f.id, f.father_id);
@@ -43,11 +44,9 @@ export function ElderlyTreeView() {
       if (fatherId) personFatherMap.set(c.person_id, fatherId);
     }
 
-    // Person name lookup
     const nameMap = new Map<string, string>();
     for (const p of people) nameMap.set(p.id, p.display_name);
 
-    // Group by generation
     const genMap = new Map<number, GenerationGroup['members']>();
     for (const person of people) {
       const gen = person.generation;
@@ -60,12 +59,13 @@ export function ElderlyTreeView() {
       genMap.set(gen, group);
     }
 
-    // Sort generations and members
     const sorted: GenerationGroup[] = [];
     const generations = [...genMap.keys()].sort((a, b) => a - b);
     for (const gen of generations) {
       const members = genMap.get(gen) || [];
-      members.sort((a, b) => a.person.display_name.localeCompare(b.person.display_name, 'vi'));
+      members.sort((a, b) =>
+        a.person.display_name.localeCompare(b.person.display_name, 'vi')
+      );
       sorted.push({ generation: gen, members });
     }
 
@@ -75,40 +75,52 @@ export function ElderlyTreeView() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-20 rounded-lg" />
+        ))}
       </div>
     );
   }
 
   if (groups.length === 0) {
-    return <EmptyState icon={Users} title="Chưa có dữ liệu gia phả" />;
+    return <EmptyState icon={Users} title={t('empty')} />;
   }
 
   return (
     <div className="space-y-6">
-      {groups.map(group => (
+      {groups.map((group) => (
         <div key={group.generation}>
-          <h3 className="text-lg font-bold mb-2 sticky top-0 bg-background py-1">
-            Đời {group.generation}
-            <Badge variant="outline" className="ml-2">{group.members.length} người</Badge>
+          <h3 className="sticky top-0 mb-2 bg-background py-1 text-lg font-bold">
+            {t('node.generation', { n: group.generation })}
+            <Badge variant="outline" className="ml-2">
+              {t('elderly.memberCount', { count: group.members.length })}
+            </Badge>
           </h3>
           <div className="space-y-1.5">
             {group.members.map(({ person, fatherName }) => (
               <Link
                 key={person.id}
                 href={`/people/${person.id}`}
-                className="flex items-center justify-between rounded-md border px-4 py-3 hover:bg-accent transition-colors"
+                className="flex items-center justify-between rounded-md border px-4 py-3 transition-colors hover:bg-accent"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className={`text-lg font-medium ${person.gender === 1 ? 'text-blue-700' : 'text-pink-700'}`}>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={`text-lg font-medium ${person.gender === 1 ? 'text-blue-700' : 'text-pink-700'}`}
+                  >
                     {person.display_name}
                   </span>
-                  {!person.is_living && <span className="text-muted-foreground">†</span>}
+                  {!person.is_living && (
+                    <span className="text-muted-foreground">†</span>
+                  )}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
+                <div className="flex shrink-0 items-center gap-3 text-sm text-muted-foreground">
                   {person.birth_year && <span>{person.birth_year}</span>}
                   {person.death_year && <span>– {person.death_year}</span>}
-                  {fatherName && <span className="hidden sm:inline">con {fatherName}</span>}
+                  {fatherName && (
+                    <span className="hidden sm:inline">
+                      {t('elderly.childOf', { name: fatherName })}
+                    </span>
+                  )}
                 </div>
               </Link>
             ))}

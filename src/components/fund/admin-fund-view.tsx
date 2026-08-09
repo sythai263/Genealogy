@@ -2,7 +2,7 @@
  * @project AncestorTree
  * @file src/components/fund/admin-fund-view.tsx
  * @description Admin fund & scholarship management view
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
@@ -46,7 +46,11 @@ import {
   TabsTrigger,
   Textarea,
 } from '@components/ui';
-import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
+import {
+  FUND_SCHOLARSHIP_TYPE_ORDER,
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@constants';
 import {
   useCreateFundTransaction,
   useCreateScholarship,
@@ -63,15 +67,29 @@ import { formatVND } from '@lib';
 import type {
   CreateFundTransactionInput,
   CreateScholarshipInput,
+  FundCategory,
   Person,
   ScholarshipStatus,
+  ScholarshipType,
 } from '@types';
 import { CheckCircle, Plus, Trash2, Wallet } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ScholarshipStatusBadge } from './scholarship-status-badge';
 
+const FUND_CATEGORY_ORDER: FundCategory[] = [
+  'dong_gop',
+  'hoc_bong',
+  'khen_thuong',
+  'other',
+];
+
 export function AdminFundView() {
+  const t = useTranslations('Admin');
+  const tFund = useTranslations('Fund');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const { profile, isEditor } = useAuth();
   const [txDialogOpen, setTxDialogOpen] = useState(false);
   const [schDialogOpen, setSchDialogOpen] = useState(false);
@@ -108,17 +126,15 @@ export function AdminFundView() {
     return map;
   }, [people]);
 
-  // Transaction form state
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
-  const [txCategory, setTxCategory] = useState('dong_gop');
+  const [txCategory, setTxCategory] = useState<FundCategory>('dong_gop');
   const [txAmount, setTxAmount] = useState('');
   const [txDonorName, setTxDonorName] = useState('');
   const [txDescription, setTxDescription] = useState('');
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10));
 
-  // Scholarship form state
   const [schPerson, setSchPerson] = useState<Person | null>(null);
-  const [schType, setSchType] = useState<'hoc_bong' | 'khen_thuong'>('hoc_bong');
+  const [schType, setSchType] = useState<ScholarshipType>('hoc_bong');
   const [schAmount, setSchAmount] = useState('');
   const [schReason, setSchReason] = useState('');
   const [schYear, setSchYear] = useState('2025-2026');
@@ -130,21 +146,41 @@ export function AdminFundView() {
   }
 
   const resetTxForm = () => {
-    setTxType('income'); setTxCategory('dong_gop'); setTxAmount(''); setTxDonorName(''); setTxDescription(''); setTxDate(new Date().toISOString().slice(0, 10));
+    setTxType('income');
+    setTxCategory('dong_gop');
+    setTxAmount('');
+    setTxDonorName('');
+    setTxDescription('');
+    setTxDate(new Date().toISOString().slice(0, 10));
   };
 
   const resetSchForm = () => {
-    setSchPerson(null); setSchType('hoc_bong'); setSchAmount(''); setSchReason(''); setSchYear('2025-2026'); setSchSchool(''); setSchGrade('');
+    setSchPerson(null);
+    setSchType('hoc_bong');
+    setSchAmount('');
+    setSchReason('');
+    setSchYear('2025-2026');
+    setSchSchool('');
+    setSchGrade('');
   };
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(locale);
+
+  const scholarshipTypeLabel = (type: ScholarshipType) =>
+    tFund(`scholarshipTypes.${type}`);
 
   const handleCreateTx = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedTxAmount = parseInt(txAmount);
-    if (!txAmount || isNaN(parsedTxAmount) || parsedTxAmount <= 0) { toast.error('Số tiền phải lớn hơn 0'); return; }
+    if (!txAmount || isNaN(parsedTxAmount) || parsedTxAmount <= 0) {
+      toast.error(tFund('toasts.amountInvalid'));
+      return;
+    }
     try {
       const input: CreateFundTransactionInput = {
         type: txType,
-        category: txCategory as CreateFundTransactionInput['category'],
+        category: txCategory,
         amount: parsedTxAmount,
         donor_name: txDonorName || undefined,
         description: txDescription || undefined,
@@ -152,18 +188,21 @@ export function AdminFundView() {
         created_by: profile?.id,
       };
       await createTx.mutateAsync(input);
-      toast.success('Đã thêm giao dịch');
+      toast.success(tFund('toasts.txSuccess'));
       setTxDialogOpen(false);
       resetTxForm();
     } catch {
-      toast.error('Lỗi khi thêm giao dịch');
+      toast.error(tFund('toasts.txError'));
     }
   };
 
   const handleCreateSch = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedSchAmount = parseInt(schAmount);
-    if (!schPerson || !schAmount || isNaN(parsedSchAmount) || parsedSchAmount <= 0) { toast.error('Vui lòng điền đủ thông tin (số tiền > 0)'); return; }
+    if (!schPerson || !schAmount || isNaN(parsedSchAmount) || parsedSchAmount <= 0) {
+      toast.error(tFund('toasts.fieldsRequired'));
+      return;
+    }
     try {
       const input: CreateScholarshipInput = {
         person_id: schPerson.id,
@@ -176,122 +215,182 @@ export function AdminFundView() {
         status: 'pending',
       };
       await createSch.mutateAsync(input);
-      toast.success('Đã thêm đề cử');
+      toast.success(tFund('toasts.schSuccess'));
       setSchDialogOpen(false);
       resetSchForm();
     } catch {
-      toast.error('Lỗi khi thêm đề cử');
+      toast.error(tFund('toasts.schError'));
     }
   };
 
   const handleApprove = async (id: string, status: ScholarshipStatus) => {
     try {
       await updateSchStatus.mutateAsync({ id, status, approvedBy: profile?.id });
-      toast.success(status === 'approved' ? 'Đã duyệt' : 'Đã cấp phát');
+      toast.success(
+        status === 'approved'
+          ? t('features.fund.approved')
+          : t('features.fund.paid')
+      );
     } catch {
-      toast.error('Lỗi khi cập nhật');
+      toast.error(tFund('toasts.updateError'));
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Quản lý Quỹ & Học bổng</h1>
+        <h1 className="text-2xl font-bold">{t('features.fund.title')}</h1>
         <p className="text-muted-foreground">
-          Số dư: <span className="font-semibold text-emerald-600">{formatVND(balance?.balance || 0)}</span>
+          {t('features.fund.balance', {
+            amount: formatVND(balance?.balance || 0),
+          })}
         </p>
       </div>
 
       <Tabs defaultValue="transactions">
         <TabsList>
-          <TabsTrigger value="transactions">Giao dịch</TabsTrigger>
-          <TabsTrigger value="scholarships">Học bổng</TabsTrigger>
+          <TabsTrigger value="transactions">{tFund('transactions')}</TabsTrigger>
+          <TabsTrigger value="scholarships">{tFund('scholarships')}</TabsTrigger>
         </TabsList>
 
-        {/* Transactions */}
         <TabsContent value="transactions" className="mt-4 space-y-4">
           <Dialog open={txDialogOpen} onOpenChange={setTxDialogOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Thêm giao dịch</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('features.fund.addTx')}
+              </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Thêm giao dịch</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>{t('features.fund.addTx')}</DialogTitle>
+              </DialogHeader>
               <form onSubmit={handleCreateTx} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Loại</Label>
-                    <Select value={txType} onValueChange={v => setTxType(v as 'income' | 'expense')}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Label>{tFund('form.type')}</Label>
+                    <Select
+                      value={txType}
+                      onValueChange={(v) => setTxType(v as 'income' | 'expense')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="income">Thu</SelectItem>
-                        <SelectItem value="expense">Chi</SelectItem>
+                        <SelectItem value="income">{tFund('income')}</SelectItem>
+                        <SelectItem value="expense">{tFund('expense')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Danh mục</Label>
-                    <Select value={txCategory} onValueChange={setTxCategory}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Label>{tFund('form.category')}</Label>
+                    <Select
+                      value={txCategory}
+                      onValueChange={(v) => setTxCategory(v as FundCategory)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="dong_gop">Đóng góp</SelectItem>
-                        <SelectItem value="hoc_bong">Học bổng</SelectItem>
-                        <SelectItem value="khen_thuong">Khen thưởng</SelectItem>
-                        <SelectItem value="other">Khác</SelectItem>
+                        {FUND_CATEGORY_ORDER.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {tFund(`form.categories.${category}`)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div>
-                  <Label>Số tiền (VNĐ) *</Label>
-                  <Input type="number" value={txAmount} onChange={e => setTxAmount(e.target.value)} placeholder="1000000" />
+                  <Label>{tFund('form.amountRequired')}</Label>
+                  <Input
+                    type="number"
+                    value={txAmount}
+                    onChange={(e) => setTxAmount(e.target.value)}
+                    placeholder="1000000"
+                  />
                 </div>
                 <div>
-                  <Label>Người đóng góp</Label>
-                  <Input value={txDonorName} onChange={e => setTxDonorName(e.target.value)} placeholder="Ông Đặng Văn A" />
+                  <Label>{tFund('form.donor')}</Label>
+                  <Input
+                    value={txDonorName}
+                    onChange={(e) => setTxDonorName(e.target.value)}
+                    placeholder={t('features.fund.placeholderPerson')}
+                  />
                 </div>
                 <div>
-                  <Label>Ngày</Label>
-                  <Input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} />
+                  <Label>{tFund('form.date')}</Label>
+                  <Input
+                    type="date"
+                    value={txDate}
+                    onChange={(e) => setTxDate(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <Label>Ghi chú</Label>
-                  <Textarea value={txDescription} onChange={e => setTxDescription(e.target.value)} rows={2} />
+                  <Label>{tFund('form.note')}</Label>
+                  <Textarea
+                    value={txDescription}
+                    onChange={(e) => setTxDescription(e.target.value)}
+                    rows={2}
+                  />
                 </div>
                 <Button type="submit" disabled={createTx.isPending} className="w-full">
-                  {createTx.isPending ? 'Đang lưu...' : 'Thêm giao dịch'}
+                  {createTx.isPending
+                    ? tCommon('saving')
+                    : t('features.fund.addTx')}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
 
           <div className="space-y-2">
-            {transactions.map(tx => (
+            {transactions.map((tx) => (
               <Card key={tx.id}>
                 <CardContent className="p-3 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">
-                      {tx.donor_name || tx.description || (tx.type === 'income' ? 'Thu' : 'Chi')}
+                      {tx.donor_name ||
+                        tx.description ||
+                        (tx.type === 'income' ? tFund('income') : tFund('expense'))}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(tx.transaction_date).toLocaleDateString('vi-VN')}
+                      {formatDate(tx.transaction_date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {tx.type === 'income' ? '+' : '-'}{formatVND(tx.amount)}
+                    <span
+                      className={`font-semibold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}
+                    >
+                      {tx.type === 'income' ? '+' : '-'}
+                      {formatVND(tx.amount)}
                     </span>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Xóa giao dịch?</AlertDialogTitle>
-                          <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
+                          <AlertDialogTitle>
+                            {t('features.fund.deleteTxTitle')}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('features.fund.deleteConfirmDescription')}
+                          </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Hủy</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteTx.mutateAsync(tx.id).then(() => toast.success('Đã xóa')).catch(() => toast.error('Lỗi'))}>Xóa</AlertDialogAction>
+                          <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() =>
+                              deleteTx
+                                .mutateAsync(tx.id)
+                                .then(() => toast.success(tFund('toasts.deleteSuccess')))
+                                .catch(() => toast.error(tFund('toasts.deleteError')))
+                            }
+                          >
+                            {tCommon('delete')}
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -300,7 +399,7 @@ export function AdminFundView() {
               </Card>
             ))}
             {transactions.length === 0 && (
-              <EmptyState icon={Wallet} title="Chưa có giao dịch nào" />
+              <EmptyState icon={Wallet} title={t('features.fund.emptyTx')} />
             )}
           </div>
           <ListPagination
@@ -309,103 +408,165 @@ export function AdminFundView() {
             total={transactionsPage?.total ?? 0}
             onPageChange={setTxPage}
             onPageSizeChange={setTxPageSize}
-            itemLabel="giao dịch"
+            itemLabel={t('features.fund.txCount')}
           />
         </TabsContent>
 
-        {/* Scholarships */}
         <TabsContent value="scholarships" className="mt-4 space-y-4">
           <Dialog open={schDialogOpen} onOpenChange={setSchDialogOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Đề cử học bổng / khen thưởng</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('features.fund.nominateTitle')}
+              </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Đề cử học bổng / khen thưởng</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>{t('features.fund.nominateTitle')}</DialogTitle>
+              </DialogHeader>
               <form onSubmit={handleCreateSch} className="space-y-4">
                 <div>
                   <PersonCombobox
-                    label="Thành viên *"
+                    label={t('features.fund.personRequired')}
                     selected={schPerson}
                     onSelect={setSchPerson}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Loại</Label>
-                    <Select value={schType} onValueChange={v => setSchType(v as 'hoc_bong' | 'khen_thuong')}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Label>{tFund('form.type')}</Label>
+                    <Select
+                      value={schType}
+                      onValueChange={(v) => setSchType(v as ScholarshipType)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="hoc_bong">Học bổng</SelectItem>
-                        <SelectItem value="khen_thuong">Khen thưởng</SelectItem>
+                        {FUND_SCHOLARSHIP_TYPE_ORDER.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {scholarshipTypeLabel(type)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Số tiền (VNĐ) *</Label>
-                    <Input type="number" value={schAmount} onChange={e => setSchAmount(e.target.value)} />
+                    <Label>{tFund('form.amountRequired')}</Label>
+                    <Input
+                      type="number"
+                      value={schAmount}
+                      onChange={(e) => setSchAmount(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Năm học</Label>
-                    <Input value={schYear} onChange={e => setSchYear(e.target.value)} placeholder="2025-2026" />
+                    <Label>{tFund('form.year')}</Label>
+                    <Input
+                      value={schYear}
+                      onChange={(e) => setSchYear(e.target.value)}
+                      placeholder="2025-2026"
+                    />
                   </div>
                   <div>
-                    <Label>Lớp / Cấp</Label>
-                    <Input value={schGrade} onChange={e => setSchGrade(e.target.value)} placeholder="Lớp 10" />
+                    <Label>{tFund('form.gradeLevel')}</Label>
+                    <Input
+                      value={schGrade}
+                      onChange={(e) => setSchGrade(e.target.value)}
+                      placeholder={t('features.fund.placeholderClass')}
+                    />
                   </div>
                 </div>
                 <div>
-                  <Label>Trường</Label>
-                  <Input value={schSchool} onChange={e => setSchSchool(e.target.value)} placeholder="THPT Cầm Bá Thước" />
+                  <Label>{tFund('form.school')}</Label>
+                  <Input
+                    value={schSchool}
+                    onChange={(e) => setSchSchool(e.target.value)}
+                    placeholder={t('features.fund.placeholderSchool')}
+                  />
                 </div>
                 <div>
-                  <Label>Lý do</Label>
-                  <Textarea value={schReason} onChange={e => setSchReason(e.target.value)} rows={2} />
+                  <Label>{tFund('form.reason')}</Label>
+                  <Textarea
+                    value={schReason}
+                    onChange={(e) => setSchReason(e.target.value)}
+                    rows={2}
+                  />
                 </div>
                 <Button type="submit" disabled={createSch.isPending} className="w-full">
-                  {createSch.isPending ? 'Đang lưu...' : 'Đề cử'}
+                  {createSch.isPending
+                    ? tCommon('saving')
+                    : t('features.fund.nominate')}
                 </Button>
               </form>
             </DialogContent>
           </Dialog>
 
           <div className="space-y-2">
-            {scholarships.map(s => {
+            {scholarships.map((s) => {
               const person = peopleMap.get(s.person_id);
               return (
                 <Card key={s.id}>
                   <CardContent className="p-3 flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">{person?.display_name || '?'}</p>
+                      <p className="font-medium text-sm">
+                        {person?.display_name || tCommon('unknown')}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {s.type === 'hoc_bong' ? 'Học bổng' : 'Khen thưởng'} · {formatVND(s.amount)} · {s.academic_year}
+                        {scholarshipTypeLabel(s.type)} · {formatVND(s.amount)} ·{' '}
+                        {s.academic_year}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <ScholarshipStatusBadge status={s.status} />
                       {s.status === 'pending' && (
-                        <Button size="sm" variant="outline" onClick={() => handleApprove(s.id, 'approved')}>
-                          <CheckCircle className="h-3 w-3 mr-1" />Duyệt
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(s.id, 'approved')}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          {t('features.fund.approve')}
                         </Button>
                       )}
                       {s.status === 'approved' && (
-                        <Button size="sm" variant="outline" onClick={() => handleApprove(s.id, 'paid')}>
-                          <CheckCircle className="h-3 w-3 mr-1" />Cấp
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove(s.id, 'paid')}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          {t('features.fund.disburse')}
                         </Button>
                       )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Xóa đề cử?</AlertDialogTitle>
-                            <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
+                            <AlertDialogTitle>
+                              {t('features.fund.deleteSchTitle')}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('features.fund.deleteConfirmDescription')}
+                            </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteSch.mutateAsync(s.id).then(() => toast.success('Đã xóa')).catch(() => toast.error('Lỗi'))}>Xóa</AlertDialogAction>
+                            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                deleteSch
+                                  .mutateAsync(s.id)
+                                  .then(() => toast.success(tFund('toasts.deleteSuccess')))
+                                  .catch(() => toast.error(tFund('toasts.deleteError')))
+                              }
+                            >
+                              {tCommon('delete')}
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -415,7 +576,7 @@ export function AdminFundView() {
               );
             })}
             {scholarships.length === 0 && (
-              <EmptyState title="Chưa có đề cử nào" />
+              <EmptyState title={t('features.fund.emptySch')} />
             )}
           </div>
           <ListPagination
@@ -424,7 +585,7 @@ export function AdminFundView() {
             total={scholarshipsPage?.total ?? 0}
             onPageChange={setSchPage}
             onPageSizeChange={setSchPageSize}
-            itemLabel="đề cử"
+            itemLabel={t('features.fund.schCount')}
           />
         </TabsContent>
       </Tabs>

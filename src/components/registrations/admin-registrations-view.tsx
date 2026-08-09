@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/registrations/admin-registrations-view.tsx
  * @description Admin view to review member registration requests
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   Check,
@@ -52,9 +53,10 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   REGISTRATION_DEFAULT_STATUS_FILTER,
   REGISTRATION_STATUS_FILTER_ALL,
-  REGISTRATION_STATUS_FILTER_OPTIONS,
+  REGISTRATION_STATUS_FILTER_VALUES,
   REGISTRATION_STATUS_MAP,
   type ListPageSize,
+  type RegistrationStatusFilter,
 } from '@constants';
 import {
   useApproveRegistration,
@@ -64,11 +66,31 @@ import {
   useResettablePage,
 } from '@hooks';
 import { getRelativeTime } from '@lib';
-import type { MemberRegistration } from '@types';
+import type { MemberRegistration, RegistrationStatus } from '@types';
+
+function registrationFilterLabel(
+  value: RegistrationStatusFilter,
+  t: ReturnType<typeof useTranslations<'Admin'>>
+): string {
+  if (value === REGISTRATION_STATUS_FILTER_ALL) {
+    return t('registrations.filters.all');
+  }
+  return t(`registrations.filters.${value}` as 'registrations.filters.pending');
+}
+
+function registrationStatusLabel(
+  status: RegistrationStatus,
+  t: ReturnType<typeof useTranslations<'Admin'>>
+): string {
+  return t(`registrations.statuses.${status}` as 'registrations.statuses.pending');
+}
 
 export function AdminRegistrationsView() {
+  const t = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
+  const tPeople = useTranslations('People');
   const { isEditor, isAdmin } = useAuth();
-  const [statusFilter, setStatusFilter] = useState(
+  const [statusFilter, setStatusFilter] = useState<RegistrationStatusFilter>(
     REGISTRATION_DEFAULT_STATUS_FILTER
   );
   const [search, setSearch] = useState('');
@@ -108,9 +130,9 @@ export function AdminRegistrationsView() {
   async function handleApprove(reg: MemberRegistration) {
     try {
       await approveMutation.mutateAsync({ id: reg.id });
-      toast.success(`Đã duyệt ${reg.full_name}`);
+      toast.success(t('registrations.toasts.approveSuccess', { name: reg.full_name }));
     } catch {
-      toast.error('Lỗi khi duyệt');
+      toast.error(t('registrations.toasts.approveError'));
     }
   }
 
@@ -121,11 +143,13 @@ export function AdminRegistrationsView() {
         id: rejectTarget.id,
         reason: rejectReason,
       });
-      toast.success(`Đã từ chối ${rejectTarget.full_name}`);
+      toast.success(
+        t('registrations.toasts.rejectSuccess', { name: rejectTarget.full_name })
+      );
       setRejectTarget(null);
       setRejectReason('');
     } catch {
-      toast.error('Lỗi khi từ chối');
+      toast.error(t('registrations.toasts.rejectError'));
     }
   }
 
@@ -133,10 +157,10 @@ export function AdminRegistrationsView() {
     if (!deleteTarget) return;
     try {
       await deleteMutation.mutateAsync(deleteTarget.id);
-      toast.success('Đã xóa đơn đăng ký');
+      toast.success(t('registrations.toasts.deleteSuccess'));
       setDeleteTarget(null);
     } catch {
-      toast.error('Lỗi khi xóa');
+      toast.error(t('registrations.toasts.deleteError'));
     }
   }
 
@@ -145,31 +169,33 @@ export function AdminRegistrationsView() {
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <ClipboardList className="h-6 w-6" />
-          Đơn đăng ký thành viên
+          {t('registrations.title')}
         </h1>
-        <p className="text-muted-foreground">
-          Xét duyệt đơn ghi danh từ con cháu sống xa
-        </p>
+        <p className="text-muted-foreground">{t('registrations.subtitle')}</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Tìm theo tên..."
+            placeholder={t('registrations.searchPlaceholder')}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as RegistrationStatusFilter)
+          }>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {REGISTRATION_STATUS_FILTER_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {REGISTRATION_STATUS_FILTER_VALUES.map((value) => (
+              <SelectItem key={value} value={value}>
+                {registrationFilterLabel(value, t)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -182,8 +208,8 @@ export function AdminRegistrationsView() {
         emptyIcon={UserPlus}
         emptyTitle={
           statusFilter === 'pending'
-            ? 'Không có đơn chờ duyệt'
-            : 'Không có kết quả'
+            ? t('registrations.emptyPending')
+            : t('registrations.noResults')
         }
         skeletonRows={3}
       >
@@ -196,8 +222,9 @@ export function AdminRegistrationsView() {
                     <div>
                       <CardTitle className="text-base">{reg.full_name}</CardTitle>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {reg.gender === 1 ? 'Nam' : 'Nữ'}
-                        {reg.birth_year && ` · Sinh ${reg.birth_year}`}
+                        {reg.gender === 1 ? tCommon('male') : tCommon('female')}
+                        {reg.birth_year &&
+                          ` · ${t('registrations.birthYearPrefix', { year: reg.birth_year })}`}
                         {reg.birth_place && ` · ${reg.birth_place}`}
                       </p>
                     </div>
@@ -207,8 +234,7 @@ export function AdminRegistrationsView() {
                         'outline'
                       }
                     >
-                      {REGISTRATION_STATUS_MAP[reg.status]?.label ??
-                        reg.status}
+                      {registrationStatusLabel(reg.status, t)}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -216,37 +242,49 @@ export function AdminRegistrationsView() {
                   <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
                     {reg.parent_name && (
                       <div>
-                        <span className="text-muted-foreground">Cha/mẹ: </span>
+                        <span className="text-muted-foreground">
+                          {t('registrations.fields.parent')}:{' '}
+                        </span>
                         {reg.parent_name}
                       </div>
                     )}
                     {reg.generation && (
                       <div>
-                        <span className="text-muted-foreground">Đời: </span>
+                        <span className="text-muted-foreground">
+                          {tCommon('generation')}:{' '}
+                        </span>
                         {reg.generation}
                       </div>
                     )}
                     {reg.chi && (
                       <div>
-                        <span className="text-muted-foreground">Chi: </span>
+                        <span className="text-muted-foreground">
+                          {tCommon('chi')}:{' '}
+                        </span>
                         {reg.chi}
                       </div>
                     )}
                     {reg.relationship && (
                       <div>
-                        <span className="text-muted-foreground">Quan hệ: </span>
+                        <span className="text-muted-foreground">
+                          {t('registrations.fields.relationship')}:{' '}
+                        </span>
                         {reg.relationship}
                       </div>
                     )}
                     {reg.phone && (
                       <div>
-                        <span className="text-muted-foreground">SĐT: </span>
+                        <span className="text-muted-foreground">
+                          {tPeople('form.phone')}:{' '}
+                        </span>
                         {reg.phone}
                       </div>
                     )}
                     {reg.email && (
                       <div>
-                        <span className="text-muted-foreground">Email: </span>
+                        <span className="text-muted-foreground">
+                          {tPeople('form.email')}:{' '}
+                        </span>
                         {reg.email}
                       </div>
                     )}
@@ -258,7 +296,9 @@ export function AdminRegistrationsView() {
                   )}
                   {reg.reject_reason && (
                     <p className="border-t pt-2 text-xs text-red-500">
-                      Lý do từ chối: {reg.reject_reason}
+                      {t('registrations.rejectReasonLabel', {
+                        reason: reg.reject_reason,
+                      })}
                     </p>
                   )}
 
@@ -277,7 +317,7 @@ export function AdminRegistrationsView() {
                             disabled={approveMutation.isPending}
                           >
                             <Check className="mr-1 h-3 w-3" />
-                            Duyệt
+                            {t('registrations.actions.approve')}
                           </Button>
                           <Button
                             size="sm"
@@ -289,7 +329,7 @@ export function AdminRegistrationsView() {
                             }}
                           >
                             <X className="mr-1 h-3 w-3" />
-                            Từ chối
+                            {t('registrations.actions.reject')}
                           </Button>
                         </>
                       )}
@@ -299,6 +339,7 @@ export function AdminRegistrationsView() {
                           variant="ghost"
                           className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
                           onClick={() => setDeleteTarget(reg)}
+                          title={t('registrations.actions.delete')}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -315,7 +356,7 @@ export function AdminRegistrationsView() {
             total={total}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            itemLabel="đơn"
+            itemLabel={t('registrations.countLabel')}
           />
         </div>
       </QueryBoundary>
@@ -328,20 +369,21 @@ export function AdminRegistrationsView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Từ chối đơn đăng ký</AlertDialogTitle>
+            <AlertDialogTitle>{t('registrations.rejectDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Từ chối đơn của <strong>{rejectTarget?.full_name}</strong>. Vui
-              lòng ghi lý do.
+              {t('registrations.rejectDialog.description', {
+                name: rejectTarget?.full_name ?? '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
             value={rejectReason}
             onChange={(event) => setRejectReason(event.target.value)}
-            placeholder="Lý do từ chối..."
+            placeholder={t('registrations.rejectDialog.reasonPlaceholder')}
             rows={3}
           />
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleReject()}
               disabled={!rejectReason.trim() || rejectMutation.isPending}
@@ -349,7 +391,7 @@ export function AdminRegistrationsView() {
               {rejectMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Từ chối
+              {t('registrations.actions.reject')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -363,14 +405,15 @@ export function AdminRegistrationsView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa đơn đăng ký?</AlertDialogTitle>
+            <AlertDialogTitle>{t('registrations.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Xóa vĩnh viễn đơn của <strong>{deleteTarget?.full_name}</strong>.
-              Không thể hoàn tác.
+              {t('registrations.deleteDialog.description', {
+                name: deleteTarget?.full_name ?? '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDelete()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -378,7 +421,7 @@ export function AdminRegistrationsView() {
               {deleteMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Xóa
+              {t('registrations.actions.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

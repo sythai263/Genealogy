@@ -1,13 +1,18 @@
 /**
  * @project AncestorTree
- * @file src/components/tree/family-tree-v3.tsx
+ * @file src/components/tree/family-tree.tsx
  * @description Interactive family tree orchestrator (horizontal / vertical)
- * @version 5.3.0
- * @updated 2026-07-19
+ * @version 5.4.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import * as d3 from 'd3';
+import { AlertCircle } from 'lucide-react';
 import { Skeleton } from '@components/ui';
 import {
   TREE_ROOT_QUERY_PARAM,
@@ -26,10 +31,6 @@ import type {
   TreeOrientation,
   TreeSvgDatum,
 } from '@types';
-import * as d3 from 'd3';
-import { AlertCircle } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
 import { FamilyTreeToolbar } from './family-tree-toolbar';
@@ -51,6 +52,7 @@ export function FamilyTree({
   variant = 'app',
   className,
 }: FamilyTreeProps) {
+  const tCommon = useTranslations('Common');
   const isPublic = variant === 'public';
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -272,7 +274,7 @@ export function FamilyTree({
         )}
       >
         <AlertCircle className="mb-2 h-10 w-10 opacity-80" />
-        <h3 className="text-lg font-semibold">Đã có lỗi xảy ra</h3>
+        <h3 className="text-lg font-semibold">{tCommon('errorTitle')}</h3>
         <p className="text-sm opacity-80">{error.message}</p>
       </div>
     );

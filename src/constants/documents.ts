@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/constants/documents.ts
- * @description Shared constants for documents hub, library, and book
- * @version 1.1.0
- * @updated 2026-07-18
+ * @description Shared constants for documents hub, library, and book (labels via next-intl)
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 import {
@@ -21,15 +21,6 @@ import type { DocumentCategory } from '@types';
 
 export const DOCUMENTS_PRIVATE_PRIVACY_LEVEL = 2;
 
-export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
-  anh_lich_su: 'Ảnh lịch sử',
-  giay_to: 'Giấy tờ',
-  ban_do: 'Bản đồ',
-  video: 'Video',
-  bai_viet: 'Bài viết',
-  khac: 'Khác',
-};
-
 export const DOCUMENT_CATEGORY_ORDER: DocumentCategory[] = [
   'anh_lich_su',
   'giay_to',
@@ -39,30 +30,15 @@ export const DOCUMENT_CATEGORY_ORDER: DocumentCategory[] = [
   'khac',
 ];
 
-export const DOCUMENT_PRIVACY_LABELS: Record<0 | 1 | 2, string> = {
-  0: 'Công khai',
-  1: 'Thành viên',
-  2: 'Nội bộ',
-};
+export const DOCUMENT_PRIVACY_LEVELS = [0, 1, 2] as const;
 
-export const BOOK_MOTTO = 'Gìn giữ tinh hoa - Tiếp bước cha ông';
+export type DocumentPrivacyLevel = (typeof DOCUMENT_PRIVACY_LEVELS)[number];
 
 export interface DocumentsHubLinkConfig {
   id: 'book' | 'library';
   href: string;
-  title: string;
-  description: string;
-  body: string;
-  actionLabel: string;
   iconTone: 'purple' | 'amber';
 }
-
-export const DOCUMENT_CATEGORY_OPTIONS = DOCUMENT_CATEGORY_ORDER.map(
-  (value) => ({
-    value,
-    label: DOCUMENT_CATEGORY_LABELS[value],
-  })
-);
 
 export const DOCUMENT_CATEGORY_ICONS: Record<DocumentCategory, LucideIcon> = {
   anh_lich_su: Image,
@@ -99,19 +75,11 @@ export const DOCUMENTS_HUB_LINKS: DocumentsHubLinkConfig[] = [
   {
     id: 'book',
     href: '/documents/book',
-    title: 'Gia Phả Sách',
-    description: 'Xem và in gia phả dạng sách truyền thống',
-    body: 'Trình bày gia phả theo từng đời, từng chi với đầy đủ thông tin thành viên. Hỗ trợ in trực tiếp hoặc lưu PDF.',
-    actionLabel: 'Xem Gia Phả Sách',
     iconTone: 'purple',
   },
   {
     id: 'library',
     href: '/documents/library',
-    title: 'Kho tài liệu',
-    description: 'Lưu trữ ảnh lịch sử, giấy tờ, bản đồ, video',
-    body: 'Kho lưu giữ ký ức dòng họ: ảnh cũ, gia phả giấy đã số hóa, bản đồ làng, video lễ hội, bài viết lịch sử.',
-    actionLabel: 'Xem Kho tài liệu',
     iconTone: 'amber',
   },
 ];

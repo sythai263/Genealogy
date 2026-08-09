@@ -2,12 +2,13 @@
  * @project AncestorTree
  * @file src/components/notifications/notification-list-item.tsx
  * @description Single notification row in the full notifications list
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Trash2 } from 'lucide-react';
 import {
   Badge,
@@ -19,11 +20,10 @@ import {
 import {
   NOTIFICATION_FALLBACK_ICON,
   NOTIFICATION_TYPE_ICONS,
-  NOTIFICATION_TYPE_LABELS,
 } from '@constants';
 import { getRelativeTime } from '@lib';
 import { cn } from '@lib';
-import type { Notification } from '@types';
+import type { Notification, NotificationType } from '@types';
 
 interface NotificationListItemProps {
   notification: Notification;
@@ -31,11 +31,17 @@ interface NotificationListItemProps {
   onDelete: (event: React.MouseEvent, id: string) => void;
 }
 
+function typeLabelKey(type: NotificationType): `types.${NotificationType}` {
+  return `types.${type}`;
+}
+
 export function NotificationListItem({
   notification,
   onOpen,
   onDelete,
 }: NotificationListItemProps) {
+  const t = useTranslations('Notifications');
+
   return (
     <Card
       className={cn(
@@ -79,8 +85,7 @@ export function NotificationListItem({
                 {getRelativeTime(notification.created_at)}
               </span>
               <Badge variant="outline" className="px-1 py-0 text-[9px]">
-                {NOTIFICATION_TYPE_LABELS[notification.type] ||
-                  notification.type}
+                {t(typeLabelKey(notification.type))}
               </Badge>
             </div>
           </div>

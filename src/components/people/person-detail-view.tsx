@@ -2,14 +2,15 @@
  * @project AncestorTree
  * @file src/components/people/person-detail-view.tsx
  * @description Person detail view
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
@@ -21,10 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
-import {
-  PERSON_NOT_FOUND_DESCRIPTION,
-  ROUTE_ERROR_TITLES,
-} from '@constants';
 import { useCanEditPerson, useDeletePerson, usePerson } from '@hooks';
 import { FamilyRelationsCard } from './family-relations-card';
 import { PersonBirthDeathCard } from './person-birth-death-card';
@@ -37,6 +34,8 @@ interface PersonDetailViewProps {
 }
 
 export function PersonDetailView({ personId }: PersonDetailViewProps) {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const { data: person, isLoading, error } = usePerson(personId);
   const deleteMutation = useDeletePerson();
@@ -48,11 +47,11 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
   function handleDelete() {
     deleteMutation.mutate(personId, {
       onSuccess: () => {
-        toast.success('Đã xóa thành công');
+        toast.success(t('toasts.deleteSuccess'));
         router.push('/people');
       },
       onError: () => {
-        toast.error('Lỗi khi xóa');
+        toast.error(t('toasts.deleteError'));
       },
     });
   }
@@ -66,15 +65,15 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
       <div className="container mx-auto max-w-4xl p-4">
         <ErrorState
           error={error}
-          title={ROUTE_ERROR_TITLES.personDetail}
-          description={PERSON_NOT_FOUND_DESCRIPTION}
+          title={tCommon('routeErrors.personDetail')}
+          description={tCommon('notFound.personDescription')}
           className="border-destructive"
         />
         <div className="mt-4 flex justify-center">
           <Button asChild variant="outline">
             <Link href="/people">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại
+              {tCommon('back')}
             </Link>
           </Button>
         </div>
@@ -87,7 +86,7 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
       <Button asChild variant="ghost" size="sm">
         <Link href="/people">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Danh sách thành viên
+          {t('backToList')}
         </Link>
       </Button>
 
@@ -106,7 +105,7 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
       {person.biography && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tiểu sử</CardTitle>
+            <CardTitle className="text-base">{t('form.biography')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap">{person.biography}</p>
@@ -117,7 +116,7 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
       {person.notes && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Ghi chú</CardTitle>
+            <CardTitle className="text-base">{t('form.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap text-muted-foreground">

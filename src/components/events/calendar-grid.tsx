@@ -2,15 +2,16 @@
  * @project AncestorTree
  * @file src/components/events/calendar-grid.tsx
  * @description Monthly calendar grid with lunar dates and events overlay
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
+import { EVENT_TYPE_META } from '@constants';
 import { getNextLunarOccurrence, parseLunarString, solarToLunar } from '@lib';
 import type { Event, Person } from '@types';
+import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 interface CalendarGridProps {
@@ -26,9 +27,18 @@ export function CalendarGrid({
   events,
   people,
 }: CalendarGridProps) {
+  const t = useTranslations('Events');
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0=Sun
-  const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const dayNames = [
+    t('weekdays.sun'),
+    t('weekdays.mon'),
+    t('weekdays.tue'),
+    t('weekdays.wed'),
+    t('weekdays.thu'),
+    t('weekdays.fri'),
+    t('weekdays.sat'),
+  ];
 
   // Pre-compute all lunar dates for the month in a single pass (fix m1)
   const lunarDates = useMemo(() => {
@@ -119,12 +129,12 @@ export function CalendarGrid({
                 </span>
               </div>
               {dayEvts.map(({ event }) => {
-                const typeInfo = EVENT_TYPE_LABELS[event.event_type];
+                const typeInfo = EVENT_TYPE_META[event.event_type];
                 return (
                   <div
                     key={event.id}
                     className={`text-[10px] px-1 py-0.5 rounded mb-0.5 truncate ${typeInfo.color}`}
-                    title={event.title}>
+                    title={`${event.title} (${t(`types.${event.event_type}`)})`}>
                     {event.title}
                   </div>
                 );

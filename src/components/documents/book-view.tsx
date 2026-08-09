@@ -2,22 +2,25 @@
  * @project AncestorTree
  * @file src/components/documents/book-view.tsx
  * @description Printable family chronicle book view
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { ErrorState, PageSkeleton } from '@components/shared';
 import { Button, Separator } from '@components/ui';
-import { BOOK_MOTTO, ROUTE_ERROR_TITLES } from '@constants';
 import { useClanSettings, useTreeData } from '@hooks';
 import { CLAN_FULL_NAME, generateBookData } from '@lib';
 import { BookChapterSection } from './book-chapter-section';
 
 export function BookView() {
+  const t = useTranslations('Documents');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const { data: treeData, isLoading, error } = useTreeData();
   const { data: clanSettings } = useClanSettings();
   const clanFullName = clanSettings?.clan_full_name ?? CLAN_FULL_NAME;
@@ -31,14 +34,14 @@ export function BookView() {
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <ErrorState
           error={error}
-          title={ROUTE_ERROR_TITLES.documentsBook}
-          description="Không có dữ liệu gia phả để dựng sách."
+          title={tCommon('routeErrors.documentsBook')}
+          description={t('book.emptyDescription')}
         />
         <div className="mt-4 flex justify-center">
           <Button asChild variant="outline">
             <Link href="/documents">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại
+              {tCommon('back')}
             </Link>
           </Button>
         </div>
@@ -63,37 +66,44 @@ export function BookView() {
         <Button asChild variant="ghost" size="sm">
           <Link href="/documents">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Tài liệu
+            {t('title')}
           </Link>
         </Button>
         <Button onClick={() => window.print()} size="sm">
           <Printer className="mr-2 h-4 w-4" />
-          In / Lưu PDF
+          {t('book.printSave')}
         </Button>
       </div>
 
       <div className="book-content space-y-8">
         <div className="book-cover border-b-2 border-emerald-600 py-12 text-center">
           <h1 className="mb-2 text-3xl font-bold text-emerald-900 md:text-4xl">
-            Gia Phả
+            {t('book.coverTitle')}
           </h1>
           <h2 className="mb-4 text-xl font-semibold text-emerald-700 md:text-2xl">
             {clanFullName}
           </h2>
           <p className="mb-6 text-muted-foreground italic">
-            &ldquo;{BOOK_MOTTO}&rdquo;
+            &ldquo;{t('book.motto')}&rdquo;
           </p>
           <Separator className="mx-auto max-w-xs" />
           <div className="mt-6 space-y-1 text-sm text-muted-foreground">
             <p>
-              {totalPeople} thành viên · {chapters.length} đời
+              {t('book.summary', {
+                people: totalPeople,
+                generations: chapters.length,
+              })}
             </p>
-            <p>Xuất bản: {new Date().toLocaleDateString('vi-VN')}</p>
+            <p>
+              {t('book.published', {
+                date: new Date().toLocaleDateString(locale),
+              })}
+            </p>
           </div>
         </div>
 
         <div className="book-toc">
-          <h2 className="mb-3 text-lg font-bold">Mục lục</h2>
+          <h2 className="mb-3 text-lg font-bold">{t('book.toc')}</h2>
           <div className="space-y-1">
             {chapters.map((chapter) => {
               const count = chapter.branches.reduce(
@@ -106,7 +116,9 @@ export function BookView() {
                   className="flex justify-between border-b border-dotted pb-1 text-sm"
                 >
                   <span>{chapter.title}</span>
-                  <span className="text-muted-foreground">{count} người</span>
+                  <span className="text-muted-foreground">
+                    {t('book.peopleCount', { count })}
+                  </span>
                 </div>
               );
             })}
@@ -114,16 +126,13 @@ export function BookView() {
         </div>
 
         {chapters.map((chapter) => (
-          <BookChapterSection
-            key={chapter.generation}
-            chapter={chapter}
-          />
+          <BookChapterSection key={chapter.generation} chapter={chapter} />
         ))}
 
         <div className="border-t pt-6 text-center text-sm text-muted-foreground">
-          <p>Gia Phả Điện Tử - {clanFullName}</p>
+          <p>{t('book.footer', { clan: clanFullName })}</p>
           <p>
-            Được tạo bởi AncestorTree · {new Date().getFullYear()}
+            {t('book.createdBy', { year: new Date().getFullYear() })}
           </p>
         </div>
       </div>

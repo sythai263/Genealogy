@@ -1,6 +1,15 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/otp-email-form.tsx
+ * @description Email OTP login flow (send + verify)
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -18,8 +27,8 @@ import {
 import { useSendLoginOtp, useVerifyLoginOtp } from '@hooks';
 import { isAuthServiceError } from '@services';
 import {
-  loginOtpCodeSchema,
-  loginOtpEmailSchema,
+  createLoginOtpCodeSchema,
+  createLoginOtpEmailSchema,
   type LoginOtpCodeFormData,
   type LoginOtpEmailFormData,
 } from '@schemas';
@@ -29,18 +38,23 @@ interface OtpEmailFormProps {
 }
 
 export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
   const [otpStep, setOtpStep] = useState<'email' | 'code'>('email');
   const [otpEmail, setOtpEmail] = useState('');
   const sendOtp = useSendLoginOtp();
   const verifyOtp = useVerifyLoginOtp();
 
+  const emailSchema = createLoginOtpEmailSchema(tValidation);
+  const codeSchema = createLoginOtpCodeSchema(tValidation);
+
   const emailForm = useForm<LoginOtpEmailFormData>({
-    resolver: zodResolver(loginOtpEmailSchema),
+    resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
   });
 
   const codeForm = useForm<LoginOtpCodeFormData>({
-    resolver: zodResolver(loginOtpCodeSchema),
+    resolver: zodResolver(codeSchema),
     defaultValues: { code: '' },
   });
 
@@ -50,14 +64,14 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
       onSuccess: () => {
         setOtpEmail(email);
         setOtpStep('code');
-        toast.success('Mã OTP đã được gửi đến email của bạn');
+        toast.success(t('otp.codeSent'));
       },
       onError: (error: Error) => {
         if (error.message.toLowerCase().includes('signups not allowed')) {
-          toast.error('Email này chưa có tài khoản. Vui lòng đăng ký trước.');
+          toast.error(t('otp.noAccount'));
           return;
         }
-        toast.error(error.message || 'Không thể gửi mã OTP');
+        toast.error(error.message || t('otp.sendFailed'));
       },
     });
   }
@@ -67,15 +81,13 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
       { email: otpEmail, token: data.code },
       {
         onSuccess: () => {
-          toast.success('Đăng nhập thành công!');
+          toast.success(t('login.success'));
           window.location.replace('/admin');
         },
         onError: (error: Error) => {
           const is422 = isAuthServiceError(error) && error.status === 422;
           toast.error(
-            is422
-              ? 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.'
-              : error.message || 'Mã OTP không hợp lệ'
+            is422 ? t('otp.expiredCode') : error.message || t('otp.invalidCode')
           );
           codeForm.setValue('code', '');
         },
@@ -93,8 +105,9 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
           <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
             <Mail className="h-5 w-5 shrink-0 text-blue-600" />
             <p className="text-sm text-blue-800">
-              Mã OTP đã gửi đến <strong>{otpEmail}</strong>. Kiểm tra hộp thư
-              (kể cả spam).
+              {t.rich('otp.codeSentBanner', {
+                email: () => <strong>{otpEmail}</strong>,
+              })}
             </p>
           </div>
           <FormField
@@ -102,7 +115,7 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mã OTP (6 chữ số)</FormLabel>
+                <FormLabel>{t('otp.codeLabelDigits')}</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
@@ -120,9 +133,7 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
                     }}
                   />
                 </FormControl>
-                <p className="text-xs text-muted-foreground">
-                  Mã có hiệu lực trong 15 phút
-                </p>
+                <p className="text-xs text-muted-foreground">{t('otp.validFor')}</p>
                 <FormMessage />
               </FormItem>
             )}
@@ -137,10 +148,10 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
             {verifyOtp.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang xác nhận...
+                {t('totp.confirming')}
               </>
             ) : (
-              'Đăng nhập'
+              t('login.submit')
             )}
           </Button>
           <Button
@@ -154,7 +165,7 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
             disabled={verifyOtp.isPending}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Đổi email
+            {t('otp.changeEmail')}
           </Button>
         </form>
       </Form>
@@ -169,17 +180,14 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
       >
         <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
           <Mail className="h-5 w-5 shrink-0 text-blue-600" />
-          <p className="text-sm text-blue-800">
-            Nhập email đã đăng ký — chúng tôi sẽ gửi mã OTP 6 chữ số để đăng nhập
-            ngay, không cần mật khẩu.
-          </p>
+          <p className="text-sm text-blue-800">{t('otp.emailHint')}</p>
         </div>
         <FormField
           control={emailForm.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('login.email')}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -196,15 +204,15 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
           {sendOtp.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang gửi mã...
+              {t('otp.sendingCode')}
             </>
           ) : (
-            'Gửi mã OTP'
+            t('otp.sendCode')
           )}
         </Button>
         <Button type="button" variant="ghost" className="w-full" onClick={onBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Đăng nhập bằng mật khẩu
+          {t('otp.passwordLogin')}
         </Button>
       </form>
     </Form>

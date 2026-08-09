@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/cau-duong/delegate-dialog.tsx
  * @description Dialog ủy quyền Cầu đương
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { UserCheck } from 'lucide-react';
 import {
   Button,
@@ -33,7 +34,7 @@ import {
   Textarea,
 } from '@components/ui';
 import {
-  cauDuongDelegateSchema,
+  createCauDuongDelegateSchema,
   defaultCauDuongDelegateValues,
   type CauDuongDelegateFormData,
 } from '@schemas';
@@ -50,9 +51,14 @@ export function DelegateDialog({
   onConfirm,
   isPending,
 }: DelegateDialogProps) {
+  const t = useTranslations('CauDuong');
+  const tCommon = useTranslations('Common');
+  const tValidation = useTranslations('Validation');
+  const schema = createCauDuongDelegateSchema(tValidation);
+
   const [open, setOpen] = useState(false);
   const form = useForm<CauDuongDelegateFormData>({
-    resolver: zodResolver(cauDuongDelegateSchema),
+    resolver: zodResolver(schema),
     defaultValues: defaultCauDuongDelegateValues,
   });
 
@@ -72,35 +78,36 @@ export function DelegateDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <UserCheck className="mr-1 h-3.5 w-3.5" />
-          Ủy quyền
+        <Button variant='outline' size='sm'>
+          <UserCheck className='mr-1 h-3.5 w-3.5' />
+          {t('actions.delegate')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ủy quyền Cầu đương</DialogTitle>
+          <DialogTitle>{t('delegateTitle')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-4'>
             <FormField
               control={form.control}
-              name="actual_host_id"
+              name='actual_host_id'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Người thực hiện thay *</FormLabel>
+                  <FormLabel>{t('form.delegateHostRequired')}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn thành viên" />
+                        <SelectValue placeholder={t('selectMember')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {eligibleMembers.map((member) => (
+                      {eligibleMembers.map(member => (
                         <SelectItem
                           key={member.person.id}
-                          value={member.person.id}
-                        >
+                          value={member.person.id}>
                           {member.person.display_name}
                         </SelectItem>
                       ))}
@@ -112,14 +119,14 @@ export function DelegateDialog({
             />
             <FormField
               control={form.control}
-              name="reason"
+              name='reason'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Lý do</FormLabel>
+                  <FormLabel>{t('form.reason')}</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={2}
-                      placeholder="Đi công tác xa..."
+                      placeholder={t('form.reasonDelegatePlaceholder')}
                       {...field}
                     />
                   </FormControl>
@@ -127,8 +134,8 @@ export function DelegateDialog({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? 'Đang lưu...' : 'Xác nhận ủy quyền'}
+            <Button type='submit' disabled={isPending} className='w-full'>
+              {isPending ? tCommon('saving') : t('confirmDelegate')}
             </Button>
           </form>
         </Form>

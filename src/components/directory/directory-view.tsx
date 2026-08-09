@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/directory/directory-view.tsx
  * @description Family directory with contacts, server-side search, filters, pagination
- * @version 1.1.0
- * @updated 2026-07-19
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useResettablePage } from '@hooks';
 import { BookUser } from 'lucide-react';
 import { useAuth } from '@components/auth';
@@ -48,6 +49,7 @@ function genderToFilter(
 }
 
 export function DirectoryView() {
+  const t = useTranslations('Directory');
   const { user, profile } = useAuth();
   const isAuthenticated = !!user;
   const isViewer = profile?.role === 'viewer';
@@ -107,7 +109,7 @@ export function DirectoryView() {
         <Card className="border-destructive">
           <CardContent className="pt-6">
             <p className="text-destructive">
-              Lỗi khi tải dữ liệu: {error.message}
+              {t('loadError', { message: error.message })}
             </p>
           </CardContent>
         </Card>
@@ -123,10 +125,8 @@ export function DirectoryView() {
             <BookUser className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Danh bạ liên lạc</h1>
-            <p className="text-muted-foreground">
-              Thông tin liên lạc của các thành viên trong dòng họ
-            </p>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('subtitle')}</p>
           </div>
         </div>
       </div>

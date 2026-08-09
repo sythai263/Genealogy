@@ -1,0 +1,141 @@
+/**
+ * @project AncestorTree
+ * @file src/messages/en/documents.ts
+ * @description Documents hub, book, library
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
+import type { AppMessages } from '../types';
+
+export const Documents = {
+  title: 'Documents',
+  subtitle: 'Genealogy book and clan document library',
+  hub: {
+    book: {
+      title: 'Genealogy book',
+      description: 'View and print the traditional book layout',
+      body: 'Present the family tree by generation and branch with full member details. Print directly or save as PDF.',
+      action: 'View genealogy book',
+    },
+    library: {
+      title: 'Document library',
+      description: 'Store historical photos, papers, maps, videos',
+      body: 'Preserve clan memories: old photos, digitized paper genealogies, village maps, festival videos, historical articles.',
+      action: 'View document library',
+    },
+  },
+  gedcom: {
+    title: 'Export GEDCOM',
+    description: 'Export data in the international GEDCOM 5.5.1 format',
+    body: 'GEDCOM (.ged) is the international genealogy exchange standard, compatible with most family history software such as FamilySearch, Gramps, and MyHeritage.',
+    privacyNote:
+      'Personal information (privacy_level = {level}) will not be exported',
+    peopleCount: '{count} members',
+    familyCount: '{count} families',
+    download: 'Download GEDCOM file',
+    loading: 'Loading data...',
+    warning: 'GEDCOM has {count} warnings but can still be used',
+  },
+  book: {
+    title: 'Genealogy book',
+    coverTitle: 'Family chronicle',
+    motto: 'Preserve the essence - Follow in our ancestors’ footsteps',
+    print: 'Print',
+    exportPdf: 'Export PDF',
+    printSave: 'Print / Save PDF',
+    empty: 'No data to display as a book',
+    emptyDescription: 'No genealogy data available to build the book.',
+    generation: 'Generation {n}',
+    toc: 'Table of contents',
+    membersCount: '{count} members',
+    peopleCount: '{count} people',
+    summary: '{people} members · {generations} generations',
+    published: 'Published: {date}',
+    footer: 'Digital genealogy - {clan}',
+    createdBy: 'Created with AncestorTree · {year}',
+    chi: 'Branch {n}',
+    birth: 'Born: {year}',
+    death: 'Died: {year}',
+    lunar: 'Lunar: {date}',
+    birthPlace: 'Birthplace: {place}',
+    hometown: 'Hometown: {place}',
+    occupation: 'Occupation: {job}',
+    parents: 'Parents: {father} & {mother}',
+    wife: 'Wife',
+    husband: 'Husband',
+    children: 'Children ({count})',
+  },
+  library: {
+    title: 'Document library',
+    subtitle: 'Historical photos, papers, maps, videos — clan memories',
+    empty: 'No documents yet',
+    emptyFiltered: 'No matching documents found',
+    add: 'Add document',
+    download: 'Download',
+    downloadShort: 'Download',
+    view: 'View',
+    searchPlaceholder: 'Search documents...',
+    itemLabel: 'documents',
+    unlocking: 'Unlocking…',
+    viewerNotice:
+      'You are viewing public documents. Some documents are only available to administrators.',
+  },
+  categories: {
+    anh_lich_su: 'Historical photos',
+    giay_to: 'Papers',
+    ban_do: 'Maps',
+    video: 'Video',
+    bai_viet: 'Articles',
+    khac: 'Other',
+  },
+  privacy: {
+    public: 'Public',
+    members: 'Members',
+    internal: 'Internal',
+    publicDetail: 'Public (anyone can view)',
+    membersDetail: 'Members (sign-in required)',
+    internalDetail: 'Internal (admins only)',
+  },
+  form: {
+    title: 'Title',
+    titleRequired: 'Title *',
+    category: 'Category',
+    description: 'Description',
+    privacy: 'Privacy',
+    file: 'File',
+    fileRequired: 'File *',
+    relatedPerson: 'Related member',
+    tags: 'Tags (comma-separated)',
+    titlePlaceholder: 'Ancestral hall photo, 1960',
+    descriptionPlaceholder: 'Short description of the document',
+    tagsPlaceholder: 'hall, history, 1960',
+  },
+  toasts: {
+    titleRequired: 'Please enter a title',
+    fileRequired: 'Please select a file to upload',
+    uploadSuccess: 'Document uploaded',
+    uploadError: 'Failed to upload document',
+    deleteSuccess: 'Document deleted',
+    deleteError: 'Failed to delete',
+    gedcomEmpty: 'No genealogy data to export',
+    gedcomSuccess: 'GEDCOM exported successfully',
+    gedcomError: 'Failed to export GEDCOM',
+  },
+  pdf: {
+    warningHuge:
+      'Tree is too large (>100 people). Filter by branch before exporting for best quality.',
+    warningLarge:
+      'Tree is fairly large (>50 people). PDF quality may be reduced.',
+    digitalGenealogy: 'DIGITAL FAMILY TREE',
+    memberProfiles: 'Member Profiles',
+    totalMembers: 'Total members',
+    living: 'Living',
+    deceased: 'Deceased',
+    generations: 'Generations',
+    families: 'Families',
+    generationTitle: 'Generation {gen}',
+    peopleCount: '({count} people)',
+    footer: 'AncestorTree · Digital Family Tree',
+  },
+} as const satisfies AppMessages['Documents'];

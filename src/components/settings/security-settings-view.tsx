@@ -2,15 +2,16 @@
  * @project AncestorTree
  * @file src/components/settings/security-settings-view.tsx
  * @description MFA (TOTP) self-service security settings
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Info,
@@ -42,6 +43,8 @@ import { MfaEnrollPanel } from './mfa-enroll-panel';
 import { MfaUnenrollDialog } from './mfa-unenroll-dialog';
 
 export function SecuritySettingsView() {
+  const t = useTranslations('Settings');
+  const tLayout = useTranslations('Layout');
   const queryClient = useQueryClient();
   const { data: factors = [], isLoading: isLoadingFactors } = useQuery({
     queryKey: MFA_FACTORS_QUERY_KEY,
@@ -75,7 +78,7 @@ export function SecuritySettingsView() {
         secret: data.totp.secret,
       });
     } catch {
-      toast.error('Lỗi khi khởi tạo xác thực');
+      toast.error(t('security.toastEnableError'));
     } finally {
       setIsEnrolling(false);
     }
@@ -90,7 +93,7 @@ export function SecuritySettingsView() {
         code,
       });
       if (error) throw error;
-      toast.success('Xác thực 2 bước đã được bật thành công!');
+      toast.success(t('security.toastEnableSuccess'));
       // Use the user data already returned by challengeAndVerify() — avoids calling
       // getUser() immediately after verify, which would deadlock against the auth lock
       // still held by the concurrent onAuthStateChange handler.
@@ -109,7 +112,7 @@ export function SecuritySettingsView() {
       );
       setEnrollState(null);
     } catch {
-      toast.error('Mã xác thực không đúng. Vui lòng thử lại.');
+      toast.error(t('security.toastInvalidCode'));
     } finally {
       setIsVerifying(false);
     }
@@ -132,14 +135,14 @@ export function SecuritySettingsView() {
         factorId: unenrollId,
       });
       if (error) throw error;
-      toast.success('Đã tắt xác thực 2 bước.');
+      toast.success(t('security.toastDisableSuccess'));
       // Optimistic update — avoids a getUser() call while the auth lock may still be held
       queryClient.setQueryData<TotpFactor[]>(MFA_FACTORS_QUERY_KEY, (prev) =>
         (prev ?? []).filter((factor) => factor.id !== unenrollId)
       );
       setUnenrollId(null);
     } catch {
-      toast.error('Lỗi khi tắt xác thực');
+      toast.error(t('security.toastDisableError'));
     } finally {
       setIsUnenrolling(false);
     }
@@ -156,16 +159,16 @@ export function SecuritySettingsView() {
         <Button asChild variant="ghost" size="sm">
           <Link href="/admin">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Trang chủ
+            {tLayout('nav.home')}
           </Link>
         </Button>
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <ShieldCheck className="h-6 w-6" />
-            Bảo mật tài khoản
+            {t('security.pageTitle')}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Quản lý xác thực 2 bước (MFA)
+            {t('security.pageSubtitle')}
           </p>
         </div>
       </div>
@@ -174,12 +177,9 @@ export function SecuritySettingsView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Smartphone className="h-4 w-4" />
-            Xác thực 2 bước (TOTP)
+            {t('security.totpTitle')}
           </CardTitle>
-          <CardDescription>
-            Bảo vệ tài khoản bằng mã xác thực từ Google Authenticator hoặc ứng
-            dụng tương tự.
-          </CardDescription>
+          <CardDescription>{t('security.totpDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoadingFactors ? (
@@ -199,10 +199,10 @@ export function SecuritySettingsView() {
               <div className="flex items-center gap-2">
                 <Badge className="border-green-200 bg-green-100 text-green-800">
                   <ShieldCheck className="mr-1 h-3 w-3" />
-                  Đang hoạt động
+                  {t('security.active')}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  Xác thực 2 bước đã được bật
+                  {t('security.mfaEnabledActive')}
                 </span>
               </div>
               <div className="space-y-2">
@@ -224,7 +224,7 @@ export function SecuritySettingsView() {
                       onClick={() => setUnenrollId(factor.id)}
                     >
                       <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                      Tắt
+                      {t('security.disableShort')}
                     </Button>
                   </div>
                 ))}
@@ -233,19 +233,18 @@ export function SecuritySettingsView() {
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Xác thực 2 bước chưa được bật. Bật ngay để bảo vệ tài khoản tốt
-                hơn.
+                {t('security.mfaDisabledHint')}
               </p>
               <Button onClick={handleEnroll} disabled={isEnrolling}>
                 {isEnrolling ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang khởi tạo...
+                    {t('security.enrolling')}
                   </>
                 ) : (
                   <>
                     <ShieldCheck className="mr-2 h-4 w-4" />
-                    Bật xác thực 2 bước
+                    {t('security.enable')}
                   </>
                 )}
               </Button>
@@ -258,11 +257,7 @@ export function SecuritySettingsView() {
         <CardContent className="pt-4">
           <div className="flex gap-3 text-sm text-muted-foreground">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>
-              Khi bật xác thực 2 bước, mỗi lần đăng nhập bạn sẽ cần nhập mã 6
-              chữ số từ ứng dụng xác thực (Google Authenticator, Authy, ...)
-              ngoài mật khẩu.
-            </p>
+            <p>{t('security.info')}</p>
           </div>
         </CardContent>
       </Card>

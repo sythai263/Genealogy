@@ -2,19 +2,22 @@
  * @project AncestorTree
  * @file src/app/(landing)/layout.tsx
  * @description Landing route group layout — no sidebar, clean public shell
- * @version 2.2.0
- * @updated 2026-07-28
+ * @version 2.3.0
+ * @updated 2026-08-09
  */
 
 import Link from 'next/link';
-import { LandingAuthCta, ThemeToggle } from '@components/layout';
+import { getTranslations } from 'next-intl/server';
+import { LandingAuthCta, LocaleSwitcher, ThemeToggle } from '@components/layout';
 import { CLAN_NAME } from '@lib';
 
-export default function LandingLayout({
+export default async function LandingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = await getTranslations('Landing');
+
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur">
@@ -30,26 +33,27 @@ export default function LandingLayout({
               href="/family-tree"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              Cây gia phả
+              {t('nav.tree')}
             </Link>
             <Link
               href="/council"
               className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
             >
-              Hội đồng
+              {t('nav.council')}
             </Link>
             <Link
               href="/ancestral-hall"
               className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
             >
-              Nhà thờ
+              {t('nav.ancestralHall')}
             </Link>
             <Link
               href="/register-member"
               className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground md:inline"
             >
-              Ghi danh
+              {t('nav.registerMember')}
             </Link>
+            <LocaleSwitcher />
             <ThemeToggle />
             <LandingAuthCta variant="nav" />
           </div>

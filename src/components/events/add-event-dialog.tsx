@@ -2,18 +2,31 @@
  * @project AncestorTree
  * @file src/components/events/add-event-dialog.tsx
  * @description Dialog form for adding new events
- * @version 1.1.0
- * @updated 2026-02-26
+ * @version 1.2.0
+ * @updated 2026-08-09
  */
 
-"use client";
+'use client';
 
-import { Search, X } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
+import { Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 
-import { EVENT_TYPE_META as EVENT_TYPE_LABELS } from '@constants';
-import { Button, Checkbox, DialogFooter, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from '@components/ui';
+import { EVENT_TYPE_ORDER } from '@constants';
+import {
+  Button,
+  Checkbox,
+  DialogFooter,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+} from '@components/ui';
 import { useCreateEvent, useSearchPeople } from '@hooks';
 import { parseLunarString, cn } from '@lib';
 import type { EventType, Person } from '@types';
@@ -23,67 +36,67 @@ interface AddEventDialogProps {
 }
 
 export function AddEventDialog({ onClose }: AddEventDialogProps) {
+  const t = useTranslations('Events');
+  const tCommon = useTranslations('Common');
   const createEvent = useCreateEvent();
-  const [title, setTitle] = useState("");
-  const [eventType, setEventType] = useState<EventType>("gio");
+  const [title, setTitle] = useState('');
+  const [eventType, setEventType] = useState<EventType>('gio');
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [personQuery, setPersonQuery] = useState("");
+  const [personQuery, setPersonQuery] = useState('');
   const [personDropOpen, setPersonDropOpen] = useState(false);
-  const [eventLunar, setEventLunar] = useState("");
-  const [lunarError, setLunarError] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
+  const [eventLunar, setEventLunar] = useState('');
+  const [lunarError, setLunarError] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
   const [recurring, setRecurring] = useState(true);
 
   const { data: searchResults, isFetching } = useSearchPeople(personQuery);
   const filteredResults = (searchResults ?? []).filter(
-    (person) => !person.is_living,
+    person => !person.is_living
   );
 
-  const validateLunar = (value: string) => {
+  function validateLunar(value: string) {
     setEventLunar(value);
     if (!value) {
-      setLunarError("");
+      setLunarError('');
       return;
     }
 
     setLunarError(
-      parseLunarString(value)
-        ? ""
-        : "Sai định dạng. VD: 15/7 (ngày/tháng)",
+      parseLunarString(value) ? '' : t('form.lunarFormatError')
     );
-  };
+  }
 
-  const handleSelectPerson = (person: Person) => {
+  function handleSelectPerson(person: Person) {
     setSelectedPerson(person);
-    setPersonQuery("");
+    setPersonQuery('');
     setPersonDropOpen(false);
 
-    if (eventType === "gio") {
-      setTitle(`Giỗ ${person.display_name}`);
+    if (eventType === 'gio') {
+      setTitle(t('autoGioTitle', { name: person.display_name }));
       if (person.death_lunar) {
         setEventLunar(person.death_lunar);
-        setLunarError("");
+        setLunarError('');
       }
     }
-  };
+  }
 
-  const handleClearPerson = () => {
+  function handleClearPerson() {
     setSelectedPerson(null);
-    setPersonQuery("");
-  };
+    setPersonQuery('');
+  }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề");
+      toast.error(t('toasts.titleRequired'));
       return;
     }
 
     if (eventLunar && !parseLunarString(eventLunar)) {
-      toast.error("Ngày âm lịch không hợp lệ");
+      toast.error(t('toasts.lunarInvalid'));
       return;
     }
 
@@ -98,79 +111,80 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
         description: description || undefined,
         recurring,
       });
-      toast.success("Đã thêm sự kiện");
+      toast.success(t('toasts.addSuccess'));
       onClose();
     } catch {
-      toast.error("Lỗi khi thêm sự kiện");
+      toast.error(t('toasts.addError'));
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Loại sự kiện</Label>
+    <form onSubmit={handleSubmit} className='space-y-4'>
+      <div className='space-y-2'>
+        <Label>{t('form.type')}</Label>
         <Select
           value={eventType}
-          onValueChange={(value) => setEventType(value as EventType)}
-        >
+          onValueChange={value => setEventType(value as EventType)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(EVENT_TYPE_LABELS).map(([key, { label }]) => (
-              <SelectItem key={key} value={key}>
-                {label}
+            {EVENT_TYPE_ORDER.map(type => (
+              <SelectItem key={type} value={type}>
+                {t(`types.${type}`)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {eventType === "gio" && (
-        <div className="space-y-2">
-          <Label>Người được giỗ</Label>
+      {eventType === 'gio' && (
+        <div className='space-y-2'>
+          <Label>{t('form.memorialPerson')}</Label>
           {selectedPerson ? (
-            <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-2">
+            <div className='flex items-center gap-2 rounded-md border border-border bg-muted/50 p-2'>
               <div
                 className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium",
+                  'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium',
                   selectedPerson.gender === 1
-                    ? "bg-primary/10 text-primary"
-                    : "bg-secondary text-secondary-foreground",
-                )}
-              >
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-secondary text-secondary-foreground'
+                )}>
                 {selectedPerson.display_name.slice(-1)}
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
+              <div className='min-w-0 flex-1'>
+                <p className='truncate text-sm font-medium'>
                   {selectedPerson.display_name}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className='text-xs text-muted-foreground'>
                   {selectedPerson.death_lunar
-                    ? `Giỗ ${selectedPerson.death_lunar} ÂL`
-                    : `Đời ${selectedPerson.generation}`}
+                    ? t('form.memorialLunar', {
+                        date: selectedPerson.death_lunar,
+                      })
+                    : t('form.generation', {
+                        generation: selectedPerson.generation,
+                      })}
                 </p>
               </div>
               <Button
-                variant="ghost"
-                size="icon-sm"
-                type="button"
-                className="shrink-0"
+                variant='ghost'
+                size='icon-sm'
+                type='button'
+                className='shrink-0'
                 onClick={handleClearPerson}
-                aria-label="Bỏ chọn người được giỗ"
-              >
-                <X className="size-3" />
+                aria-label={t('form.clearMemorialPerson')}>
+                <X className='size-3' />
               </Button>
             </div>
           ) : (
-            <div className="relative">
-              <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
+            <div className='relative'>
+              <Search className='absolute top-2.5 left-3 size-4 text-muted-foreground' />
               <Input
-                placeholder="Tìm theo tên... (gõ tối thiểu 2 ký tự)"
+                placeholder={t('form.searchPerson')}
                 value={personQuery}
-                onChange={(event) => {
-                  setPersonQuery(event.target.value);
-                  setPersonDropOpen(event.target.value.length >= 2);
+                onChange={e => {
+                  setPersonQuery(e.target.value);
+                  setPersonDropOpen(e.target.value.length >= 2);
                 }}
                 onFocus={() => {
                   if (personQuery.length >= 2) {
@@ -178,50 +192,52 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
                   }
                 }}
                 onBlur={() => setTimeout(() => setPersonDropOpen(false), 150)}
-                className="pl-9"
+                className='pl-9'
               />
               {personDropOpen && (
-                <div className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
+                <div className='absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md'>
                   {isFetching ? (
-                    <p className="p-3 text-sm text-muted-foreground">
-                      Đang tìm...
+                    <p className='p-3 text-sm text-muted-foreground'>
+                      {t('form.searching')}
                     </p>
                   ) : filteredResults.length === 0 ? (
-                    <p className="p-3 text-sm text-muted-foreground">
+                    <p className='p-3 text-sm text-muted-foreground'>
                       {personQuery.length >= 2
-                        ? "Không tìm thấy thành viên đã mất"
-                        : "Gõ tối thiểu 2 ký tự"}
+                        ? t('form.noDeceasedFound')
+                        : t('form.minChars')}
                     </p>
                   ) : (
-                    filteredResults.map((person) => (
+                    filteredResults.map(person => (
                       <button
                         key={person.id}
-                        type="button"
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground"
-                        onMouseDown={(event) => {
-                          event.preventDefault();
+                        type='button'
+                        className='flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground'
+                        onMouseDown={e => {
+                          e.preventDefault();
                           handleSelectPerson(person);
-                        }}
-                      >
+                        }}>
                         <div
                           className={cn(
-                            "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium",
+                            'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
                             person.gender === 1
-                              ? "bg-primary/10 text-primary"
-                              : "bg-secondary text-secondary-foreground",
-                          )}
-                        >
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-secondary text-secondary-foreground'
+                          )}>
                           {person.display_name.slice(-1)}
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
+                        <div className='min-w-0'>
+                          <p className='truncate text-sm font-medium'>
                             {person.display_name}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            Đời {person.generation}
+                          <p className='text-xs text-muted-foreground'>
+                            {t('form.generation', {
+                              generation: person.generation,
+                            })}
                             {person.death_lunar
-                              ? ` · Giỗ ${person.death_lunar} ÂL`
-                              : ""}
+                              ? ` · ${t('form.memorialLunar', {
+                                  date: person.death_lunar,
+                                })}`
+                              : ''}
                           </p>
                         </div>
                       </button>
@@ -234,82 +250,82 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="title">Tiêu đề</Label>
+      <div className='space-y-2'>
+        <Label htmlFor='title'>{t('form.title')}</Label>
         <Input
-          id="title"
+          id='title'
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="VD: Giỗ Ông Nội"
+          onChange={e => setTitle(e.target.value)}
+          placeholder={t('form.titlePlaceholderShort')}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="lunar">Ngày âm lịch (DD/MM)</Label>
+      <div className='grid grid-cols-2 gap-4'>
+        <div className='space-y-2'>
+          <Label htmlFor='lunar'>{t('form.lunarDateFormat')}</Label>
           <Input
-            id="lunar"
+            id='lunar'
             value={eventLunar}
-            onChange={(event) => validateLunar(event.target.value)}
-            placeholder="15/7"
-            className={cn(lunarError && "border-destructive")}
+            onChange={e => validateLunar(e.target.value)}
+            placeholder={t('form.lunarDateHint')}
+            className={cn(lunarError && 'border-destructive')}
             aria-invalid={Boolean(lunarError)}
-            aria-describedby={lunarError ? "lunar-error" : undefined}
+            aria-describedby={lunarError ? 'lunar-error' : undefined}
           />
           {lunarError && (
-            <p id="lunar-error" className="text-xs text-destructive">
+            <p id='lunar-error' className='text-xs text-destructive'>
               {lunarError}
             </p>
           )}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="date">Ngày dương lịch</Label>
+        <div className='space-y-2'>
+          <Label htmlFor='date'>{t('form.solarDate')}</Label>
           <Input
-            id="date"
-            type="date"
+            id='date'
+            type='date'
             value={eventDate}
-            onChange={(event) => setEventDate(event.target.value)}
+            onChange={e => setEventDate(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="location">Địa điểm</Label>
+      <div className='space-y-2'>
+        <Label htmlFor='location'>{t('form.location')}</Label>
         <Input
-          id="location"
+          id='location'
           value={location}
-          onChange={(event) => setLocation(event.target.value)}
-          placeholder="VD: Nhà thờ họ"
+          onChange={e => setLocation(e.target.value)}
+          placeholder={t('form.locationPlaceholderShort')}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="desc">Ghi chú</Label>
+      <div className='space-y-2'>
+        <Label htmlFor='desc'>{t('form.notes')}</Label>
         <Textarea
-          id="desc"
+          id='desc'
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={e => setDescription(e.target.value)}
           rows={2}
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className='flex items-center gap-2'>
         <Checkbox
-          id="recurring"
+          id='recurring'
           checked={recurring}
-          onCheckedChange={(checked) => setRecurring(checked === true)}
+          onCheckedChange={checked => setRecurring(checked === true)}
         />
-        <Label htmlFor="recurring" className="font-normal">
-          Lặp lại hàng năm
+        <Label htmlFor='recurring' className='font-normal'>
+          {t('form.recurring')}
         </Label>
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Hủy
+        <Button type='button' variant='outline' onClick={onClose}>
+          {tCommon('cancel')}
         </Button>
-        <Button type="submit" disabled={createEvent.isPending}>
-          {createEvent.isPending ? 'Đang lưu...' : 'Thêm sự kiện'}
+        <Button type='submit' disabled={createEvent.isPending}>
+          {createEvent.isPending ? tCommon('saving') : t('add')}
         </Button>
       </DialogFooter>
     </form>

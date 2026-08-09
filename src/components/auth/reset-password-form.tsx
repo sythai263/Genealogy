@@ -1,6 +1,15 @@
+/**
+ * @project AncestorTree
+ * @file src/components/auth/reset-password-form.tsx
+ * @description Reset password form after recovery link
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -22,17 +31,20 @@ import {
 import { usePasswordRecoveryReady, useUpdatePassword } from '@hooks';
 import { CLAN_INITIAL } from '@lib';
 import {
-  resetPasswordSchema,
+  createResetPasswordSchema,
   type ResetPasswordFormData,
 } from '@schemas';
 
 export function ResetPasswordForm() {
+  const t = useTranslations('Auth');
+  const tValidation = useTranslations('Validation');
   const router = useRouter();
   const { isReady } = usePasswordRecoveryReady();
   const updatePasswordMutation = useUpdatePassword();
+  const schema = createResetPasswordSchema(tValidation);
 
   const form = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       password: '',
       confirmPassword: '',
@@ -42,11 +54,11 @@ export function ResetPasswordForm() {
   function onSubmit(data: ResetPasswordFormData) {
     updatePasswordMutation.mutate(data.password, {
       onSuccess: () => {
-        toast.success('Đặt lại mật khẩu thành công!');
+        toast.success(t('resetPassword.success'));
         router.push('/admin');
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Đặt lại mật khẩu thất bại');
+        toast.error(error.message || t('resetPassword.failed'));
       },
     });
   }
@@ -56,7 +68,7 @@ export function ResetPasswordForm() {
       <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-50 to-emerald-100 p-4">
         <Card className="w-full max-w-md">
           <CardContent className="py-12 text-center text-muted-foreground">
-            Đang xác thực link đặt lại mật khẩu...
+            {t('resetPassword.verifyingLink')}
           </CardContent>
         </Card>
       </div>
@@ -70,10 +82,8 @@ export function ResetPasswordForm() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-xl font-bold text-white">
             {CLAN_INITIAL}
           </div>
-          <CardTitle>Đặt lại mật khẩu</CardTitle>
-          <CardDescription>
-            Nhập mật khẩu mới cho tài khoản của bạn
-          </CardDescription>
+          <CardTitle>{t('resetPassword.title')}</CardTitle>
+          <CardDescription>{t('resetPassword.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -86,7 +96,7 @@ export function ResetPasswordForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mật khẩu mới</FormLabel>
+                    <FormLabel>{t('resetPassword.password')}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -99,7 +109,7 @@ export function ResetPasswordForm() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Xác nhận mật khẩu</FormLabel>
+                    <FormLabel>{t('resetPassword.confirmPassword')}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -113,8 +123,8 @@ export function ResetPasswordForm() {
                 disabled={updatePasswordMutation.isPending}
               >
                 {updatePasswordMutation.isPending
-                  ? 'Đang cập nhật...'
-                  : 'Đặt lại mật khẩu'}
+                  ? t('resetPassword.updating')
+                  : t('resetPassword.submit')}
               </Button>
             </form>
           </Form>

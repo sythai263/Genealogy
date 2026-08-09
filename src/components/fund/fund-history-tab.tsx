@@ -2,16 +2,18 @@
  * @project AncestorTree
  * @file src/components/fund/fund-history-tab.tsx
  * @description Full transaction history for education fund
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
+'use client';
+
+import { useLocale, useTranslations } from 'next-intl';
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Card, CardContent } from '@components/ui';
 import { ListPagination } from '@components/shared';
 import type { ListPageSize } from '@constants';
-import { formatVND } from '@lib';
-import { cn } from '@lib';
+import { cn, formatVND } from '@lib';
 import type { FundTransaction } from '@types';
 
 interface FundHistoryTabProps {
@@ -31,15 +33,18 @@ export function FundHistoryTab({
   onPageChange,
   onPageSizeChange,
 }: FundHistoryTabProps) {
+  const t = useTranslations('Fund');
+  const locale = useLocale();
+
   return (
     <div className="mt-4 space-y-4">
       <h3 className="text-base font-semibold">
-        Lịch sử giao dịch ({total})
+        {t('historySection.title', { count: total })}
       </h3>
       {transactions.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            Chưa có giao dịch nào
+            {t('historySection.empty')}
           </CardContent>
         </Card>
       ) : (
@@ -57,12 +62,14 @@ export function FundHistoryTab({
                     <p className="text-sm font-medium">
                       {transaction.donor_name ||
                         transaction.description ||
-                        (transaction.type === 'income' ? 'Thu' : 'Chi')}
+                        (transaction.type === 'income'
+                          ? t('income')
+                          : t('expense'))}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(
                         transaction.transaction_date
-                      ).toLocaleDateString('vi-VN')}
+                      ).toLocaleDateString(locale)}
                       {transaction.academic_year &&
                         ` · ${transaction.academic_year}`}
                     </p>
@@ -90,7 +97,7 @@ export function FundHistoryTab({
         total={total}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
-        itemLabel="giao dịch"
+        itemLabel={t('historySection.itemLabel')}
       />
     </div>
   );

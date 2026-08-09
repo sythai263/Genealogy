@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/constants/layout.ts
- * @description Shared layout and navigation constants
- * @version 1.0.0
- * @updated 2026-07-31
+ * @description Shared layout and navigation constants (theme labels via next-intl)
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react';
@@ -26,12 +26,13 @@ export const ELDERLY_ADMIN_URLS = new Set([
 
 export interface ThemeOption {
   value: 'light' | 'dark' | 'system';
-  label: string;
+  /** Message key under Layout.theme — resolve with useTranslations */
+  labelKey: 'light' | 'dark' | 'system';
   icon: LucideIcon;
 }
 
 export const THEME_OPTIONS: ThemeOption[] = [
-  { value: 'light', label: 'Sáng', icon: Sun },
-  { value: 'dark', label: 'Tối', icon: Moon },
-  { value: 'system', label: 'Hệ thống', icon: Monitor },
+  { value: 'light', labelKey: 'light', icon: Sun },
+  { value: 'dark', labelKey: 'dark', icon: Moon },
+  { value: 'system', labelKey: 'system', icon: Monitor },
 ];

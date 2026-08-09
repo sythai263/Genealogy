@@ -1,6 +1,7 @@
 'use client';
 
 import { Download, Info, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@components/ui';
 import { formatBackupDate } from '@lib';
 
@@ -15,6 +16,8 @@ export function BackupExportSection({
   onExport,
   lastBackupAt,
 }: BackupExportSectionProps) {
+  const t = useTranslations('Admin');
+
   return (
     <div className="space-y-4 rounded-xl border p-6">
       <div className="flex items-start gap-3">
@@ -22,18 +25,14 @@ export function BackupExportSection({
           <Download className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold">Sao lưu ngay</h2>
-          <p className="text-sm text-muted-foreground">
-            Tải xuống toàn bộ dữ liệu gia phả dưới dạng 1 file ZIP.
-          </p>
+          <h2 className="text-lg font-semibold">{t('backup.exportNow')}</h2>
+          <p className="text-sm text-muted-foreground">{t('backup.exportDesc')}</p>
         </div>
       </div>
 
       <div className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          Ảnh được lưu dưới dạng đường dẫn (liên kết Supabase Storage).
-        </span>
+        <span>{t('backup.exportMediaNote')}</span>
       </div>
 
       <Button
@@ -45,19 +44,19 @@ export function BackupExportSection({
         {exporting ? (
           <>
             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            Đang xuất dữ liệu…
+            {t('backup.exporting')}
           </>
         ) : (
           <>
             <Download className="mr-2 h-4 w-4" />
-            Xuất sao lưu
+            {t('backup.export')}
           </>
         )}
       </Button>
 
       {lastBackupAt && (
         <p className="text-center text-xs text-muted-foreground">
-          Sao lưu gần nhất: {formatBackupDate(lastBackupAt)}
+          {t('backup.lastBackup', { date: formatBackupDate(lastBackupAt) })}
         </p>
       )}
     </div>

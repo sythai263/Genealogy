@@ -6,7 +6,7 @@
  * @updated 2026-03-09
  */
 
-import { AppSidebar, HeaderUser, NotificationBell, ElderlyToggle, ThemeToggle } from '@components/layout';
+import { AppSidebar, HeaderUser, LocaleSwitcher, NotificationBell, ElderlyToggle, ThemeToggle } from '@components/layout';
 import { SidebarProvider, SidebarInset, SidebarTrigger, Separator } from '@components/ui';
 import { VerificationGuard } from '@components/auth';
 import { ElderlyProvider } from '@contexts';
@@ -26,6 +26,7 @@ export default function MainLayout({
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex-1" />
+            <LocaleSwitcher />
             <ThemeToggle />
             <ElderlyToggle />
             <NotificationBell />

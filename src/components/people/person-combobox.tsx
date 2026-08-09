@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/people/person-combobox.tsx
  * @description Searchable person picker with keyboard navigation and debounced backend search
- * @version 1.2.0
+ * @version 1.3.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
 import { useSearchPeopleAdvanced } from '@hooks';
@@ -30,6 +31,7 @@ export function PersonCombobox({
   onSelect,
   excludeId,
 }: PersonComboboxProps) {
+  const t = useTranslations('People');
   const listboxId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
@@ -154,7 +156,7 @@ export function PersonCombobox({
               {selected.display_name}
             </p>
             <p className="text-xs text-muted-foreground">
-              Đời {selected.generation}
+              {t('generationN', { n: selected.generation })}
             </p>
           </div>
           <Button
@@ -177,7 +179,9 @@ export function PersonCombobox({
               aria-controls={listboxId}
               aria-autocomplete="list"
               aria-activedescendant={activeOptionId}
-              placeholder={`Tìm ${label.toLowerCase()}...`}
+              placeholder={t('searchPlaceholderLabel', {
+                label: label.toLowerCase(),
+              })}
               value={query}
               onChange={(event) => handleQueryChange(event.target.value)}
               onKeyDown={handleKeyDown}
@@ -200,12 +204,12 @@ export function PersonCombobox({
             >
               {isFetching && (
                 <p className="px-3 py-2 text-sm text-muted-foreground">
-                  Đang tìm...
+                  {t('searching')}
                 </p>
               )}
               {!isFetching && filtered.length === 0 && query.length >= 2 && (
                 <p className="px-3 py-2 text-sm text-muted-foreground">
-                  Không tìm thấy
+                  {t('searchNotFound')}
                 </p>
               )}
               {filtered.map((person, index) => (
@@ -238,7 +242,7 @@ export function PersonCombobox({
                   <div>
                     <p className="text-sm font-medium">{person.display_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Đời {person.generation}
+                      {t('generationN', { n: person.generation })}
                       {person.birth_year ? ` · ${person.birth_year}` : ''}
                     </p>
                   </div>

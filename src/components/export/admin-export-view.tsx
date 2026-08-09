@@ -2,13 +2,14 @@
  * @project AncestorTree
  * @file src/components/export/admin-export-view.tsx
  * @description Admin page for data export (GEDCOM 7.0, CSV, Markdown)
- * @version 1.0.0
+ * @version 1.1.0
  * @updated 2026-08-09
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import {
   AlertCircle,
@@ -52,6 +53,7 @@ interface ExportPreview {
 }
 
 export function AdminExportView() {
+  const t = useTranslations('Admin');
   const { isEditor } = useAuth();
   const { data: treeData, isLoading: treeLoading } = useTreeData();
   const [isExporting, setIsExporting] = useState(false);
@@ -82,9 +84,9 @@ export function AdminExportView() {
     try {
       const content = preview?.content || generateGedcom(treeData);
       downloadGedcom(content);
-      toast.success('Xuất file GEDCOM 7.0 thành công');
+      toast.success(t('export.toasts.gedcomSuccess'));
     } catch {
-      toast.error('Lỗi khi xuất file');
+      toast.error(t('export.toasts.gedcomError'));
     } finally {
       setIsExporting(false);
     }
@@ -95,9 +97,9 @@ export function AdminExportView() {
     try {
       const csv = generateCsv(treeData);
       downloadCsv(csv);
-      toast.success('Xuất file CSV thành công');
+      toast.success(t('export.toasts.csvSuccess'));
     } catch {
-      toast.error('Lỗi khi xuất file CSV');
+      toast.error(t('export.toasts.csvError'));
     }
   }
 
@@ -106,9 +108,9 @@ export function AdminExportView() {
     try {
       const md = generateMarkdown(treeData);
       downloadMarkdown(md);
-      toast.success('Xuất file Markdown thành công');
+      toast.success(t('export.toasts.markdownSuccess'));
     } catch {
-      toast.error('Lỗi khi xuất file Markdown');
+      toast.error(t('export.toasts.markdownError'));
     }
   }
 
@@ -119,22 +121,17 @@ export function AdminExportView() {
   return (
     <div className='container mx-auto px-4 py-8 space-y-6'>
       <div>
-        <h1 className='text-2xl font-bold'>Xuất dữ liệu</h1>
-        <p className='text-muted-foreground'>
-          Xuất gia phả ra nhiều định dạng để chia sẻ hoặc sao lưu
-        </p>
+        <h1 className='text-2xl font-bold'>{t('export.title')}</h1>
+        <p className='text-muted-foreground'>{t('export.subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <FileText className='h-5 w-5' />
-            GEDCOM 7.0
+            {t('export.gedcomTitle')}
           </CardTitle>
-          <CardDescription>
-            Chuẩn quốc tế cho chia sẻ dữ liệu gia phả. Tương thích
-            FamilySearch, MyHeritage, Gramps.
-          </CardDescription>
+          <CardDescription>{t('export.gedcomDesc')}</CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
           {/* Stats */}
@@ -142,32 +139,38 @@ export function AdminExportView() {
             <div className='flex items-center gap-1.5'>
               <Users className='h-4 w-4 text-muted-foreground' />
               <span>
-                {treeLoading ? '...' : `${peopleCount} thành viên`}
+                {treeLoading
+                  ? '...'
+                  : t('export.peopleCount', { count: peopleCount })}
               </span>
             </div>
             <div className='flex items-center gap-1.5'>
               <GitBranchPlus className='h-4 w-4 text-muted-foreground' />
-              <span>{treeLoading ? '...' : `${familyCount} gia đình`}</span>
+              <span>
+                {treeLoading
+                  ? '...'
+                  : t('export.familyCount', { count: familyCount })}
+              </span>
             </div>
           </div>
 
           {/* Info */}
           <div className='rounded-md border p-3 text-sm space-y-1'>
             <p>
-              <strong>Bao gồm:</strong> Tên, giới tính, ngày sinh/mất, nơi
-              sinh/mất, nghề nghiệp, tiểu sử, đời, chi
+              <strong>{t('export.includesLabel')}</strong>{' '}
+              {t('export.gedcomIncludes')}
             </p>
             <p>
-              <strong>Không bao gồm:</strong> SĐT, email, Zalo, Facebook, địa
-              chỉ (bảo mật thông tin cá nhân)
+              <strong>{t('export.excludesLabel')}</strong>{' '}
+              {t('export.gedcomExcludes')}
             </p>
             <p>
-              <strong>Lọc:</strong> Thành viên có quyền riêng tư &quot;Nội
-              bộ&quot; sẽ không được xuất
+              <strong>{t('export.gedcomFilterLabel')}</strong>{' '}
+              {t('export.gedcomFilter')}
             </p>
             <p>
-              <strong>Extension tags:</strong> <code>_GENER</code> (đời),{' '}
-              <code>_CHI</code> (chi)
+              <strong>{t('export.gedcomExtensionsLabel')}</strong>{' '}
+              {t('export.gedcomExtensions')}
             </p>
           </div>
 
@@ -182,8 +185,8 @@ export function AdminExportView() {
                 )}
                 <span className='text-sm font-medium'>
                   {preview.valid
-                    ? 'File hợp lệ'
-                    : `${preview.errors.length} lỗi`}
+                    ? t('export.fileValid')
+                    : t('export.errorCount', { count: preview.errors.length })}
                 </span>
                 <Badge variant='outline'>{preview.indiCount} INDI</Badge>
                 <Badge variant='outline'>{preview.famCount} FAM</Badge>
@@ -207,7 +210,7 @@ export function AdminExportView() {
               variant='outline'
               onClick={handlePreview}
               disabled={treeLoading || !treeData}>
-              Xem trước
+              {t('export.preview')}
             </Button>
             <Button
               onClick={handleExport}
@@ -217,7 +220,7 @@ export function AdminExportView() {
               ) : (
                 <Download className='h-4 w-4 mr-2' />
               )}
-              Xuất GEDCOM
+              {t('export.exportGedcom')}
             </Button>
           </div>
         </CardContent>
@@ -228,32 +231,30 @@ export function AdminExportView() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Table className='h-5 w-5' />
-            CSV (Excel)
+            {t('export.csvTitle')}
           </CardTitle>
-          <CardDescription>
-            File bảng tính mở được bằng Excel, Google Sheets. Không chứa thông
-            tin liên lạc.
-          </CardDescription>
+          <CardDescription>{t('export.csvDesc')}</CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='rounded-md border p-3 text-sm space-y-1'>
             <p>
-              <strong>Bao gồm:</strong> Tên, giới tính, ngày sinh/mất, nơi
-              sinh/mất, nghề nghiệp, đời, chi, cha, mẹ
+              <strong>{t('export.includesLabel')}</strong>{' '}
+              {t('export.csvIncludes')}
             </p>
             <p>
-              <strong>Không bao gồm:</strong> SĐT, email, Zalo, Facebook, địa
-              chỉ
+              <strong>{t('export.excludesLabel')}</strong>{' '}
+              {t('export.csvExcludes')}
             </p>
             <p>
-              <strong>Mã hóa:</strong> UTF-8 BOM (tương thích Excel tiếng Việt)
+              <strong>{t('export.csvEncodingLabel')}</strong>{' '}
+              {t('export.csvEncoding')}
             </p>
           </div>
           <Button
             onClick={handleExportCsv}
             disabled={treeLoading || !treeData}>
             <Download className='h-4 w-4 mr-2' />
-            Xuất CSV
+            {t('export.exportCsv')}
           </Button>
         </CardContent>
       </Card>
@@ -263,31 +264,30 @@ export function AdminExportView() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <FileCode className='h-5 w-5' />
-            Markdown
+            {t('export.markdownTitle')}
           </CardTitle>
-          <CardDescription>
-            Văn bản có cấu trúc, nhóm theo đời. Dễ đọc, in ấn, lưu trữ.
-          </CardDescription>
+          <CardDescription>{t('export.markdownDesc')}</CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
           <div className='rounded-md border p-3 text-sm space-y-1'>
             <p>
-              <strong>Bao gồm:</strong> Tên, giới tính, ngày sinh/mất, vợ/chồng,
-              con, cha mẹ
+              <strong>{t('export.includesLabel')}</strong>{' '}
+              {t('export.markdownIncludes')}
             </p>
             <p>
-              <strong>Sắp xếp:</strong> Theo đời (generation), tên tiếng Việt
+              <strong>{t('export.markdownSortLabel')}</strong>{' '}
+              {t('export.markdownSort')}
             </p>
             <p>
-              <strong>Định dạng:</strong> Markdown (.md) — mở bằng bất kỳ trình
-              soạn thảo
+              <strong>{t('export.markdownFormatLabel')}</strong>{' '}
+              {t('export.markdownFormat')}
             </p>
           </div>
           <Button
             onClick={handleExportMarkdown}
             disabled={treeLoading || !treeData}>
             <Download className='h-4 w-4 mr-2' />
-            Xuất Markdown
+            {t('export.exportMarkdown')}
           </Button>
         </CardContent>
       </Card>

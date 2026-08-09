@@ -1,21 +1,39 @@
+/**
+ * @project AncestorTree
+ * @file src/schemas/achievement.ts
+ * @description Zod schema for achievement forms (i18n via Validation factory)
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 import { z } from 'zod';
+import type { useTranslations } from 'next-intl';
 
-export const achievementSchema = z.object({
-  person_id: z.string().min(1, 'Vui lòng chọn thành viên'),
-  title: z.string().min(1, 'Tiêu đề là bắt buộc').max(200, 'Tiêu đề quá dài'),
-  category: z.enum(['hoc_tap', 'su_nghiep', 'cong_hien', 'other']),
-  description: z.string().max(2000).optional(),
-  year: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^\d{4}$/.test(val), {
-      message: 'Năm phải là 4 chữ số',
-    }),
-  awarded_by: z.string().max(200).optional(),
-  is_featured: z.boolean(),
-});
+type ValidationT = ReturnType<typeof useTranslations<'Validation'>>;
 
-export type AchievementFormData = z.infer<typeof achievementSchema>;
+export function createAchievementSchema(t: ValidationT) {
+  return z.object({
+    person_id: z.string().min(1, t('achievement.personRequired')),
+    title: z
+      .string()
+      .min(1, t('achievement.titleRequired'))
+      .max(200, t('achievement.titleTooLong')),
+    category: z.enum(['hoc_tap', 'su_nghiep', 'cong_hien', 'other']),
+    description: z.string().max(2000).optional(),
+    year: z
+      .string()
+      .optional()
+      .refine((val) => !val || /^\d{4}$/.test(val), {
+        message: t('achievement.yearFormat'),
+      }),
+    awarded_by: z.string().max(200).optional(),
+    is_featured: z.boolean(),
+  });
+}
+
+export type AchievementFormData = z.infer<
+  ReturnType<typeof createAchievementSchema>
+>;
 
 export const defaultAchievementValues: AchievementFormData = {
   person_id: '',

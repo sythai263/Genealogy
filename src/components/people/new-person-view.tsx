@@ -2,8 +2,8 @@
  * @project AncestorTree
  * @file src/components/people/new-person-view.tsx
  * @description New person creation view with optional parent selection
- * @version 1.0.0
- * @updated 2026-07-18
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -27,6 +28,8 @@ import { PersonCombobox } from './person-combobox';
 import { PersonForm } from './person-form';
 
 export function NewPersonView() {
+  const t = useTranslations('People');
+  const tCommon = useTranslations('Common');
   const router = useRouter();
   const createMutation = useCreatePerson();
   const addToParentMutation = useAddPersonToParentFamily();
@@ -50,10 +53,10 @@ export function NewPersonView() {
           childPersonId: person.id,
         });
       }
-      toast.success('Đã thêm thành công');
+      toast.success(t('toasts.createSuccess'));
       router.push(`/people/${person.id}`);
     } catch {
-      toast.error('Lỗi khi thêm mới');
+      toast.error(t('toasts.createError'));
     }
   }
 
@@ -66,32 +69,29 @@ export function NewPersonView() {
         <Button asChild variant="ghost" size="sm">
           <Link href="/people">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại
+            {tCommon('back')}
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold">Thêm thành viên mới</h1>
+        <h1 className="text-2xl font-bold">{t('addTitle')}</h1>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="h-4 w-4" />
-            Thuộc gia đình (tùy chọn)
+            {t('familyOf.title')}
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Chọn cha/mẹ để xác định vị trí trong gia phả. Đời sẽ tự động = đời
-            cha + 1.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('familyOf.hint')}</p>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <PersonCombobox
-            label="Cha"
+            label={t('relations.father')}
             selected={selectedFather}
             onSelect={setSelectedFather}
             excludeId={selectedMother?.id}
           />
           <PersonCombobox
-            label="Mẹ"
+            label={t('relations.mother')}
             selected={selectedMother}
             onSelect={setSelectedMother}
             excludeId={selectedFather?.id}
