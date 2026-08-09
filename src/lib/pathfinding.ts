@@ -255,6 +255,106 @@ function labelSpouseSibling(inLaw: Person, spouse: Person, sibling: Person): str
   return markKinship('Tỷ/Muội (vợ)', 'chị/em vợ');
 }
 
+/**
+ * Vợ/chồng của chú·bác·cô·cậu·dì.
+ * VD: vợ của chú = thím (Thẩm); vợ của bác = bác gái (Bá mẫu);
+ *     vợ của cậu = mợ; chồng của cô/dì = dượng.
+ */
+function describeParentsSiblingSpouse(
+  personA: Person,
+  personB: Person,
+  parentMap: Map<string, string[]>,
+  spouseMap: Map<string, string[]>,
+  personMap: Map<string, Person>,
+): { description: string; detail: string } | null {
+  // Case 1: B là vợ/chồng của anh/chị/em ruột của bố/mẹ A → thím/bác/mợ/dượng
+  for (const parentId of parentMap.get(personA.id) || []) {
+    const parent = personMap.get(parentId);
+    if (!parent) continue;
+
+    for (const uncle of getSiblings(parentId, parentMap, personMap)) {
+      if (!(spouseMap.get(uncle.id) || []).includes(personB.id)) continue;
+
+      const towardInLaw = labelParentsSiblingSpouse(parent, uncle);
+      const towardJunior =
+        personA.gender === 1
+          ? markKinship('Điệt Tử', 'cháu trai')
+          : markKinship('Điệt Nữ', 'cháu gái');
+      const uncleRole = labelParentsSibling(parent, uncle);
+
+      return {
+        description: `${personA.display_name} gọi ${personB.display_name} là ${towardInLaw}`,
+        detail: `${personB.display_name} gọi ${personA.display_name} là ${towardJunior}. ${towardInLaw} là vợ/chồng của ${uncle.display_name} (${uncleRole})`,
+      };
+    }
+  }
+
+  // Case 2: A là vợ/chồng của chú/bác/... của B
+  for (const parentId of parentMap.get(personB.id) || []) {
+    const parent = personMap.get(parentId);
+    if (!parent) continue;
+
+    for (const uncle of getSiblings(parentId, parentMap, personMap)) {
+      if (!(spouseMap.get(uncle.id) || []).includes(personA.id)) continue;
+
+      const towardInLaw = labelParentsSiblingSpouse(parent, uncle);
+      const towardJunior =
+        personB.gender === 1
+          ? markKinship('Điệt Tử', 'cháu trai')
+          : markKinship('Điệt Nữ', 'cháu gái');
+      const uncleRole = labelParentsSibling(parent, uncle);
+
+      return {
+        description: `${personA.display_name} là ${towardInLaw} của ${personB.display_name}`,
+        detail: `${personB.display_name} gọi ${personA.display_name} là ${towardInLaw}; ${personA.display_name} gọi ${personB.display_name} là ${towardJunior}. Qua ${uncle.display_name} (${uncleRole})`,
+      };
+    }
+  }
+
+  return null;
+}
+
+/** Danh xưng chú/bác/cô/cậu/dì — anh/chị/em của bố hoặc mẹ. */
+function labelParentsSibling(parent: Person, uncle: Person): string {
+  const paternal = parent.gender === 1;
+  const uncleOlder = isOlder(uncle, parent);
+
+  if (paternal) {
+    if (uncle.gender === 1) {
+      if (uncleOlder === true) return markKinship('Bá Phụ', 'bác — anh trai của cha');
+      if (uncleOlder === false) return markKinship('Thúc Phụ', 'chú — em trai của cha');
+      return markKinship('Thúc/Bá', 'chú/bác — anh em trai của cha');
+    }
+    return markKinship('Cô Mẫu', 'cô — chị/em gái của cha');
+  }
+
+  if (uncle.gender === 1) return markKinship('Cữu Phụ', 'cậu — anh/em trai của mẹ');
+  return markKinship('Di Mẫu', 'dì — chị/em gái của mẹ');
+}
+
+/** Danh xưng vợ/chồng của chú·bác·cô·cậu·dì. */
+function labelParentsSiblingSpouse(parent: Person, uncle: Person): string {
+  const paternal = parent.gender === 1;
+  const uncleOlder = isOlder(uncle, parent);
+
+  if (paternal) {
+    if (uncle.gender === 1) {
+      // Vợ của bác / chú
+      if (uncleOlder === true) return markKinship('Bá mẫu', 'bác gái — vợ của bác');
+      if (uncleOlder === false) return markKinship('Thẩm', 'thím — vợ của chú');
+      return markKinship('Bá mẫu/Thẩm', 'bác gái/thím — vợ chú bác');
+    }
+    // Chồng của cô
+    return markKinship('Cô phu', 'dượng — chồng của cô');
+  }
+
+  // Bên ngoại
+  if (uncle.gender === 1) {
+    return markKinship('Cữu mẫu', 'mợ — vợ của cậu');
+  }
+  return markKinship('Di phu', 'dượng — chồng của dì');
+}
+
 function findLCA(
   parentMap: Map<string, string[]>,
   personMap: Map<string, Person>,
@@ -644,9 +744,18 @@ function describeRelationship(
   }
 
   // 3. Chị dâu / em dâu / anh rể / em rể (và anh/em chồng, anh/em vợ)
-  //    Ưu tiên trước chú/bác — cháu vì path thường đi qua bố → anh → vợ
   const inLaw = describeSiblingInLaw(personA, personB, parentMap, spouseMap, personMap);
   if (inLaw) return inLaw;
+
+  // 4. Thím / bác gái / mợ / dượng — vợ/chồng của chú·bác·cô·cậu·dì
+  const uncleAuntInLaw = describeParentsSiblingSpouse(
+    personA,
+    personB,
+    parentMap,
+    spouseMap,
+    personMap,
+  );
+  if (uncleAuntInLaw) return uncleAuntInLaw;
 
   if (!lca) {
     if (path.length > 0) {
