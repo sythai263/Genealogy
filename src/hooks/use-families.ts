@@ -9,7 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFamilies, getFamiliesCount, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse, addChildForPerson } from '@lib';
+import { getFamiliesCount, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse, addChildForPerson } from '@lib';
 import type { Family, FamiliesMissingSpouseFilters } from '@types';
 
 // Query keys
@@ -27,13 +27,6 @@ export const familyKeys = {
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
-
-export function useFamilies() {
-  return useQuery({
-    queryKey: familyKeys.lists(),
-    queryFn: getFamilies,
-  });
-}
 
 export function useFamily(id: string | undefined) {
   return useQuery({

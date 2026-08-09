@@ -2,16 +2,16 @@
 project: AncestorTree
 path: docs/refactor-plans/hooks-backend-pagination.md
 type: refactor-plan
-version: 1.0.0
+version: 2.0.0
 updated: 2026-08-09
 owner: frontend
-status: approved
+status: done
 ---
 
 # Refactor Plan: Hooks Backend Pagination
 
 **Date:** 2026-08-09  
-**Status:** In progress  
+**Status:** Done — `pnpm tsc --noEmit`, `pnpm lint` (0 new problems) and `pnpm build` all pass  
 **Approval:** User — "build all"
 
 ## Goal
@@ -42,5 +42,23 @@ Stop full-table fetches that filter/paginate/aggregate on the frontend. Align re
 - Duplicates / eligible members: reduce full-table blast (paginate UI results; prefer lighter selects / reuse tree cache); document if full graph still required for algorithm
 
 ## Schema
-- New migration: `get_fund_balance()` RPC (and any spouses filter helpers if needed)
+- New migration `20260809000026_fund_balance_people_stats.sql`: `get_fund_balance()` and `get_people_stats()` RPCs, both with a client-side fallback if the RPC is absent
 - No breaking table changes
+
+## Outcome
+
+Removed as dead code once every call site was migrated, so the full-table path can't
+be reintroduced by accident:
+
+| Hook | Data-layer function |
+|---|---|
+| `usePeople` | `getPeople` |
+| `useProfiles` | `getProfiles` |
+| `useFamilies` | `getFamilies` |
+| `useUnverifiedProfiles` | `getUnverifiedProfiles` |
+
+### Deliberate full fetches (kept)
+
+- `getTreeData` — the tree view renders the whole graph; already cached with a 5 min `staleTime`.
+- `useDuplicates` — pairwise duplicate detection needs the complete person set. Pagination is applied to the rendered result list instead.
+- `getAllFundTransactions` / `getAllScholarships` — CSV export only, never used for rendering.

@@ -38,7 +38,7 @@ export function FeedView() {
     page,
     pageSize,
   });
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const authorIds = useMemo(

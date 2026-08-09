@@ -83,7 +83,10 @@ export function AdminFundView() {
   const { data: scholarshipsPage } = useScholarships({ page: schPage, pageSize: schPageSize });
 
   const transactions = transactionsPage?.items ?? [];
-  const scholarships = scholarshipsPage?.items ?? [];
+  const scholarships = useMemo(
+    () => scholarshipsPage?.items ?? [],
+    [scholarshipsPage]
+  );
 
   const createTx = useCreateFundTransaction();
   const deleteTx = useDeleteFundTransaction();

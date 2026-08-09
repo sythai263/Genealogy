@@ -98,7 +98,7 @@ export function AdminContributionsView() {
   const reviewContribution = useReviewContribution();
   const deleteContribution = useDeleteContribution();
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const personIds = useMemo(
@@ -108,7 +108,11 @@ export function AdminContributionsView() {
   const profileIds = useMemo(
     () => [
       ...new Set(
-        items.flatMap((c) => [c.author_id, c.reviewed_by].filter(Boolean))
+        items.flatMap((c) =>
+          [c.author_id, c.reviewed_by].filter(
+            (id): id is string => typeof id === 'string' && id.length > 0
+          )
+        )
       ),
     ],
     [items]

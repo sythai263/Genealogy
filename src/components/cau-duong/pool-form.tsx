@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonCombobox } from '@components/people';
@@ -40,7 +40,14 @@ interface PoolFormProps {
 
 export function PoolForm({ pool, onSubmit, isPending }: PoolFormProps) {
   const { data: loadedAncestor } = usePerson(pool?.ancestor_id);
-  const [selectedAncestor, setSelectedAncestor] = useState<Person | null>(null);
+  // `undefined` = user has not touched the picker yet, so fall back to the
+  // ancestor loaded from the pool being edited.
+  const [pickedAncestor, setPickedAncestor] = useState<
+    Person | null | undefined
+  >();
+
+  const selectedAncestor =
+    pickedAncestor !== undefined ? pickedAncestor : (loadedAncestor ?? null);
 
   const form = useForm<CauDuongPoolFormData>({
     resolver: zodResolver(cauDuongPoolSchema),
@@ -56,14 +63,8 @@ export function PoolForm({ pool, onSubmit, isPending }: PoolFormProps) {
       : defaultCauDuongPoolValues,
   });
 
-  useEffect(() => {
-    if (loadedAncestor) {
-      setSelectedAncestor(loadedAncestor);
-    }
-  }, [loadedAncestor]);
-
   function handleAncestorSelect(person: Person | null) {
-    setSelectedAncestor(person);
+    setPickedAncestor(person);
     form.setValue('ancestor_id', person?.id ?? '', { shouldValidate: true });
   }
 

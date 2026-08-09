@@ -36,17 +36,6 @@ function chunkIds(ids: string[], size: number): string[][] {
 // People CRUD
 // ═══════════════════════════════════════════════════════════════════════════
 
-export async function getPeople(): Promise<Person[]> {
-  const { data, error } = await supabase
-    .from('people')
-    .select('*')
-    .order('generation', { ascending: true })
-    .order('display_name', { ascending: true });
-  
-  if (error) throw error;
-  return data || [];
-}
-
 export async function getPerson(id: string): Promise<Person | null> {
   const { data, error } = await supabase
     .from('people')
@@ -248,16 +237,6 @@ export async function getUpcomingMemorialPeople(): Promise<MemorialPerson[]> {
 // ═══════════════════════════════════════════════════════════════════════════
 // Families CRUD
 // ═══════════════════════════════════════════════════════════════════════════
-
-export async function getFamilies(): Promise<Family[]> {
-  const { data, error } = await supabase
-    .from('families')
-    .select('*')
-    .order('sort_order', { ascending: true });
-  
-  if (error) throw error;
-  return data || [];
-}
 
 /** Head-count only — for dashboard cards that don't need row payloads. */
 export async function getFamiliesCount(): Promise<number> {
@@ -991,16 +970,6 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-export async function getProfiles(): Promise<Profile[]> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-}
-
 /**
  * Batch-fetch profiles by user id for author-lookup maps (e.g. feed/comment
  * author names). Dedupes input and chunks `.in()` calls.
@@ -1183,17 +1152,6 @@ export async function updateCanVerifyMembers(userId: string, canVerify: boolean)
 
   if (error) throw error;
   return data;
-}
-
-export async function getUnverifiedProfiles(): Promise<Profile[]> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('is_verified', false)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

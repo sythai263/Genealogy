@@ -41,7 +41,7 @@ export function DocumentLibraryView() {
   const { profile } = useAuth();
   const isViewer = profile?.role === 'viewer';
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const personIds = useMemo(

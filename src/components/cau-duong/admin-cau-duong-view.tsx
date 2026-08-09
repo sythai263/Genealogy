@@ -35,7 +35,6 @@ import {
   useCreateCauDuongPool,
   useEligibleMembers,
   useNextHostInRotation,
-  usePeople,
   useUpdateCauDuongAssignment,
   useUpdateCauDuongPool,
 } from '@hooks';
@@ -53,7 +52,6 @@ export function AdminCauDuongView() {
   const [editingPool, setEditingPool] = useState<CauDuongPool | undefined>();
 
   const { data: pools, isLoading: poolsLoading } = useCauDuongPools();
-  const { data: people } = usePeople();
   const createPoolMutation = useCreateCauDuongPool();
   const updatePoolMutation = useUpdateCauDuongPool();
 
@@ -165,12 +163,14 @@ export function AdminCauDuongView() {
       },
       {
         onSuccess: () => {
-          const hostName =
-            eligibleMembers?.find(
-              (member) => member.person.id === hostPersonId
-            )?.person.display_name ||
-            people?.find((person) => person.id === hostPersonId)?.display_name;
-          toast.success(`Đã đổi phân công cho ${hostName}`);
+          const hostName = eligibleMembers?.find(
+            (member) => member.person.id === hostPersonId
+          )?.person.display_name;
+          toast.success(
+            hostName
+              ? `Đã đổi phân công cho ${hostName}`
+              : 'Đã đổi phân công'
+          );
         },
         onError: () => {
           toast.error('Lỗi khi sửa phân công');
@@ -337,7 +337,6 @@ export function AdminCauDuongView() {
               <PoolForm
                 key={editingPool?.id || 'new'}
                 pool={editingPool}
-                people={people || []}
                 onSubmit={editingPool ? handleUpdatePool : handleCreatePool}
                 isPending={
                   createPoolMutation.isPending || updatePoolMutation.isPending

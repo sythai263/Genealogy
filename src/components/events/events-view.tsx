@@ -80,7 +80,7 @@ export function EventsView() {
     pageSize,
   });
 
-  const listItems = listData?.items ?? [];
+  const listItems = useMemo(() => listData?.items ?? [], [listData]);
   const listTotal = listData?.total ?? 0;
 
   // Name map covers only the person ids actually referenced by loaded events —

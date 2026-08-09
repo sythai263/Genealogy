@@ -72,7 +72,7 @@ export function AdminAchievementsView() {
   const updateMutation = useUpdateAchievement();
   const deleteMutation = useDeleteAchievement();
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const personIds = useMemo(

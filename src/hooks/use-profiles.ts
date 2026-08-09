@@ -9,7 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProfiles, getProfilesByIds, getProfilesPage, getUnverifiedProfilesCount, getProfile, updateProfile, updateUserRole, updateLinkedPerson, updateEditRootPerson, suspendUser, unsuspendUser, verifyUser, getUnverifiedProfiles } from '@lib';
+import { getProfilesByIds, getProfilesPage, getUnverifiedProfilesCount, getProfile, updateProfile, updateUserRole, updateLinkedPerson, updateEditRootPerson, suspendUser, unsuspendUser, verifyUser } from '@lib';
 import { deleteUserAccount } from '@/app/(main)/admin/users/actions';
 import type { Profile, ProfilesListFilters, UserRole } from '@types';
 
@@ -36,14 +36,6 @@ export const profileKeys = {
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
-/** Full profiles list for author/display lookup maps only. */
-export function useProfiles() {
-  return useQuery({
-    queryKey: profileKeys.lists(),
-    queryFn: getProfiles,
-  });
-}
-
 /** Paginated admin users list — queries one page from the backend. */
 export function useProfilesPage(filters: ProfilesListFilters) {
   return useQuery({
@@ -67,13 +59,6 @@ export function useProfile(userId: string | undefined) {
     queryKey: profileKeys.detail(userId!),
     queryFn: () => getProfile(userId!),
     enabled: !!userId,
-  });
-}
-
-export function useUnverifiedProfiles() {
-  return useQuery({
-    queryKey: profileKeys.unverified(),
-    queryFn: getUnverifiedProfiles,
   });
 }
 

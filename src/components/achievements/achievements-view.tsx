@@ -42,7 +42,7 @@ export function AchievementsView() {
   });
   const { data: featured = [] } = useFeaturedAchievements();
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const personIds = useMemo(

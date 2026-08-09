@@ -71,7 +71,7 @@ export function AdminDocumentsView() {
   const deleteMutation = useDeleteDocument();
   const uploadMutation = useUploadDocumentFile();
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
 
   const personIds = useMemo(

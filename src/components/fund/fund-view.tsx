@@ -68,10 +68,16 @@ export function FundView() {
     pageSize,
   });
 
-  const hocBong = scholarshipsPage?.items ?? [];
-  const khenThuong = rewardsPage?.items ?? [];
-  const donations = donationsPage?.items ?? [];
-  const history = historyPageData?.items ?? [];
+  const hocBong = useMemo(
+    () => scholarshipsPage?.items ?? [],
+    [scholarshipsPage]
+  );
+  const khenThuong = useMemo(() => rewardsPage?.items ?? [], [rewardsPage]);
+  const donations = useMemo(() => donationsPage?.items ?? [], [donationsPage]);
+  const history = useMemo(
+    () => historyPageData?.items ?? [],
+    [historyPageData]
+  );
   const scholarshipCount =
     (scholarshipsPage?.total ?? 0) + (rewardsPage?.total ?? 0);
 

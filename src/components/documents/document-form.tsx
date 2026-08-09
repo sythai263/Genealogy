@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { PersonCombobox } from '@components/people';
 import {
@@ -45,16 +45,15 @@ export function DocumentForm({
   const [category, setCategory] = useState<DocumentCategory>(doc?.category || 'khac');
   const [description, setDescription] = useState(doc?.description || '');
   const [tags, setTags] = useState(doc?.tags || '');
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  // `undefined` = user has not touched the picker yet, so fall back to the
+  // person loaded from the document being edited.
+  const [pickedPerson, setPickedPerson] = useState<Person | null | undefined>();
   const [privacyLevel, setPrivacyLevel] = useState(doc?.privacy_level ?? 1);
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (loadedPerson) {
-      setSelectedPerson(loadedPerson);
-    }
-  }, [loadedPerson]);
+  const selectedPerson =
+    pickedPerson !== undefined ? pickedPerson : (loadedPerson ?? null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +118,7 @@ export function DocumentForm({
           <PersonCombobox
             label="Thành viên liên quan"
             selected={selectedPerson}
-            onSelect={setSelectedPerson}
+            onSelect={setPickedPerson}
           />
         </div>
       </div>

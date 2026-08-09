@@ -14,7 +14,6 @@ import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
   createPerson,
   deletePerson,
-  getPeople,
   getPeopleByGeneration,
   getPeopleByIds,
   getPeopleFilterOptions,
@@ -52,14 +51,6 @@ export const peopleKeys = {
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
-
-export function usePeople() {
-  return useQuery({
-    queryKey: peopleKeys.lists(),
-    queryFn: getPeople,
-    staleTime: 5 * 60 * 1000,
-  });
-}
 
 /**
  * People list with Supabase-side search + filters (debounced query).
