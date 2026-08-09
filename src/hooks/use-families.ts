@@ -3,7 +3,7 @@
  * @file src/hooks/use-families.ts
  * @description React Query hooks for families data
  * @version 1.0.0
- * @updated 2026-02-24
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -143,15 +143,18 @@ export function useCreateSpouseFamily() {
       personId,
       personGender,
       spouseId,
+      targetFamilyId,
     }: {
       personId: string;
       personGender: 1 | 2;
       spouseId: string;
-    }) => createSpouseFamily(personId, personGender, spouseId),
-    onSuccess: (_, { personId }) => {
+      targetFamilyId?: string;
+    }) => createSpouseFamily(personId, personGender, spouseId, { targetFamilyId }),
+    onSuccess: (_, { personId, spouseId }) => {
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
       queryClient.invalidateQueries({ queryKey: familyKeys.tree() });
       queryClient.invalidateQueries({ queryKey: familyKeys.relations(personId) });
+      queryClient.invalidateQueries({ queryKey: familyKeys.relations(spouseId) });
     },
   });
 }

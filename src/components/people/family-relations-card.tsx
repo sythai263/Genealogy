@@ -3,7 +3,7 @@
  * @file src/components/people/family-relations-card.tsx
  * @description Card showing family relations (parents, siblings, spouse, children) for a person
  * @version 1.0.0
- * @updated 2026-02-25
+ * @updated 2026-08-09
  */
 
 'use client';
@@ -219,7 +219,8 @@ interface AddRelationDialogProps {
   onClose: () => void;
   mode: DialogMode;
   currentPerson: Person;
-  targetFamilyId?: string; // for child mode: which family to add to
+  /** Child mode: family to add child to. Spouse mode: optional half-family to fill. */
+  targetFamilyId?: string;
   onSuccess: () => void;
 }
 
@@ -243,6 +244,15 @@ function AddRelationDialog({
   const defaultGeneration = mode === 'spouse'
     ? currentPerson.generation
     : currentPerson.generation + 1;
+
+  const linkSpouse = async (spouseId: string) => {
+    await createSpouseFamilyMutation.mutateAsync({
+      personId: currentPerson.id,
+      personGender: currentPerson.gender,
+      spouseId,
+      targetFamilyId: mode === 'spouse' ? targetFamilyId : undefined,
+    });
+  };
 
   const handleCreateNew = async (data: QuickPersonData) => {
     setIsSaving(true);
@@ -270,11 +280,7 @@ function AddRelationDialog({
       );
 
       if (mode === 'spouse') {
-        await createSpouseFamilyMutation.mutateAsync({
-          personId: currentPerson.id,
-          personGender: currentPerson.gender,
-          spouseId: newPerson.id,
-        });
+        await linkSpouse(newPerson.id);
       } else if (targetFamilyId) {
         await addChildMutation.mutateAsync({
           familyId: targetFamilyId,
@@ -299,11 +305,7 @@ function AddRelationDialog({
     setIsSaving(true);
     try {
       if (mode === 'spouse') {
-        await createSpouseFamilyMutation.mutateAsync({
-          personId: currentPerson.id,
-          personGender: currentPerson.gender,
-          spouseId: person.id,
-        });
+        await linkSpouse(person.id);
       } else if (targetFamilyId) {
         await addChildMutation.mutateAsync({
           familyId: targetFamilyId,
@@ -377,6 +379,7 @@ interface OwnFamilySectionProps {
   canEdit: boolean;
   index: number;
   onAddChild: (familyId: string) => void;
+  onAddSpouse: (familyId: string) => void;
 }
 
 function OwnFamilySection({
@@ -385,6 +388,7 @@ function OwnFamilySection({
   canEdit,
   index,
   onAddChild,
+  onAddSpouse,
 }: OwnFamilySectionProps) {
   const { family, spouse, children } = familyEntry;
   const spouseLabel = currentPerson.gender === 1 ? 'Vợ' : 'Chồng';
@@ -395,14 +399,27 @@ function OwnFamilySection({
 
       {/* Spouse */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-          {spouseLabel}
-          {family.marriage_date && (
-            <span className="ml-2 normal-case font-normal">
-              (kết hôn {family.marriage_date})
-            </span>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {spouseLabel}
+            {family.marriage_date && (
+              <span className="ml-2 normal-case font-normal">
+                (kết hôn {family.marriage_date})
+              </span>
+            )}
+          </p>
+          {canEdit && !spouse && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs px-2"
+              onClick={() => onAddSpouse(family.id)}
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Thêm {spouseLabel.toLowerCase()}
+            </Button>
           )}
-        </p>
+        </div>
         {spouse ? (
           <PersonLink person={spouse} />
         ) : (
@@ -454,9 +471,9 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
   const [dialogMode, setDialogMode] = useState<DialogMode | null>(null);
   const [targetFamilyId, setTargetFamilyId] = useState<string | undefined>();
 
-  const openSpouseDialog = () => {
+  const openSpouseDialog = (familyId?: string) => {
     setDialogMode('spouse');
-    setTargetFamilyId(undefined);
+    setTargetFamilyId(familyId);
   };
 
   const openChildDialog = (familyId: string) => {
@@ -499,7 +516,7 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
               Quan hệ gia đình
             </CardTitle>
             {canEdit && (
-              <Button variant="outline" size="sm" onClick={openSpouseDialog}>
+              <Button variant="outline" size="sm" onClick={() => openSpouseDialog()}>
                 <Plus className="h-4 w-4 mr-1" />
                 Thêm vợ/chồng
               </Button>
@@ -568,6 +585,7 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
                   canEdit={canEdit}
                   index={idx}
                   onAddChild={openChildDialog}
+                  onAddSpouse={openSpouseDialog}
                 />
               ))}
             </div>
