@@ -28,7 +28,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import { EmptyState, ListPagination, QueryBoundary } from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +64,12 @@ import {
   TableRow,
   Textarea,
 } from '@components/ui';
-import { LIST_DEFAULT_PAGE_SIZE, USER_ROLE_META, type ListPageSize } from '@constants';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  ROUTE_ERROR_TITLES,
+  USER_ROLE_META,
+  type ListPageSize,
+} from '@constants';
 import {
   useDeleteUser,
   useProfilesPage,
@@ -391,29 +396,16 @@ export function AdminUsersView() {
           )}
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className='space-y-4'>
-              {[1, 2, 3].map(i => (
-                <div key={i} className='flex items-center gap-4'>
-                  <Skeleton className='h-10 w-10 rounded-full' />
-                  <div className='space-y-2 flex-1'>
-                    <Skeleton className='h-4 w-32' />
-                    <Skeleton className='h-3 w-48' />
-                  </div>
-                  <Skeleton className='h-9 w-32' />
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className='py-8 text-center text-destructive'>
-              <p>Lỗi khi tải danh sách: {error.message}</p>
-              <Button
-                variant='outline'
-                className='mt-4'
-                onClick={() => window.location.reload()}>
-                Thử lại
-              </Button>
-            </div>
+          {isLoading || error ? (
+            <QueryBoundary
+              isLoading={isLoading}
+              error={error}
+              errorTitle={ROUTE_ERROR_TITLES.adminUsers}
+              onRetry={() => window.location.reload()}
+              skeletonRows={3}
+              surface='plain'>
+              {null}
+            </QueryBoundary>
           ) : displayedProfiles.length > 0 ? (
             <>
               <Table>
@@ -749,10 +741,11 @@ export function AdminUsersView() {
               </div>
             </>
           ) : (
-            <div className='py-12 text-center text-muted-foreground'>
-              <Users className='h-12 w-12 mx-auto mb-4 opacity-30' />
-              <p>Chưa có người dùng nào đăng ký</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title='Chưa có người dùng nào đăng ký'
+              surface='plain'
+            />
           )}
         </CardContent>
       </Card>

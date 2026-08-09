@@ -9,11 +9,15 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { Archive, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  PageHeader,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,16 +90,7 @@ export function AdminDocumentsView() {
   }, [people]);
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   const handleCreate = async (data: CreateClanDocumentInput, file?: File) => {
@@ -151,28 +146,28 @@ export function AdminDocumentsView() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Quản lý Kho tài liệu</h1>
-          <p className="text-muted-foreground">Tải lên, sửa, xóa tài liệu dòng họ</p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(undefined); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /><Upload className="h-4 w-4 mr-2" />Tải lên</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? 'Sửa tài liệu' : 'Tải lên tài liệu mới'}</DialogTitle>
-            </DialogHeader>
-            <DocumentForm
-              key={editingItem?.id || 'new'}
-              document={editingItem}
-              onSubmit={editingItem ? handleUpdate : handleCreate}
-              isPending={createMutation.isPending || updateMutation.isPending || uploadMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PageHeader
+        title="Quản lý Kho tài liệu"
+        description="Tải lên, sửa, xóa tài liệu dòng họ"
+        actions={
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(undefined); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" /><Upload className="h-4 w-4 mr-2" />Tải lên</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingItem ? 'Sửa tài liệu' : 'Tải lên tài liệu mới'}</DialogTitle>
+              </DialogHeader>
+              <DocumentForm
+                key={editingItem?.id || 'new'}
+                document={editingItem}
+                onSubmit={editingItem ? handleUpdate : handleCreate}
+                isPending={createMutation.isPending || updateMutation.isPending || uploadMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <Input
         placeholder="Tìm kiếm theo tiêu đề, tags, hoặc thành viên..."
@@ -181,18 +176,13 @@ export function AdminDocumentsView() {
         className="max-w-md"
       />
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => <Card key={i}><CardContent className="p-4 h-16" /></Card>)}
-        </div>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Archive className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>Chưa có tài liệu nào</p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={Archive}
+        emptyTitle="Chưa có tài liệu nào"
+        skeletonRows={3}
+      >
         <div className="space-y-4">
           <div className="space-y-2">
             {items.map(doc => {
@@ -261,7 +251,7 @@ export function AdminDocumentsView() {
             itemLabel="tài liệu"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

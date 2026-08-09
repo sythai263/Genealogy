@@ -10,9 +10,9 @@
 
 import { useMemo, useState } from 'react';
 import { useResettablePage } from '@hooks';
-import { Loader2 } from 'lucide-react';
+import { MessagesSquare } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import { ListPagination, PageHeader, QueryBoundary } from '@components/shared';
 import { Badge } from '@components/ui';
 import {
   FEED_FILTER_TABS,
@@ -67,12 +67,10 @@ export function FeedView() {
 
   return (
     <div className="container mx-auto max-w-2xl space-y-6 px-4 py-8">
-      <div>
-        <h1 className="text-2xl font-bold">Góc giao lưu</h1>
-        <p className="text-muted-foreground">
-          Không gian chia sẻ của con cháu dòng họ
-        </p>
-      </div>
+      <PageHeader
+        title="Góc giao lưu"
+        description="Không gian chia sẻ của con cháu dòng họ"
+      />
 
       {user && <ComposeBox />}
 
@@ -91,17 +89,20 @@ export function FeedView() {
         ))}
       </div>
 
-      {postsLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground">
-          {activeFilter !== 'all'
+      <QueryBoundary
+        isLoading={postsLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={MessagesSquare}
+        emptyTitle={
+          activeFilter !== 'all'
             ? 'Không có bài viết nào trong mục này'
-            : 'Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!'}
-        </div>
-      ) : (
+            : 'Chưa có bài viết nào'
+        }
+        emptyDescription={
+          activeFilter === 'all' ? 'Hãy là người đầu tiên chia sẻ!' : undefined
+        }
+        skeletonVariant="feed"
+      >
         <div className="space-y-4">
           {items.map((post) => (
             <PostCard
@@ -123,7 +124,7 @@ export function FeedView() {
             itemLabel="bài viết"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

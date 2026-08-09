@@ -9,13 +9,15 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { Check, Heart } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
 import {
-  Button,
+  AccessDenied,
+  ListPagination,
+  QueryBoundary,
+} from '@components/shared';
+import {
   Card,
   CardContent,
   CardDescription,
@@ -26,7 +28,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton,
 } from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
@@ -114,20 +115,7 @@ export function AdminSpousesView() {
   }
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/admin">Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   return (
@@ -143,22 +131,13 @@ export function AdminSpousesView() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((index) => (
-            <Skeleton key={index} className="h-16 rounded-lg" />
-          ))}
-        </div>
-      ) : total === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Check className="mx-auto mb-2 h-8 w-8 text-green-600" />
-            <p className="text-muted-foreground">
-              Mọi gia đình đều đã có đủ vợ chồng
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={total === 0}
+        emptyIcon={Check}
+        emptyTitle="Mọi gia đình đều đã có đủ vợ chồng"
+        skeletonRows={5}
+      >
         <>
           <Card>
             <CardContent className="space-y-3 py-4">
@@ -251,7 +230,7 @@ export function AdminSpousesView() {
             </CardContent>
           </Card>
         </>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

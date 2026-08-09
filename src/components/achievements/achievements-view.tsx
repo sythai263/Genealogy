@@ -10,9 +10,13 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Skeleton,
 } from '@components/ui';
-import { ListPagination } from '@components/shared';
+import {
+  EmptyState,
+  ListPagination,
+  PageHeader,
+  PageSkeleton,
+} from '@components/shared';
 import {
   ACHIEVEMENT_CATEGORIES,
   LIST_DEFAULT_PAGE_SIZE,
@@ -63,29 +67,16 @@ export function AchievementsView() {
   }, [people]);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto space-y-6 px-4 py-8">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-      </div>
-    );
+    return <PageSkeleton variant="grid" />;
   }
 
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <Trophy className="h-6 w-6" />
-          Vinh danh con cháu
-        </h1>
-        <p className="text-muted-foreground">
-          Ghi nhận thành tích nổi bật của các thành viên trong dòng họ
-        </p>
-      </div>
+      <PageHeader
+        icon={Trophy}
+        title="Vinh danh con cháu"
+        description="Ghi nhận thành tích nổi bật của các thành viên trong dòng họ"
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="flex flex-wrap gap-2">
@@ -152,12 +143,7 @@ export function AchievementsView() {
           itemLabel="thành tích"
         />
         {items.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              <Trophy className="mx-auto mb-2 h-10 w-10 opacity-50" />
-              <p>Chưa có thành tích nào</p>
-            </CardContent>
-          </Card>
+          <EmptyState icon={Trophy} title="Chưa có thành tích nào" />
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {items.map((achievement) => (

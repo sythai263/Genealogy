@@ -13,14 +13,18 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
+import { ErrorState, PageSkeleton } from '@components/shared';
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Skeleton,
 } from '@components/ui';
+import {
+  PERSON_NOT_FOUND_DESCRIPTION,
+  ROUTE_ERROR_TITLES,
+} from '@constants';
 import { useCanEditPerson, useDeletePerson, usePerson } from '@hooks';
 import { FamilyRelationsCard } from './family-relations-card';
 import { PersonBirthDeathCard } from './person-birth-death-card';
@@ -54,40 +58,26 @@ export function PersonDetailView({ personId }: PersonDetailViewProps) {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-4xl p-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start gap-6">
-              <Skeleton className="h-24 w-24 rounded-full" />
-              <div className="flex-1 space-y-3">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-64" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <PageSkeleton variant="detail" className="max-w-4xl" />;
   }
 
   if (error || !person) {
     return (
       <div className="container mx-auto max-w-4xl p-4">
-        <Card className="border-destructive">
-          <CardContent className="py-12 text-center">
-            <p className="mb-4 text-destructive">
-              {error ? `Lỗi: ${error.message}` : 'Không tìm thấy thông tin'}
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/people">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Quay lại
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <ErrorState
+          error={error}
+          title={ROUTE_ERROR_TITLES.personDetail}
+          description={PERSON_NOT_FOUND_DESCRIPTION}
+          className="border-destructive"
+        />
+        <div className="mt-4 flex justify-center">
+          <Button asChild variant="outline">
+            <Link href="/people">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

@@ -1,21 +1,17 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/admin/events/error.tsx
- * @description Error boundary for admin events page
- * @version 1.0.0
- * @updated 2026-02-28
+ * @description Error boundary for the (main)/admin/events route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
 import { RouteError } from '@components/shared';
+import { ROUTE_ERROR_TITLES } from '@constants';
+import type { RouteBoundaryErrorProps } from '@types';
 
-export default function AdminEventsError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return <RouteError error={error} reset={reset} title="Lỗi tải trang quản lý lịch sự kiện" />;
+export default function AdminEventsError({ error, reset }: RouteBoundaryErrorProps) {
+  return <RouteError error={error} reset={reset} title={ROUTE_ERROR_TITLES.adminEvents} />;
 }

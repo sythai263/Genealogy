@@ -9,12 +9,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { Plus, Trash2, CheckCircle, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
 import { PersonCombobox } from '@components/people';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  EmptyState,
+  ListPagination,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,16 +126,7 @@ export function AdminFundView() {
   const [schGrade, setSchGrade] = useState('');
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   const resetTxForm = () => {
@@ -306,12 +300,7 @@ export function AdminFundView() {
               </Card>
             ))}
             {transactions.length === 0 && (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <Wallet className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p>Chưa có giao dịch nào</p>
-                </CardContent>
-              </Card>
+              <EmptyState icon={Wallet} title="Chưa có giao dịch nào" />
             )}
           </div>
           <ListPagination
@@ -426,9 +415,7 @@ export function AdminFundView() {
               );
             })}
             {scholarships.length === 0 && (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">Chưa có đề cử nào</CardContent>
-              </Card>
+              <EmptyState title="Chưa có đề cử nào" />
             )}
           </div>
           <ListPagination

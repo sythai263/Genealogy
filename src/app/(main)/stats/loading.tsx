@@ -1,24 +1,13 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/stats/loading.tsx
- * @description Loading skeleton for stats dashboard page
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Loading skeleton for the (main)/stats route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { Skeleton } from '@components/ui';
+import { PageSkeleton } from '@components/shared';
 
 export default function StatsLoading() {
-  return (
-    <div className='container mx-auto p-4 space-y-6'>
-      <Skeleton className='h-8 w-48' />
-      <Skeleton className='h-4 w-64' />
-      <div className='grid gap-4 grid-cols-2 md:grid-cols-4'>
-        {[1, 2, 3, 4].map(i => (
-          <Skeleton key={i} className='h-24 rounded-lg' />
-        ))}
-      </div>
-      <Skeleton className='h-75 rounded-lg' />
-    </div>
-  );
+  return <PageSkeleton variant="grid" />;
 }

@@ -11,9 +11,9 @@
 import { useMemo, useState } from 'react';
 import { BookOpen, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageSkeleton } from '@components/shared';
 import {
   Button,
-  Skeleton,
   Tabs,
   TabsContent,
   TabsList,
@@ -128,18 +128,7 @@ export function FundView() {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto space-y-6 px-4 py-8">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-        </div>
-        <Skeleton className="h-64" />
-      </div>
-    );
+    return <PageSkeleton variant="detail" />;
   }
 
   return (

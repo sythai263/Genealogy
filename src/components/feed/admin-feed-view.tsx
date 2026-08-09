@@ -9,11 +9,22 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2, Search, Shield, Trash2 } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  MessagesSquare,
+  Search,
+  Shield,
+  Trash2,
+} from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,20 +101,7 @@ export function AdminFeedView() {
   }, [profiles]);
 
   if (!isEditor) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   const filteredPosts = items;
@@ -170,18 +168,14 @@ export function AdminFeedView() {
         </div>
       </div>
 
-      {/* Posts list */}
-      {isLoading ? (
-        <div className='flex justify-center py-12'>
-          <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
-        </div>
-      ) : filteredPosts.length === 0 ? (
-        <Card>
-          <CardContent className='py-12 text-center text-muted-foreground'>
-            {search ? 'Không tìm thấy bài viết' : 'Chưa có bài viết nào'}
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={filteredPosts.length === 0}
+        emptyIcon={MessagesSquare}
+        emptyTitle={
+          search ? 'Không tìm thấy bài viết' : 'Chưa có bài viết nào'
+        }
+        skeletonRows={3}>
         <div className='space-y-4'>
           <div className='space-y-3'>
             {filteredPosts.map(post => {
@@ -271,7 +265,7 @@ export function AdminFeedView() {
             itemLabel='bài viết'
           />
         </div>
-      )}
+      </QueryBoundary>
 
       {/* Delete confirmation */}
       <AlertDialog

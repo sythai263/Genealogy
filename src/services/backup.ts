@@ -1,56 +1,38 @@
+/**
+ * @project AncestorTree
+ * @file src/services/backup.ts
+ * @description Client-side calls to the backup export/restore API routes
+ * @version 2.0.0
+ * @updated 2026-08-09
+ */
+
+import { API_ERROR_MESSAGES } from '@constants';
 import type { IncludeMedia, RestoreResult } from '@types';
-
-interface BackupApiErrorBody {
-  error?: string;
-}
-
-async function readErrorMessage(response: Response, fallback: string): Promise<string> {
-  try {
-    const body = (await response.json()) as BackupApiErrorBody;
-    return body.error || fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { downloadBlob, requestBlob, requestJson } from './http';
 
 export async function exportBackup(includeMedia: IncludeMedia): Promise<Blob> {
-  const response = await fetch('/api/backup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ include_media: includeMedia }),
-  });
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response, 'Sao lưu thất bại'));
-  }
-
-  return response.blob();
+  return requestBlob(
+    '/api/backup',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ include_media: includeMedia }),
+    },
+    API_ERROR_MESSAGES.backupFailed
+  );
 }
 
 export function downloadBackupBlob(blob: Blob): void {
-  const url = URL.createObjectURL(blob);
-  const filename = `giapha-${new Date().toISOString().slice(0, 10)}.zip`;
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `giapha-${new Date().toISOString().slice(0, 10)}.zip`);
 }
 
 export async function restoreBackup(file: File): Promise<RestoreResult> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch('/api/backup/restore', {
-    method: 'POST',
-    body: formData,
-  });
-
-  const data = (await response.json()) as RestoreResult & BackupApiErrorBody;
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Khôi phục thất bại');
-  }
-
-  return data;
+  return requestJson<RestoreResult>(
+    '/api/backup/restore',
+    { method: 'POST', body: formData },
+    API_ERROR_MESSAGES.restoreFailed
+  );
 }

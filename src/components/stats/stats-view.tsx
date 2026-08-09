@@ -8,6 +8,7 @@
 
 'use client';
 
+import { PageSkeleton } from '@components/shared';
 import { Skeleton } from '@components/ui';
 import { useTreeData } from '@hooks';
 import { calculateDetailedStats } from '@lib';
@@ -34,17 +35,7 @@ export function StatsView() {
   }, [treeData]);
 
   if (isLoading) {
-    return (
-      <div className='container mx-auto space-y-6 p-4'>
-        <Skeleton className='h-8 w-48' />
-        <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className='h-24 rounded-lg' />
-          ))}
-        </div>
-        <Skeleton className='h-75 rounded-lg' />
-      </div>
-    );
+    return <PageSkeleton variant='grid' />;
   }
 
   if (!stats) return null;

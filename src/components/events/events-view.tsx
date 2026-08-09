@@ -9,7 +9,7 @@
 'use client';
 
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import { ListPagination, PageHeader } from '@components/shared';
 import {
   Button,
   Card,
@@ -232,37 +232,32 @@ export function EventsView() {
 
   return (
     <div className='container mx-auto px-4 py-8'>
-      <div className='mb-8 flex items-start justify-between'>
-        <div className='flex items-center gap-3'>
-          <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50'>
-            <Calendar className='h-5 w-5 text-amber-600' />
-          </div>
-          <div>
-            <h1 className='text-2xl font-bold'>Lịch cúng lễ</h1>
-            <p className='text-muted-foreground'>
-              Quản lý ngày giỗ, lễ tết và sự kiện dòng họ
-            </p>
-          </div>
-        </div>
-        {isEditor && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className='gap-2'>
-                <Plus className='h-4 w-4' /> Thêm sự kiện
-              </Button>
-            </DialogTrigger>
-            <DialogContent className='max-w-md'>
-              <DialogHeader>
-                <DialogTitle>Thêm sự kiện mới</DialogTitle>
-                <DialogDescription>
-                  Thêm ngày giỗ, lễ tết hoặc sự kiện dòng họ
-                </DialogDescription>
-              </DialogHeader>
-              <AddEventDialog onClose={() => setDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+      <PageHeader
+        className='mb-8'
+        icon={Calendar}
+        title='Lịch cúng lễ'
+        description='Quản lý ngày giỗ, lễ tết và sự kiện dòng họ'
+        actions={
+          isEditor && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className='gap-2'>
+                  <Plus className='h-4 w-4' /> Thêm sự kiện
+                </Button>
+              </DialogTrigger>
+              <DialogContent className='max-w-md'>
+                <DialogHeader>
+                  <DialogTitle>Thêm sự kiện mới</DialogTitle>
+                  <DialogDescription>
+                    Thêm ngày giỗ, lễ tết hoặc sự kiện dòng họ
+                  </DialogDescription>
+                </DialogHeader>
+                <AddEventDialog onClose={() => setDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          )
+        }
+      />
 
       <UpcomingEventsBanner events={allUpcoming} />
 

@@ -21,7 +21,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +52,7 @@ import {
   Textarea,
 } from '@components/ui';
 import {
+  ACCESS_DENIED_ADMIN_MESSAGE,
   CONTRIBUTION_CHANGE_TYPE_LABELS,
   CONTRIBUTION_FIELD_OPTIONS,
   CONTRIBUTION_STATUS_CONFIG,
@@ -121,20 +126,7 @@ export function AdminContributionsView() {
   const { data: profiles } = useProfilesByIds(profileIds);
 
   if (!isAdmin) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền quản trị viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied description={ACCESS_DENIED_ADMIN_MESSAGE} />;
   }
 
   const filteredContributions = items;
@@ -208,21 +200,16 @@ export function AdminContributionsView() {
         </CardDescription>
       </div>
 
-      {isLoading ? (
-        <div className='space-y-4'>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className='h-40 w-full' />
-          ))}
-        </div>
-      ) : filteredContributions.length === 0 ? (
-        <Card>
-          <CardContent className='py-12 text-center text-muted-foreground'>
-            {statusFilter === 'pending'
-              ? 'Không có đề xuất chờ duyệt'
-              : 'Không có đề xuất nào'}
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={filteredContributions.length === 0}
+        emptyIcon={ClipboardList}
+        emptyTitle={
+          statusFilter === 'pending'
+            ? 'Không có đề xuất chờ duyệt'
+            : 'Không có đề xuất nào'
+        }
+        skeletonRows={3}>
         <div className='space-y-4'>
           {filteredContributions.map(c => {
             const person = people?.find(p => p.id === c.target_person);
@@ -411,7 +398,7 @@ export function AdminContributionsView() {
             itemLabel='đề xuất'
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

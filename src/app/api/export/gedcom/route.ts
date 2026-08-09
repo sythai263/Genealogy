@@ -2,53 +2,37 @@
  * @project AncestorTree
  * @file src/app/api/export/gedcom/route.ts
  * @description API endpoint for GEDCOM 7.0 file export (admin/editor only)
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { API_ERROR_MESSAGES, API_STATUS } from '@constants';
+import {
+  apiError,
+  apiFile,
+  createServiceRoleClient,
+  guardWebOnly,
+  requireRole,
+  withApiHandler,
+} from '@lib/api';
 import { generateGedcom, type TreeData } from '@lib';
 
-export async function GET(request: Request) {
-  // Desktop mode: export handled client-side via generateGedcom()
-  if (process.env.NEXT_PUBLIC_DESKTOP_MODE === 'true') {
-    return NextResponse.json({ error: 'Use client-side export in desktop mode' }, { status: 400 });
-  }
+export const GET = withApiHandler(
+  'export/gedcom',
+  async (request) => {
+    // Desktop mode: export is handled client-side via generateGedcom()
+    const desktopGuard = guardWebOnly();
+    if (desktopGuard) return desktopGuard;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.error('[export/gedcom] Missing SUPABASE_URL or SERVICE_ROLE_KEY');
-    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
-  }
+    const requester = await requireRole(request);
+    if (requester instanceof Response) return requester;
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = createServiceRoleClient();
+    if (!supabase) {
+      return apiError(API_ERROR_MESSAGES.serverMisconfigured, API_STATUS.serverError);
+    }
 
-  // Verify user is admin or editor
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const token = authHeader.slice(7);
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('user_id', user.id)
-    .single();
-
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'editor')) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  try {
-    // Fetch all tree data using service-role (bypass RLS for full export)
+    // Service-role read bypasses RLS so the export covers the whole tree
     const [peopleRes, familiesRes, childrenRes] = await Promise.all([
       supabase.from('people').select('*'),
       supabase.from('families').select('*'),
@@ -60,23 +44,17 @@ export async function GET(request: Request) {
     if (childrenRes.error) throw childrenRes.error;
 
     const treeData: TreeData = {
-      people: peopleRes.data || [],
-      families: familiesRes.data || [],
-      children: childrenRes.data || [],
+      people: peopleRes.data ?? [],
+      families: familiesRes.data ?? [],
+      children: childrenRes.data ?? [],
     };
 
-    const content = generateGedcom(treeData);
     const date = new Date().toISOString().slice(0, 10);
 
-    return new Response(content, {
-      headers: {
-        'Content-Type': 'text/x-gedcom; charset=utf-8',
-        'Content-Disposition': `attachment; filename="ancestortree-${date}.ged"`,
-      },
+    return apiFile(generateGedcom(treeData), {
+      contentType: 'text/x-gedcom; charset=utf-8',
+      filename: `ancestortree-${date}.ged`,
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('[export/gedcom] Error:', message);
-    return NextResponse.json({ error: 'Export failed' }, { status: 500 });
-  }
-}
+  },
+  API_ERROR_MESSAGES.exportFailed
+);

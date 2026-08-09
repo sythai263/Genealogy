@@ -1,13 +1,13 @@
-import { Skeleton } from '@components/ui';
+/**
+ * @project AncestorTree
+ * @file src/app/(main)/admin/spouses/loading.tsx
+ * @description Loading skeleton for the (main)/admin/spouses route
+ * @version 2.0.0
+ * @updated 2026-08-09
+ */
 
-export default function Loading() {
-  return (
-    <div className="container mx-auto space-y-6 px-4 py-8">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-24 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-      <Skeleton className="h-16 w-full rounded-lg" />
-    </div>
-  );
+import { PageSkeleton } from '@components/shared';
+
+export default function AdminSpousesLoading() {
+  return <PageSkeleton variant="table" />;
 }

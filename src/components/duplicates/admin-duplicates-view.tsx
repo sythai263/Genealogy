@@ -9,10 +9,9 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import Link from 'next/link';
 import { AlertTriangle, CheckCircle, Users, X } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import { AccessDenied, ListPagination } from '@components/shared';
 import {
   Badge,
   Button,
@@ -54,20 +53,7 @@ export function AdminDuplicatesView() {
   }, []);
 
   if (!isEditor) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   const visiblePairs = (duplicates || []).filter(

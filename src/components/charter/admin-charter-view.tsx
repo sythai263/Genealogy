@@ -9,7 +9,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { Pencil, Plus, ScrollText, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
@@ -41,6 +40,7 @@ import {
 } from '@hooks';
 import type { ClanArticle, ClanArticleCategory, CreateClanArticleInput } from '@types';
 import { ArticleForm } from './article-form';
+import { AccessDenied, QueryBoundary } from '@components/shared';
 
 export function AdminCharterView() {
   const { profile, isEditor } = useAuth();
@@ -58,16 +58,7 @@ export function AdminCharterView() {
   const deleteMutation = useDeleteClanArticle();
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   async function handleCreate(data: CreateClanArticleInput) {
@@ -142,18 +133,13 @@ export function AdminCharterView() {
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => <Card key={i}><CardContent className="p-4 h-16" /></Card>)}
-        </div>
-      ) : !articles || articles.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <ScrollText className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>Chưa có bài viết nào</p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={!articles || articles.length === 0}
+        emptyIcon={ScrollText}
+        emptyTitle="Chưa có bài viết nào"
+        skeletonRows={3}
+      >
         <div className="space-y-2">
           {articles.map(a => (
             <Card key={a.id}>
@@ -194,7 +180,7 @@ export function AdminCharterView() {
             </Card>
           ))}
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

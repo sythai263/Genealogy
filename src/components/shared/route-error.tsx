@@ -2,35 +2,35 @@
  * @project AncestorTree
  * @file src/components/shared/route-error.tsx
  * @description Reusable error boundary component for route error.tsx files
- * @version 1.0.0
- * @updated 2026-02-25
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { Button, Card, CardContent } from '@components/ui';
-import { AlertCircle } from 'lucide-react';
+import { ErrorState } from './error-state';
+import type { RouteBoundaryErrorProps } from '@types';
+import { PAGE_CONTAINER_CLASS } from '@constants';
 
-interface RouteErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
+interface RouteErrorProps extends RouteBoundaryErrorProps {
   title: string;
   defaultMessage?: string;
 }
 
-export function RouteError({ error, reset, title, defaultMessage }: RouteErrorProps) {
+export function RouteError({
+  error,
+  reset,
+  title,
+  defaultMessage,
+}: RouteErrorProps) {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card>
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">{title}</h2>
-          <p className="text-muted-foreground mb-4">
-            {error.message || defaultMessage || 'Đã xảy ra lỗi. Vui lòng thử lại.'}
-          </p>
-          <Button onClick={reset}>Thử lại</Button>
-        </CardContent>
-      </Card>
+    <div className={PAGE_CONTAINER_CLASS}>
+      <ErrorState
+        error={error}
+        title={title}
+        description={defaultMessage}
+        onRetry={reset}
+      />
     </div>
   );
 }

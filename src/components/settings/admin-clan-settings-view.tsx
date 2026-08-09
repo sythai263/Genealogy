@@ -53,6 +53,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
+import { AccessDenied } from '@components/shared';
 
 export function AdminClanSettingsView() {
   const router = useRouter();
@@ -112,20 +113,7 @@ export function AdminClanSettingsView() {
   }
 
   if (!isEditor) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   async function handleSave(e: FormEvent) {

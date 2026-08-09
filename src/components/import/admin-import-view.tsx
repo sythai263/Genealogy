@@ -9,7 +9,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   AlertCircle,
@@ -34,6 +33,7 @@ import {
 import { GEDCOM_IMPORT_MAX_BYTES } from '@constants';
 import { useTreeData } from '@hooks';
 import { prepareImport, type ImportSummary } from '@lib';
+import { AccessDenied } from '@components/shared';
 
 type Step = 'upload' | 'preview';
 
@@ -78,20 +78,7 @@ export function AdminImportView() {
   );
 
   if (!isEditor) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   // Prototype: DB insert not yet implemented (XL effort — planned for future sprint)

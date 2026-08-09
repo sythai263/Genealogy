@@ -10,13 +10,13 @@
 
 import { useState } from 'react';
 import { ScrollText } from 'lucide-react';
+import { PageHeader, PageSkeleton } from '@components/shared';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   Separator,
-  Skeleton,
   Tabs,
   TabsContent,
   TabsList,
@@ -44,26 +44,16 @@ export function CharterView() {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
+    return <PageSkeleton variant="detail" className="max-w-3xl" />;
   }
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <ScrollText className="h-6 w-6" />
-          Hương ước Dòng họ
-        </h1>
-        <p className="text-muted-foreground">
-          Gia huấn, quy ước và lời dặn dò từ tổ tiên
-        </p>
-      </div>
+      <PageHeader
+        icon={ScrollText}
+        title="Hương ước Dòng họ"
+        description="Gia huấn, quy ước và lời dặn dò từ tổ tiên"
+      />
 
       <Separator />
 

@@ -13,14 +13,12 @@ import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { Plus, Users } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { ErrorState, QueryBoundary } from '@components/shared';
+import { Button } from '@components/ui';
 import {
-  Button,
-  Card,
-  CardContent,
-  Skeleton,
-} from '@components/ui';
-import {
+  PAGE_CONTAINER_CLASS,
   PEOPLE_DEFAULT_PAGE_SIZE,
+  ROUTE_ERROR_TITLES,
   type PeoplePageSize,
   type PeopleStatusFilter,
 } from '@constants';
@@ -100,14 +98,8 @@ export function PeopleListView() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4">
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
-            <p className="text-destructive">
-              Lỗi khi tải dữ liệu: {error.message}
-            </p>
-          </CardContent>
-        </Card>
+      <div className={PAGE_CONTAINER_CLASS}>
+        <ErrorState error={error} title={ROUTE_ERROR_TITLES.people} />
       </div>
     );
   }
@@ -161,52 +153,36 @@ export function PeopleListView() {
           disabled={isLoading || isFetching}
         />
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <Skeleton className="h-14 w-14 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-4 w-40" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : people.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              {hasFilters ? (
-                <>
-                  <p>Không tìm thấy kết quả phù hợp</p>
-                  <Button variant="link" onClick={clearFilters}>
-                    Xóa bộ lọc
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p>Chưa có dữ liệu thành viên</p>
-                  {isEditor && (
-                    <Button asChild variant="link">
-                      <Link href="/people/new">Thêm thành viên đầu tiên</Link>
-                    </Button>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
+        <QueryBoundary
+          isLoading={isLoading}
+          isEmpty={people.length === 0}
+          emptyIcon={Users}
+          emptyTitle={
+            hasFilters
+              ? 'Không tìm thấy kết quả phù hợp'
+              : 'Chưa có dữ liệu thành viên'
+          }
+          emptyAction={
+            hasFilters ? (
+              <Button variant="link" onClick={clearFilters}>
+                Xóa bộ lọc
+              </Button>
+            ) : (
+              isEditor && (
+                <Button asChild variant="link">
+                  <Link href="/people/new">Thêm thành viên đầu tiên</Link>
+                </Button>
+              )
+            )
+          }
+          skeletonVariant="grid"
+        >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {people.map((person) => (
               <PersonCard key={person.id} person={person} />
             ))}
           </div>
-        )}
+        </QueryBoundary>
 
         {people.length > 0 && (
           <PeoplePagination

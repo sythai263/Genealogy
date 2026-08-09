@@ -9,8 +9,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Lock, Pencil, Plus, RotateCcw } from 'lucide-react';
+import {
+  Pencil,
+  Plus,
+  RotateCcw,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
 import {
@@ -44,6 +47,7 @@ import type { CauDuongCeremonyType, CauDuongPool } from '@types';
 import { AssignmentList } from './assignment-list';
 import { PoolForm } from './pool-form';
 import { RotationList } from './rotation-list';
+import { AccessDenied } from '@components/shared';
 
 export function AdminCauDuongView() {
   const { isEditor, profile } = useAuth();
@@ -66,21 +70,7 @@ export function AdminCauDuongView() {
   const updateAssignmentMutation = useUpdateCauDuongAssignment();
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Lock className="mx-auto mb-4 h-10 w-10 text-muted-foreground opacity-40" />
-            <p className="text-muted-foreground">
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/admin">Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   function handleCreatePool(data: CauDuongPoolFormData) {

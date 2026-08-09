@@ -10,10 +10,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Check, Loader2 } from 'lucide-react';
+import { Bell, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { ListPagination } from '@components/shared';
-import { Button, Card, CardContent } from '@components/ui';
+import { ListPagination, QueryBoundary } from '@components/shared';
+import { Button } from '@components/ui';
 import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
 import {
   useDeleteNotification,
@@ -80,17 +80,13 @@ export function NotificationsView() {
         )}
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : notifications.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Chưa có thông báo nào
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={notifications.length === 0}
+        emptyIcon={Bell}
+        emptyTitle="Chưa có thông báo nào"
+        skeletonRows={4}
+      >
         <div className="space-y-4">
           <div className="space-y-2">
             {notifications.map((notification) => (
@@ -111,7 +107,7 @@ export function NotificationsView() {
             itemLabel="thông báo"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

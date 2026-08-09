@@ -29,12 +29,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton,
 } from '@components/ui';
+import { QueryBoundary } from '@components/shared';
 import { EVENT_TYPE_META, EVENT_TYPE_ORDER, isEventType } from '@constants';
 import { cn } from '@lib';
 import type { Event, Person } from '@types';
-import { Trash2 } from 'lucide-react';
+import { CalendarDays, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface EventsListPanelProps {
@@ -85,17 +85,13 @@ export function EventsListPanel({
         </div>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className='space-y-3'>
-            {Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton key={index} className='h-16 w-full' />
-            ))}
-          </div>
-        ) : events.length === 0 ? (
-          <div className='py-12 text-center text-muted-foreground'>
-            Chưa có sự kiện nào
-          </div>
-        ) : (
+        <QueryBoundary
+          isLoading={isLoading}
+          isEmpty={events.length === 0}
+          emptyIcon={CalendarDays}
+          emptyTitle='Chưa có sự kiện nào'
+          skeletonRows={4}
+          surface='plain'>
           <div className='space-y-3'>
             {events.map(event => {
               const typeInfo = EVENT_TYPE_META[event.event_type];
@@ -182,7 +178,7 @@ export function EventsListPanel({
               );
             })}
           </div>
-        )}
+        </QueryBoundary>
       </CardContent>
     </Card>
   );

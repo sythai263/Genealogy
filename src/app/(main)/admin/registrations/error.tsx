@@ -1,24 +1,17 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/admin/registrations/error.tsx
- * @description Error boundary for admin registrations
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Error boundary for the (main)/admin/registrations route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { Button, Card, CardContent } from '@components/ui';
+import { RouteError } from '@components/shared';
+import { ROUTE_ERROR_TITLES } from '@constants';
+import type { RouteBoundaryErrorProps } from '@types';
 
-export default function AdminRegistrationsError({ reset }: { reset: () => void }) {
-  return (
-    <div className="container mx-auto p-4">
-      <Card className="border-destructive">
-        <CardContent className="py-12 text-center">
-          <p className="text-destructive mb-4">Lỗi khi tải danh sách đơn đăng ký</p>
-          <Button onClick={reset} variant="outline">Thử lại</Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export default function AdminRegistrationsError({ error, reset }: RouteBoundaryErrorProps) {
+  return <RouteError error={error} reset={reset} title={ROUTE_ERROR_TITLES.adminRegistrations} />;
 }

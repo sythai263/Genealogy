@@ -73,7 +73,9 @@ const eslintConfig = defineConfig([
                 "Import hooks from @hooks (flat barrel), not deep paths or @/ prefix.",
             },
             {
-              group: ["@/lib/*", "@lib/*"],
+              // @lib/api is exempt: it pulls in next/server and node fs/path,
+              // which must not reach the client bundle via the flat @lib barrel.
+              group: ["@/lib/*", "@lib/*", "!@lib/api"],
               message:
                 "Import from @lib (flat barrel), not deep paths or @/ prefix.",
             },

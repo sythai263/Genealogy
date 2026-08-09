@@ -9,11 +9,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { Calendar, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,16 +93,7 @@ export function AdminEventsView() {
   }, [people]);
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Bạn cần quyền biên tập viên để truy cập trang này</p>
-            <Button asChild className="mt-4"><Link href="/admin">Về trang chủ</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   async function handleCreate(data: CreateEventInput) {
@@ -178,18 +172,17 @@ export function AdminEventsView() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => <Card key={i}><CardContent className="p-4 h-16" /></Card>)}
-        </div>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>{search || typeFilter !== 'all' ? 'Không tìm thấy sự kiện phù hợp' : 'Chưa có sự kiện nào'}</p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={Calendar}
+        emptyTitle={
+          search || typeFilter !== 'all'
+            ? 'Không tìm thấy sự kiện phù hợp'
+            : 'Chưa có sự kiện nào'
+        }
+        skeletonRows={3}
+      >
         <div className="space-y-4">
           <div className="space-y-2">
             {items.map(ev => {
@@ -254,7 +247,7 @@ export function AdminEventsView() {
             itemLabel="sự kiện"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

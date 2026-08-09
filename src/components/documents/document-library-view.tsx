@@ -13,8 +13,8 @@ import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { Archive, ArrowLeft, Info } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
-import { Button, Card, CardContent, Skeleton } from '@components/ui';
+import { ListPagination, PageHeader, QueryBoundary } from '@components/shared';
+import { Button } from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
@@ -68,17 +68,12 @@ export function DocumentLibraryView() {
             </Link>
           </Button>
         </div>
-        <div className="mb-2 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
-            <Archive className="h-5 w-5 text-amber-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Kho tài liệu</h1>
-            <p className="text-muted-foreground">
-              Ảnh lịch sử, giấy tờ, bản đồ, video — ký ức dòng họ
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          className="mb-2"
+          icon={Archive}
+          title="Kho tài liệu"
+          description="Ảnh lịch sử, giấy tờ, bản đồ, video — ký ức dòng họ"
+        />
       </div>
 
       {isViewer && (
@@ -98,24 +93,17 @@ export function DocumentLibraryView() {
         onCategoryFilterChange={setCategoryFilter}
       />
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton key={index} className="h-52 rounded-lg" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <Archive className="mx-auto mb-3 h-12 w-12 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">
-              {search || categoryFilter
-                ? 'Không tìm thấy tài liệu phù hợp'
-                : 'Chưa có tài liệu nào'}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={Archive}
+        emptyTitle={
+          search || categoryFilter
+            ? 'Không tìm thấy tài liệu phù hợp'
+            : 'Chưa có tài liệu nào'
+        }
+        skeletonVariant="grid"
+      >
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((document) => (
@@ -139,7 +127,7 @@ export function DocumentLibraryView() {
             itemLabel="tài liệu"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

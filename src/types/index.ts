@@ -1,5 +1,6 @@
 // Types for Gia Phả Điện Tử — barrel re-exports by domain
 
+export * from './api';
 export * from './json';
 export * from './person';
 export * from './family';
@@ -26,3 +27,4 @@ export * from './book';
 export * from './mfa';
 export * from './pagination';
 export * from './spouse';
+export * from './ui-state';

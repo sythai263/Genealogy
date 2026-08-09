@@ -13,7 +13,12 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
-import { Button, Card, CardContent, Skeleton } from '@components/ui';
+import { EmptyState, ErrorState, PageSkeleton } from '@components/shared';
+import { Button } from '@components/ui';
+import {
+  PERSON_NOT_FOUND_DESCRIPTION,
+  ROUTE_ERROR_TITLES,
+} from '@constants';
 import { usePerson, useUpdatePerson } from '@hooks';
 import type { PersonFormData } from '@schemas';
 import { PersonForm } from './person-form';
@@ -46,34 +51,21 @@ export function EditPersonView({ personId }: EditPersonViewProps) {
   }
 
   if (authLoading || isLoading) {
-    return (
-      <div className="container mx-auto max-w-4xl p-4">
-        <Skeleton className="mb-6 h-8 w-48" />
-        <Card>
-          <CardContent className="space-y-4 p-6">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <PageSkeleton variant="form" className="max-w-4xl" />;
   }
 
   if (!user || !isEditor) {
     return (
       <div className="container mx-auto max-w-4xl p-4">
-        <Card className="border-orange-200">
-          <CardContent className="py-12 text-center">
-            <Lock className="mx-auto mb-4 h-10 w-10 text-orange-400" />
-            <p className="mb-2 font-medium text-orange-700">
-              Cần quyền chỉnh sửa
-            </p>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {!user
-                ? 'Vui lòng đăng nhập để chỉnh sửa thông tin.'
-                : 'Tài khoản của bạn chưa có quyền admin hoặc editor.'}
-            </p>
+        <EmptyState
+          icon={Lock}
+          title="Cần quyền chỉnh sửa"
+          description={
+            !user
+              ? 'Vui lòng đăng nhập để chỉnh sửa thông tin.'
+              : 'Tài khoản của bạn chưa có quyền admin hoặc editor.'
+          }
+          action={
             <div className="flex justify-center gap-2">
               {!user && (
                 <Button asChild>
@@ -89,8 +81,8 @@ export function EditPersonView({ personId }: EditPersonViewProps) {
                 </Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          }
+        />
       </div>
     );
   }
@@ -98,19 +90,20 @@ export function EditPersonView({ personId }: EditPersonViewProps) {
   if (error || !person) {
     return (
       <div className="container mx-auto max-w-4xl p-4">
-        <Card className="border-destructive">
-          <CardContent className="py-12 text-center">
-            <p className="mb-4 text-destructive">
-              {error ? `Lỗi: ${error.message}` : 'Không tìm thấy thông tin'}
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/people">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Quay lại
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <ErrorState
+          error={error}
+          title={ROUTE_ERROR_TITLES.personEdit}
+          description={PERSON_NOT_FOUND_DESCRIPTION}
+          className="border-destructive"
+        />
+        <div className="mt-4 flex justify-center">
+          <Button asChild variant="outline">
+            <Link href="/people">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

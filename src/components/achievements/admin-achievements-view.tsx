@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import { useResettablePage } from '@hooks';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { Pencil, Plus, Star, Trash2, Trophy } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  PageHeader,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,20 +93,7 @@ export function AdminAchievementsView() {
   }, [people]);
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/admin">Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   function handleCreate(data: AchievementFormData) {
@@ -152,37 +143,35 @@ export function AdminAchievementsView() {
 
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Quản lý Vinh danh</h1>
-          <p className="text-muted-foreground">
-            Thêm, sửa, xóa thành tích thành viên
-          </p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Thêm thành tích
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingItem ? 'Sửa thành tích' : 'Thêm thành tích mới'}
-              </DialogTitle>
-            </DialogHeader>
-            <AchievementForm
-              key={editingItem?.id ?? 'new'}
-              achievement={editingItem}
-              onSubmit={editingItem ? handleUpdate : handleCreate}
-              isPending={
-                createMutation.isPending || updateMutation.isPending
-              }
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PageHeader
+        title="Quản lý Vinh danh"
+        description="Thêm, sửa, xóa thành tích thành viên"
+        actions={
+          <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm thành tích
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingItem ? 'Sửa thành tích' : 'Thêm thành tích mới'}
+                </DialogTitle>
+              </DialogHeader>
+              <AchievementForm
+                key={editingItem?.id ?? 'new'}
+                achievement={editingItem}
+                onSubmit={editingItem ? handleUpdate : handleCreate}
+                isPending={
+                  createMutation.isPending || updateMutation.isPending
+                }
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <Input
         placeholder="Tìm kiếm theo tên hoặc tiêu đề..."
@@ -191,22 +180,13 @@ export function AdminAchievementsView() {
         className="max-w-md"
       />
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((index) => (
-            <Card key={index}>
-              <CardContent className="h-16 p-4" />
-            </Card>
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Trophy className="mx-auto mb-2 h-10 w-10 opacity-50" />
-            <p>Chưa có thành tích nào</p>
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={Trophy}
+        emptyTitle="Chưa có thành tích nào"
+        skeletonRows={3}
+      >
         <div className="space-y-4">
           <div className="space-y-2">
             {items.map((achievement) => {
@@ -278,7 +258,7 @@ export function AdminAchievementsView() {
             itemLabel="thành tích"
           />
         </div>
-      )}
+      </QueryBoundary>
     </div>
   );
 }

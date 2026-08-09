@@ -1,24 +1,17 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/notifications/error.tsx
- * @description Error boundary for notifications page
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Error boundary for the (main)/notifications route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { Card, CardContent, Button } from '@components/ui';
+import { RouteError } from '@components/shared';
+import { ROUTE_ERROR_TITLES } from '@constants';
+import type { RouteBoundaryErrorProps } from '@types';
 
-export default function NotificationsError({ reset }: { reset: () => void }) {
-  return (
-    <div className="container mx-auto p-4">
-      <Card>
-        <CardContent className="py-12 text-center space-y-4">
-          <p className="text-muted-foreground">Đã xảy ra lỗi khi tải thông báo.</p>
-          <Button onClick={reset} variant="outline">Thử lại</Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export default function NotificationsError({ error, reset }: RouteBoundaryErrorProps) {
+  return <RouteError error={error} reset={reset} title={ROUTE_ERROR_TITLES.notifications} />;
 }

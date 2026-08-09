@@ -9,8 +9,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, Route } from 'lucide-react';
+import { Route } from 'lucide-react';
 import { PersonCombobox } from '@components/people';
+import { LoadingState, PageHeader } from '@components/shared';
 import {
   Card,
   CardContent,
@@ -33,10 +34,7 @@ export function RelationshipView() {
   return (
     <div className="container mx-auto space-y-6 p-4">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <Route className="h-6 w-6" />
-          Tìm quan hệ giữa 2 thành viên
-        </h1>
+        <PageHeader icon={Route} title="Tìm quan hệ giữa 2 thành viên" />
         <p className="text-muted-foreground">
           Chọn 2 thành viên để tìm quan hệ theo tổ tông 18 đời — danh xưng Hán-Việt
           kèm diễn giải (ví dụ: <strong>Tằng Tổ (ông cố)</strong>,{' '}
@@ -69,14 +67,7 @@ export function RelationshipView() {
         </CardContent>
       </Card>
 
-      {isLoading && personA && personB && (
-        <Card>
-          <CardContent className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Đang tìm quan hệ...
-          </CardContent>
-        </Card>
-      )}
+      {isLoading && personA && personB && <LoadingState variant="detail" />}
 
       {result && !isLoading && personA && (
         <RelationshipResultCard

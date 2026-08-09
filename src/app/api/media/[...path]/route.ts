@@ -4,148 +4,103 @@
  * @description Local media file server for desktop mode.
  *              Serves files from ~/AncestorTree/media/ and handles upload/delete.
  *              MUST return 404 in web mode to prevent unintended file serving.
- * @version 1.1.0
- * @updated 2026-02-27
+ * @version 2.0.0
+ * @updated 2026-08-09
  * @security SEC-CRIT-01: file size limit enforced (50MB max)
  * @security SEC-CRIT-02: MIME type allowlist enforced on upload
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import {
+  API_ERROR_MESSAGES,
+  API_STATUS,
   MEDIA_API_ALLOWED_MIME_TYPES,
   MEDIA_API_MAX_FILE_SIZE,
   MEDIA_DESKTOP_ROOT,
 } from '@constants';
+import {
+  apiError,
+  apiFile,
+  apiOk,
+  guardDesktopOnly,
+  mimeTypeForPath,
+  resolveSafePath,
+  validateUpload,
+  withApiHandler,
+} from '@lib/api';
+import type { ApiRouteContext } from '@types';
 
-/**
- * CTO Obs 4: Web-mode guard — this route ONLY serves in desktop mode.
- * In web mode, media is served from Supabase Storage, not local filesystem.
- */
-function guardDesktopOnly(): NextResponse | null {
-  if (process.env.NEXT_PUBLIC_DESKTOP_MODE !== 'true') {
-    return NextResponse.json(
-      { error: 'This endpoint is only available in desktop mode' },
-      { status: 404 }
-    );
-  }
-  return null;
+interface MediaParams {
+  path: string[];
 }
 
 /**
- * Path traversal guard — prevents accessing files outside MEDIA_DESKTOP_ROOT.
+ * Shared preamble for all three handlers: desktop-mode guard + path traversal
+ * guard. Returns the resolved absolute path, or a Response to short-circuit.
  */
-function resolveSafePath(segments: string[]): string | null {
-  const resolved = path.resolve(MEDIA_DESKTOP_ROOT, ...segments);
-  if (!resolved.startsWith(MEDIA_DESKTOP_ROOT + path.sep) && resolved !== MEDIA_DESKTOP_ROOT) {
-    return null;
+async function resolveMediaPath(
+  context: ApiRouteContext<MediaParams>
+): Promise<{ filePath: string; segments: string[] } | Response> {
+  const guard = guardDesktopOnly();
+  if (guard) return guard;
+
+  const { path: segments } = await context.params;
+  const filePath = resolveSafePath(MEDIA_DESKTOP_ROOT, segments);
+  if (!filePath) {
+    return apiError(API_ERROR_MESSAGES.forbidden, API_STATUS.forbidden);
   }
-  return resolved;
+
+  return { filePath, segments };
 }
 
 /** GET /api/media/[...path] — serve a local media file */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const guard = guardDesktopOnly();
-  if (guard) return guard;
+export const GET = withApiHandler<MediaParams>('media/get', async (_request, context) => {
+  const resolved = await resolveMediaPath(context);
+  if (resolved instanceof Response) return resolved;
 
-  const { path: segments } = await params;
-  const filePath = resolveSafePath(segments);
-  if (!filePath) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!fs.existsSync(resolved.filePath)) {
+    return apiError(API_ERROR_MESSAGES.notFound, API_STATUS.notFound);
   }
 
-  if (!fs.existsSync(filePath)) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  }
-
-  const buffer = fs.readFileSync(filePath);
-  const ext = path.extname(filePath).toLowerCase();
-  const mimeTypes: Record<string, string> = {
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.png': 'image/png',
-    '.gif': 'image/gif',
-    '.webp': 'image/webp',
-    '.svg': 'image/svg+xml',
-    '.pdf': 'application/pdf',
-  };
-
-  return new NextResponse(buffer, {
-    headers: {
-      'Content-Type': mimeTypes[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
-    },
+  return apiFile(new Uint8Array(fs.readFileSync(resolved.filePath)), {
+    contentType: mimeTypeForPath(resolved.filePath),
+    cacheControl: 'no-cache',
   });
-}
+});
 
-/** POST /api/media/[...path] — upload a file (Phase 2: full implementation) */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const guard = guardDesktopOnly();
-  if (guard) return guard;
+/** POST /api/media/[...path] — upload a file */
+export const POST = withApiHandler<MediaParams>('media/post', async (request, context) => {
+  const resolved = await resolveMediaPath(context);
+  if (resolved instanceof Response) return resolved;
 
-  const { path: segments } = await params;
-  const filePath = resolveSafePath(segments);
-  if (!filePath) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  const formData = await request.formData();
+  const file = formData.get('file');
+  const uploadError = validateUpload(file instanceof File ? file : null, {
+    maxSize: MEDIA_API_MAX_FILE_SIZE,
+    allowedMimeTypes: MEDIA_API_ALLOWED_MIME_TYPES,
+  });
+  if (uploadError) return uploadError;
 
-  const dir = path.dirname(filePath);
+  const dir = path.dirname(resolved.filePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
-  if (!file) {
-    return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+  const arrayBuffer = await (file as File).arrayBuffer();
+  fs.writeFileSync(resolved.filePath, Buffer.from(arrayBuffer));
+
+  return apiOk({ ok: true, path: resolved.segments.join('/') });
+});
+
+/** DELETE /api/media/[...path] — delete a file */
+export const DELETE = withApiHandler<MediaParams>('media/delete', async (_request, context) => {
+  const resolved = await resolveMediaPath(context);
+  if (resolved instanceof Response) return resolved;
+
+  if (fs.existsSync(resolved.filePath)) {
+    fs.unlinkSync(resolved.filePath);
   }
 
-  // SEC-CRIT-01: Enforce file size limit
-  if (file.size > MEDIA_API_MAX_FILE_SIZE) {
-    return NextResponse.json(
-      { error: `File too large. Maximum size is ${MEDIA_API_MAX_FILE_SIZE / 1024 / 1024}MB` },
-      { status: 413 }
-    );
-  }
-
-  // SEC-CRIT-02: Enforce MIME type allowlist
-  if (!MEDIA_API_ALLOWED_MIME_TYPES.has(file.type)) {
-    return NextResponse.json(
-      { error: `File type '${file.type}' is not allowed` },
-      { status: 415 }
-    );
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-  fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
-
-  return NextResponse.json({ ok: true, path: segments.join('/') });
-}
-
-/** DELETE /api/media/[...path] — delete a file (Phase 2: full implementation) */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const guard = guardDesktopOnly();
-  if (guard) return guard;
-
-  const { path: segments } = await params;
-  const filePath = resolveSafePath(segments);
-  if (!filePath) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
-
-  return NextResponse.json({ ok: true });
-}
+  return apiOk({ ok: true });
+});

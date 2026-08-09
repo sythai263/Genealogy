@@ -1,11 +1,17 @@
+/**
+ * @project AncestorTree
+ * @file src/app/(main)/admin/duplicates/error.tsx
+ * @description Error boundary for the (main)/admin/duplicates route
+ * @version 2.0.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
-  return (
-    <div className="container mx-auto px-4 py-8 text-center">
-      <h2 className="text-xl font-bold mb-2">Đã xảy ra lỗi</h2>
-      <p className="text-muted-foreground mb-4">{error.message}</p>
-      <button onClick={reset} className="underline">Thử lại</button>
-    </div>
-  );
+import { RouteError } from '@components/shared';
+import { ROUTE_ERROR_TITLES } from '@constants';
+import type { RouteBoundaryErrorProps } from '@types';
+
+export default function AdminDuplicatesError({ error, reset }: RouteBoundaryErrorProps) {
+  return <RouteError error={error} reset={reset} title={ROUTE_ERROR_TITLES.adminDuplicates} />;
 }

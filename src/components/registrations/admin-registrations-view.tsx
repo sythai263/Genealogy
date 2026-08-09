@@ -9,11 +9,22 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
-import { Check, ClipboardList, Loader2, Search, Trash2, X } from 'lucide-react';
+import {
+  Check,
+  ClipboardList,
+  Loader2,
+  Search,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  AccessDenied,
+  ListPagination,
+  QueryBoundary,
+} from '@components/shared';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +46,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton,
   Textarea,
 } from '@components/ui';
 import {
@@ -92,20 +102,7 @@ export function AdminRegistrationsView() {
   const total = data?.total ?? 0;
 
   if (!isEditor) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/admin">Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   async function handleApprove(reg: MemberRegistration) {
@@ -179,21 +176,17 @@ export function AdminRegistrationsView() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((index) => (
-            <Skeleton key={index} className="h-32" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            {statusFilter === 'pending'
-              ? 'Không có đơn chờ duyệt'
-              : 'Không có kết quả'}
-          </CardContent>
-        </Card>
-      ) : (
+      <QueryBoundary
+        isLoading={isLoading}
+        isEmpty={items.length === 0}
+        emptyIcon={UserPlus}
+        emptyTitle={
+          statusFilter === 'pending'
+            ? 'Không có đơn chờ duyệt'
+            : 'Không có kết quả'
+        }
+        skeletonRows={3}
+      >
         <div className="space-y-4">
           <div className="space-y-3">
             {items.map((reg) => (
@@ -325,7 +318,7 @@ export function AdminRegistrationsView() {
             itemLabel="đơn"
           />
         </div>
-      )}
+      </QueryBoundary>
 
       <AlertDialog
         open={!!rejectTarget}

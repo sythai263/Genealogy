@@ -1,12 +1,13 @@
-import { Skeleton } from '@components/ui';
+/**
+ * @project AncestorTree
+ * @file src/app/(main)/admin/duplicates/loading.tsx
+ * @description Loading skeleton for the (main)/admin/duplicates route
+ * @version 2.0.0
+ * @updated 2026-08-09
+ */
 
-export default function Loading() {
-  return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-32 w-full rounded-lg" />
-      <Skeleton className="h-32 w-full rounded-lg" />
-      <Skeleton className="h-32 w-full rounded-lg" />
-    </div>
-  );
+import { PageSkeleton } from '@components/shared';
+
+export default function AdminDuplicatesLoading() {
+  return <PageSkeleton variant="list" />;
 }

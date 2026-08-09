@@ -1,24 +1,13 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/cau-duong/loading.tsx
- * @description Loading skeleton for cau-duong page
- * @version 1.0.0
- * @updated 2026-02-25
+ * @description Loading skeleton for the (main)/cau-duong route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { Skeleton } from '@components/ui';
+import { PageSkeleton } from '@components/shared';
 
 export default function CauDuongLoading() {
-  return (
-    <div className="container mx-auto p-6 max-w-5xl space-y-6">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-16 w-full" />
-      <div className="space-y-3">
-        <Skeleton className="h-20" />
-        <Skeleton className="h-20" />
-        <Skeleton className="h-20" />
-        <Skeleton className="h-20" />
-      </div>
-    </div>
-  );
+  return <PageSkeleton variant="list" />;
 }

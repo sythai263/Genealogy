@@ -1,20 +1,13 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/admin/registrations/loading.tsx
- * @description Loading skeleton for admin registrations
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Loading skeleton for the (main)/admin/registrations route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { Skeleton } from '@components/ui';
+import { PageSkeleton } from '@components/shared';
 
 export default function AdminRegistrationsLoading() {
-  return (
-    <div className="container mx-auto p-4 max-w-4xl space-y-6">
-      <Skeleton className="h-8 w-64" />
-      <div className="space-y-3">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32" />)}
-      </div>
-    </div>
-  );
+  return <PageSkeleton variant="table" />;
 }

@@ -10,14 +10,9 @@
 
 import Link from 'next/link';
 import { ArrowLeft, Printer } from 'lucide-react';
-import {
-  Button,
-  Card,
-  CardContent,
-  Separator,
-  Skeleton,
-} from '@components/ui';
-import { BOOK_MOTTO } from '@constants';
+import { ErrorState, PageSkeleton } from '@components/shared';
+import { Button, Separator } from '@components/ui';
+import { BOOK_MOTTO, ROUTE_ERROR_TITLES } from '@constants';
 import { useClanSettings, useTreeData } from '@hooks';
 import { CLAN_FULL_NAME, generateBookData } from '@lib';
 import { BookChapterSection } from './book-chapter-section';
@@ -28,31 +23,25 @@ export function BookView() {
   const clanFullName = clanSettings?.clan_full_name ?? CLAN_FULL_NAME;
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
+    return <PageSkeleton variant="detail" className="max-w-3xl" />;
   }
 
   if (error || !treeData) {
     return (
       <div className="container mx-auto max-w-3xl px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="mb-4 text-destructive">
-              {error ? `Lỗi: ${error.message}` : 'Không có dữ liệu'}
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/documents">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Quay lại
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <ErrorState
+          error={error}
+          title={ROUTE_ERROR_TITLES.documentsBook}
+          description="Không có dữ liệu gia phả để dựng sách."
+        />
+        <div className="mt-4 flex justify-center">
+          <Button asChild variant="outline">
+            <Link href="/documents">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

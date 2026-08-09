@@ -13,7 +13,12 @@ import { useResettablePage } from '@hooks';
 import Link from 'next/link';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useAuth } from '@components/auth';
-import { ListPagination } from '@components/shared';
+import {
+  EmptyState,
+  ListPagination,
+  PageHeader,
+  QueryBoundary,
+} from '@components/shared';
 import {
   Button,
   Card,
@@ -26,7 +31,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Skeleton,
 } from '@components/ui';
 import {
   LIST_DEFAULT_PAGE_SIZE,
@@ -62,53 +66,46 @@ export function ContributionsView() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="mb-4 text-muted-foreground">
-              Vui lòng đăng nhập để gửi đề xuất chỉnh sửa
-            </p>
+        <EmptyState
+          icon={ClipboardList}
+          title="Vui lòng đăng nhập để gửi đề xuất chỉnh sửa"
+          action={
             <Button asChild>
               <Link href="/login">Đăng nhập</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-            <ClipboardList className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Đề xuất chỉnh sửa</h1>
-            <p className="text-muted-foreground">
-              Gửi yêu cầu cập nhật thông tin thành viên
-            </p>
-          </div>
-        </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" /> Đề xuất mới
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Đề xuất chỉnh sửa</DialogTitle>
-              <DialogDescription>
-                Gửi yêu cầu cập nhật thông tin. Quản trị viên sẽ xem xét và phê
-                duyệt.
-              </DialogDescription>
-            </DialogHeader>
-            <ContributionForm onClose={() => setDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PageHeader
+        className="mb-8"
+        icon={ClipboardList}
+        title="Đề xuất chỉnh sửa"
+        description="Gửi yêu cầu cập nhật thông tin thành viên"
+        actions={
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" /> Đề xuất mới
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Đề xuất chỉnh sửa</DialogTitle>
+                <DialogDescription>
+                  Gửi yêu cầu cập nhật thông tin. Quản trị viên sẽ xem xét và phê
+                  duyệt.
+                </DialogDescription>
+              </DialogHeader>
+              <ContributionForm onClose={() => setDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <Card>
         <CardHeader className="pb-3">
@@ -117,17 +114,14 @@ export function ContributionsView() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <Skeleton key={index} className="h-20 w-full" />
-              ))}
-            </div>
-          ) : items.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Bạn chưa có đề xuất nào
-            </div>
-          ) : (
+          <QueryBoundary
+            isLoading={isLoading}
+            isEmpty={items.length === 0}
+            emptyIcon={ClipboardList}
+            emptyTitle="Bạn chưa có đề xuất nào"
+            skeletonRows={3}
+            surface="plain"
+          >
             <div className="space-y-4">
               <div className="space-y-3">
                 {items.map((contribution) => {
@@ -152,7 +146,7 @@ export function ContributionsView() {
                 itemLabel="đề xuất"
               />
             </div>
-          )}
+          </QueryBoundary>
         </CardContent>
       </Card>
     </div>

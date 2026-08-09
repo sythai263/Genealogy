@@ -2,42 +2,30 @@
  * @project AncestorTree
  * @file src/app/api/cron/route.ts
  * @description Vercel Cron — lightweight database keep-alive ping
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { API_ERROR_MESSAGES, API_STATUS } from '@constants';
+import {
+  apiError,
+  apiOk,
+  createServiceRoleClient,
+  requireCronSecret,
+  withApiHandler,
+} from '@lib/api';
 
-export async function GET(request: Request) {
-  // Verify cron secret (Vercel sends this automatically)
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+export const GET = withApiHandler('cron', async (request) => {
+  const unauthorized = requireCronSecret(request);
+  if (unauthorized) return unauthorized;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const supabase = createServiceRoleClient();
+  if (!supabase) {
+    return apiError(API_ERROR_MESSAGES.serverMisconfigured, API_STATUS.serverError);
   }
 
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+  const { error } = await supabase.from('profiles').select('user_id').limit(1);
+  if (error) throw error;
 
-    const { error } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .limit(1);
-
-    if (error) throw error;
-
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('[cron] keep-alive failed:', message);
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-}
+  return apiOk({ success: true, timestamp: new Date().toISOString() });
+});

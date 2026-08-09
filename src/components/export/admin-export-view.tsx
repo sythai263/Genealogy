@@ -9,7 +9,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   AlertCircle,
@@ -23,6 +22,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useAuth } from '@components/auth';
+import { AccessDenied } from '@components/shared';
 import {
   Badge,
   Button,
@@ -58,20 +58,7 @@ export function AdminExportView() {
   const [preview, setPreview] = useState<ExportPreview | null>(null);
 
   if (!isEditor) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <Card>
-          <CardContent className='py-12 text-center'>
-            <p className='text-muted-foreground'>
-              Bạn cần quyền biên tập viên để truy cập trang này
-            </p>
-            <Button asChild className='mt-4'>
-              <Link href='/admin'>Về trang chủ</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   function handlePreview() {

@@ -1,22 +1,13 @@
 /**
  * @project AncestorTree
  * @file src/app/(main)/feed/loading.tsx
- * @description Loading skeleton for feed page
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Loading skeleton for the (main)/feed route
+ * @version 2.0.0
+ * @updated 2026-08-09
  */
 
-import { Skeleton } from '@components/ui';
+import { PageSkeleton } from '@components/shared';
 
 export default function FeedLoading() {
-  return (
-    <div className="container mx-auto p-4 max-w-2xl space-y-6">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-4 w-64" />
-      <Skeleton className="h-32 rounded-lg" />
-      {[1, 2, 3].map(i => (
-        <Skeleton key={i} className="h-48 rounded-lg" />
-      ))}
-    </div>
-  );
+  return <PageSkeleton variant="feed" />;
 }

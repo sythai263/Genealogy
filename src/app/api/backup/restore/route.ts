@@ -4,60 +4,58 @@
  * @description Unified restore API — imports a ZIP backup file into the database.
  *              Works in both Desktop (SQLite) and Web (Supabase service-role) modes.
  *              DESTRUCTIVE: clears all table data before restoring from manifest.
- * @version 1.0.0
- * @updated 2026-02-28
+ * @version 2.0.0
+ * @updated 2026-08-09
  * @security SEC-CRIT-03: column names whitelisted per table (prevents SQL injection)
  * @security SEC-WARN-04: ZIP file size limited to 500 MB
  */
 
 import AdmZip from 'adm-zip';
-import { NextRequest, NextResponse } from 'next/server';
-import { BACKUP_MAX_IMPORT_SIZE } from '@constants';
+import {
+  API_ERROR_MESSAGES,
+  API_STATUS,
+  BACKUP_MAX_IMPORT_SIZE,
+} from '@constants';
+import { apiError, validateUpload, withApiHandler } from '@lib/api';
 
-export async function POST(request: NextRequest) {
-  try {
+interface BackupManifest {
+  version?: string;
+  tables?: Record<string, unknown[]>;
+}
+
+export const POST = withApiHandler(
+  'backup/restore',
+  async (request) => {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    if (!file) {
-      return NextResponse.json(
-        { error: 'Không tìm thấy file' },
-        { status: 400 }
-      );
-    }
+    const file = formData.get('file');
 
-    // SEC-WARN-04: Enforce file size limit
-    if (file.size > BACKUP_MAX_IMPORT_SIZE) {
-      return NextResponse.json(
-        {
-          error: `File quá lớn. Giới hạn tối đa là ${BACKUP_MAX_IMPORT_SIZE / 1024 / 1024} MB`,
-        },
-        { status: 413 }
-      );
-    }
+    const uploadError = validateUpload(file instanceof File ? file : null, {
+      maxSize: BACKUP_MAX_IMPORT_SIZE,
+    });
+    if (uploadError) return uploadError;
 
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await (file as File).arrayBuffer();
     const zip = new AdmZip(Buffer.from(arrayBuffer));
 
-    // ── Validate manifest ──────────────────────────────────────────────────
     const manifestEntry = zip.getEntry('manifest.json');
     if (!manifestEntry) {
-      return NextResponse.json(
-        { error: 'File không hợp lệ: thiếu manifest.json' },
-        { status: 400 }
+      return apiError(
+        'File không hợp lệ: thiếu manifest.json',
+        API_STATUS.badRequest
       );
     }
 
-    const manifest = JSON.parse(manifestEntry.getData().toString('utf-8'));
+    const manifest = JSON.parse(
+      manifestEntry.getData().toString('utf-8')
+    ) as BackupManifest;
+
     if (!manifest.version || !manifest.tables) {
-      return NextResponse.json(
-        { error: 'Định dạng manifest không hợp lệ' },
-        { status: 400 }
-      );
+      return apiError('Định dạng manifest không hợp lệ', API_STATUS.badRequest);
     }
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Khôi phục thất bại' },
-      { status: 500 }
-    );
-  }
-}
+
+    // The table-restore step is not implemented yet; fail loudly rather than
+    // reporting success for a backup that was never written to the database.
+    return apiError(API_ERROR_MESSAGES.notImplemented, API_STATUS.notImplemented);
+  },
+  API_ERROR_MESSAGES.restoreFailed
+);

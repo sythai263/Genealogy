@@ -10,7 +10,9 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
 import { useTreeData } from '@hooks';
+import { EmptyState } from '@components/shared';
 import { Card, CardContent, Badge, Skeleton } from '@components/ui';
 import type { Person } from '@types';
 
@@ -79,13 +81,7 @@ export function ElderlyTreeView() {
   }
 
   if (groups.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          Chưa có dữ liệu gia phả
-        </CardContent>
-      </Card>
-    );
+    return <EmptyState icon={Users} title="Chưa có dữ liệu gia phả" />;
   }
 
   return (
