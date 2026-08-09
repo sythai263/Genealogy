@@ -1,7 +1,17 @@
+/**
+ * @project AncestorTree
+ * @file src/components/achievements/achievement-form.tsx
+ * @description Achievement create/edit form with searchable person picker
+ * @version 1.1.0
+ * @updated 2026-08-09
+ */
+
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PersonCombobox } from '@components/people';
 import {
   Button,
   Form,
@@ -19,6 +29,7 @@ import {
   Switch,
   Textarea,
 } from '@components/ui';
+import { usePerson } from '@hooks';
 import {
   achievementSchema,
   defaultAchievementValues,
@@ -29,17 +40,18 @@ import type { Achievement, Person } from '@types';
 
 interface AchievementFormProps {
   achievement?: Achievement;
-  people: Person[];
   onSubmit: (data: AchievementFormData) => void;
   isPending: boolean;
 }
 
 export function AchievementForm({
   achievement,
-  people,
   onSubmit,
   isPending,
 }: AchievementFormProps) {
+  const { data: loadedPerson } = usePerson(achievement?.person_id);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+
   const form = useForm<AchievementFormData>({
     resolver: zodResolver(achievementSchema),
     defaultValues: achievement
@@ -55,6 +67,17 @@ export function AchievementForm({
       : defaultAchievementValues,
   });
 
+  useEffect(() => {
+    if (loadedPerson) {
+      setSelectedPerson(loadedPerson);
+    }
+  }, [loadedPerson]);
+
+  function handlePersonSelect(person: Person | null) {
+    setSelectedPerson(person);
+    form.setValue('person_id', person?.id ?? '', { shouldValidate: true });
+  }
+
   function handleSubmit(data: AchievementFormData) {
     onSubmit(data);
   }
@@ -65,23 +88,15 @@ export function AchievementForm({
         <FormField
           control={form.control}
           name="person_id"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Thành viên *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn thành viên" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {people.map((person) => (
-                    <SelectItem key={person.id} value={person.id}>
-                      {person.display_name} (Đời {person.generation})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <PersonCombobox
+                  label="Thành viên *"
+                  selected={selectedPerson}
+                  onSelect={handlePersonSelect}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

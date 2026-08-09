@@ -1,14 +1,14 @@
 /**
  * @project AncestorTree
  * @file src/components/people/person-combobox.tsx
- * @description Searchable person picker for parent selection
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description Searchable person picker with keyboard navigation
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
 import { useSearchPeople } from '@hooks';
@@ -28,22 +28,106 @@ export function PersonCombobox({
   onSelect,
   excludeId,
 }: PersonComboboxProps) {
+  const listboxId = useId();
+  const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const { data: results, isFetching } = useSearchPeople(query);
 
   const filtered = (results || []).filter((person) => person.id !== excludeId);
+
+  useEffect(() => {
+    setHighlightedIndex(filtered.length > 0 ? 0 : -1);
+  }, [query, filtered.length]);
+
+  useEffect(() => {
+    if (!open || highlightedIndex < 0 || !listRef.current) return;
+    const option = listRef.current.querySelector<HTMLElement>(
+      `[data-index="${highlightedIndex}"]`
+    );
+    option?.scrollIntoView({ block: 'nearest' });
+  }, [highlightedIndex, open]);
 
   function handleSelect(person: Person) {
     onSelect(person);
     setQuery('');
     setOpen(false);
+    setHighlightedIndex(-1);
   }
 
   function handleClear() {
     onSelect(null);
     setQuery('');
+    setHighlightedIndex(-1);
   }
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setOpen(value.length >= 2);
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      if (open) {
+        event.preventDefault();
+        setOpen(false);
+        setHighlightedIndex(-1);
+      }
+      return;
+    }
+
+    if (!open || filtered.length === 0) {
+      if (
+        (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
+        query.length >= 2
+      ) {
+        event.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightedIndex((prev) =>
+        prev < filtered.length - 1 ? prev + 1 : 0
+      );
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedIndex((prev) =>
+        prev > 0 ? prev - 1 : filtered.length - 1
+      );
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+        handleSelect(filtered[highlightedIndex]);
+      }
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setHighlightedIndex(0);
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      setHighlightedIndex(filtered.length - 1);
+    }
+  }
+
+  const activeOptionId =
+    open && highlightedIndex >= 0
+      ? `${listboxId}-option-${highlightedIndex}`
+      : undefined;
 
   return (
     <div className="space-y-1.5">
@@ -69,6 +153,7 @@ export function PersonCombobox({
             </p>
           </div>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0"
@@ -82,19 +167,32 @@ export function PersonCombobox({
           <div className="relative">
             <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
             <Input
+              role="combobox"
+              aria-expanded={open}
+              aria-controls={listboxId}
+              aria-autocomplete="list"
+              aria-activedescendant={activeOptionId}
               placeholder={`Tìm ${label.toLowerCase()}...`}
               value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setOpen(event.target.value.length >= 2);
-              }}
+              onChange={(event) => handleQueryChange(event.target.value)}
+              onKeyDown={handleKeyDown}
               onFocus={() => query.length >= 2 && setOpen(true)}
-              onBlur={() => setTimeout(() => setOpen(false), 200)}
+              onBlur={() =>
+                setTimeout(() => {
+                  setOpen(false);
+                  setHighlightedIndex(-1);
+                }, 200)
+              }
               className="pl-9"
             />
           </div>
           {open && (
-            <div className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-background shadow-lg">
+            <div
+              ref={listRef}
+              id={listboxId}
+              role="listbox"
+              className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-background shadow-lg"
+            >
               {isFetching && (
                 <p className="px-3 py-2 text-sm text-muted-foreground">
                   Đang tìm...
@@ -105,12 +203,22 @@ export function PersonCombobox({
                   Không tìm thấy
                 </p>
               )}
-              {filtered.map((person) => (
+              {filtered.map((person, index) => (
                 <button
                   key={person.id}
+                  id={`${listboxId}-option-${index}`}
+                  data-index={index}
                   type="button"
+                  role="option"
+                  aria-selected={index === highlightedIndex}
                   onMouseDown={() => handleSelect(person)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-muted"
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  className={cn(
+                    'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
+                    index === highlightedIndex
+                      ? 'bg-muted'
+                      : 'hover:bg-muted'
+                  )}
                 >
                   <div
                     className={cn(

@@ -168,7 +168,6 @@ export function AdminAchievementsView() {
             <AchievementForm
               key={editingItem?.id ?? 'new'}
               achievement={editingItem}
-              people={people ?? []}
               onSubmit={editingItem ? handleUpdate : handleCreate}
               isPending={
                 createMutation.isPending || updateMutation.isPending
