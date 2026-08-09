@@ -9,7 +9,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse } from '@lib';
+import { getFamilies, getFamily, getFamilyChildren, createFamily, addChildToFamily, removeChildFromFamily, getTreeData, getPersonRelations, addPersonToParentFamily, createSpouseFamily, getFamiliesMissingSpouse, addChildForPerson } from '@lib';
 import type { Family } from '@types';
 
 // Query keys
@@ -165,16 +165,20 @@ export function useAddChildToFamilyMutation(personId?: string) {
     mutationFn: ({
       familyId,
       childPersonId,
-      sortOrder,
+      parentPersonId,
+      parentGender,
     }: {
-      familyId: string;
+      familyId?: string;
       childPersonId: string;
-      sortOrder: number;
-    }) => addChildToFamily(familyId, childPersonId, sortOrder),
-    onSuccess: () => {
+      parentPersonId: string;
+      parentGender: 1 | 2;
+    }) => addChildForPerson(parentPersonId, parentGender, childPersonId, familyId),
+    onSuccess: (_, { childPersonId, parentPersonId }) => {
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
       queryClient.invalidateQueries({ queryKey: familyKeys.tree() });
-      if (personId) {
+      queryClient.invalidateQueries({ queryKey: familyKeys.relations(parentPersonId) });
+      queryClient.invalidateQueries({ queryKey: familyKeys.relations(childPersonId) });
+      if (personId && personId !== parentPersonId) {
         queryClient.invalidateQueries({ queryKey: familyKeys.relations(personId) });
       }
     },

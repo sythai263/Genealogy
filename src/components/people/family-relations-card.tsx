@@ -221,6 +221,10 @@ interface AddRelationDialogProps {
   currentPerson: Person;
   /** Child mode: family to add child to. Spouse mode: optional half-family to fill. */
   targetFamilyId?: string;
+  /** Child mode: spouse of the target family (for title + exclusions). */
+  targetSpouse?: Person | null;
+  /** IDs already related in this context (spouse, existing children). */
+  excludePersonIds?: string[];
   onSuccess: () => void;
 }
 
@@ -230,6 +234,8 @@ function AddRelationDialog({
   mode,
   currentPerson,
   targetFamilyId,
+  targetSpouse,
+  excludePersonIds = [],
   onSuccess,
 }: AddRelationDialogProps) {
   const [tab, setTab] = useState<'new' | 'existing'>('new');
@@ -251,6 +257,15 @@ function AddRelationDialog({
       personGender: currentPerson.gender,
       spouseId,
       targetFamilyId: mode === 'spouse' ? targetFamilyId : undefined,
+    });
+  };
+
+  const linkChild = async (childPersonId: string) => {
+    await addChildMutation.mutateAsync({
+      familyId: targetFamilyId,
+      childPersonId,
+      parentPersonId: currentPerson.id,
+      parentGender: currentPerson.gender,
     });
   };
 
@@ -281,14 +296,8 @@ function AddRelationDialog({
 
       if (mode === 'spouse') {
         await linkSpouse(newPerson.id);
-      } else if (targetFamilyId) {
-        await addChildMutation.mutateAsync({
-          familyId: targetFamilyId,
-          childPersonId: newPerson.id,
-          sortOrder: 99,
-        });
       } else {
-        throw new Error('Thiếu thông tin gia đình để thêm con');
+        await linkChild(newPerson.id);
       }
 
       toast.success(mode === 'spouse' ? 'Đã thêm vợ/chồng' : 'Đã thêm con');
@@ -306,14 +315,8 @@ function AddRelationDialog({
     try {
       if (mode === 'spouse') {
         await linkSpouse(person.id);
-      } else if (targetFamilyId) {
-        await addChildMutation.mutateAsync({
-          familyId: targetFamilyId,
-          childPersonId: person.id,
-          sortOrder: 99,
-        });
       } else {
-        throw new Error('Thiếu thông tin gia đình để thêm con');
+        await linkChild(person.id);
       }
 
       toast.success(mode === 'spouse' ? 'Đã liên kết vợ/chồng' : 'Đã liên kết con');
@@ -326,9 +329,12 @@ function AddRelationDialog({
     }
   };
 
+  const spouseLabel = currentPerson.gender === 1 ? 'vợ' : 'chồng';
   const title = mode === 'spouse'
-    ? `Thêm ${currentPerson.gender === 1 ? 'vợ' : 'chồng'} cho ${currentPerson.display_name}`
-    : `Thêm con cho ${currentPerson.display_name}`;
+    ? `Thêm ${spouseLabel} cho ${currentPerson.display_name}`
+    : targetSpouse
+      ? `Thêm con cho ${currentPerson.display_name} & ${targetSpouse.display_name}`
+      : `Thêm con cho ${currentPerson.display_name}`;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -336,6 +342,17 @@ function AddRelationDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
+
+        {mode === 'child' && (
+          <p className="text-sm text-muted-foreground">
+            Con sẽ thuộc gia đình này — cha/mẹ:{' '}
+            <span className="font-medium text-foreground">
+              {currentPerson.gender === 1
+                ? `${currentPerson.display_name}${targetSpouse ? ` & ${targetSpouse.display_name}` : ''}`
+                : `${targetSpouse ? `${targetSpouse.display_name} & ` : ''}${currentPerson.display_name}`}
+            </span>
+          </p>
+        )}
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'new' | 'existing')}>
           <TabsList className="w-full">
@@ -360,7 +377,7 @@ function AddRelationDialog({
 
           <TabsContent value="existing" className="mt-4">
             <PersonSearchSelect
-              excludeIds={[currentPerson.id]}
+              excludeIds={[currentPerson.id, ...excludePersonIds]}
               onSelect={handleSelectExisting}
               isLoading={isSaving}
             />
@@ -378,7 +395,7 @@ interface OwnFamilySectionProps {
   currentPerson: Person;
   canEdit: boolean;
   index: number;
-  onAddChild: (familyId: string) => void;
+  onAddChild: () => void;
   onAddSpouse: (familyId: string) => void;
 }
 
@@ -438,7 +455,7 @@ function OwnFamilySection({
               variant="ghost"
               size="sm"
               className="h-6 text-xs px-2"
-              onClick={() => onAddChild(family.id)}
+              onClick={onAddChild}
             >
               <Plus className="h-3 w-3 mr-1" />
               Thêm con
@@ -470,20 +487,35 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
   const { data: relations, isLoading, refetch } = usePersonRelations(person.id);
   const [dialogMode, setDialogMode] = useState<DialogMode | null>(null);
   const [targetFamilyId, setTargetFamilyId] = useState<string | undefined>();
+  const [targetSpouse, setTargetSpouse] = useState<Person | null>(null);
+  const [excludePersonIds, setExcludePersonIds] = useState<string[]>([]);
 
   const openSpouseDialog = (familyId?: string) => {
     setDialogMode('spouse');
     setTargetFamilyId(familyId);
+    setTargetSpouse(null);
+    setExcludePersonIds([]);
   };
 
-  const openChildDialog = (familyId: string) => {
+  const openChildDialog = (
+    familyId: string | undefined,
+    spouse: Person | null,
+    existingChildren: Person[]
+  ) => {
     setDialogMode('child');
     setTargetFamilyId(familyId);
+    setTargetSpouse(spouse);
+    setExcludePersonIds([
+      ...(spouse ? [spouse.id] : []),
+      ...existingChildren.map((c) => c.id),
+    ]);
   };
 
   const closeDialog = () => {
     setDialogMode(null);
     setTargetFamilyId(undefined);
+    setTargetSpouse(null);
+    setExcludePersonIds([]);
   };
 
   if (isLoading) {
@@ -516,10 +548,22 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
               Quan hệ gia đình
             </CardTitle>
             {canEdit && (
-              <Button variant="outline" size="sm" onClick={() => openSpouseDialog()}>
-                <Plus className="h-4 w-4 mr-1" />
-                Thêm vợ/chồng
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => openSpouseDialog()}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Thêm vợ/chồng
+                </Button>
+                {ownFamilies.length === 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openChildDialog(undefined, null, [])}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Thêm con
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </CardHeader>
@@ -584,7 +628,13 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
                   currentPerson={person}
                   canEdit={canEdit}
                   index={idx}
-                  onAddChild={openChildDialog}
+                  onAddChild={() =>
+                    openChildDialog(
+                      familyEntry.family.id,
+                      familyEntry.spouse,
+                      familyEntry.children
+                    )
+                  }
                   onAddSpouse={openSpouseDialog}
                 />
               ))}
@@ -594,7 +644,7 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
               <p className="text-sm text-muted-foreground">Chưa có gia đình riêng</p>
               {canEdit && (
                 <p className="text-xs text-muted-foreground">
-                  Thêm vợ/chồng để tạo gia đình, sau đó có thể thêm con.
+                  Thêm vợ/chồng để tạo gia đình đủ cặp, hoặc thêm con trước (gia đình một bên).
                 </p>
               )}
             </div>
@@ -610,6 +660,8 @@ export function FamilyRelationsCard({ person, canEdit }: FamilyRelationsCardProp
           mode={dialogMode}
           currentPerson={person}
           targetFamilyId={targetFamilyId}
+          targetSpouse={targetSpouse}
+          excludePersonIds={excludePersonIds}
           onSuccess={() => refetch()}
         />
       )}

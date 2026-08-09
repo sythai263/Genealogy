@@ -342,12 +342,132 @@ export async function removeChildFromFamily(familyId: string, personId: string):
   if (error) throw error;
 }
 
+async function nextChildSortOrder(familyId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('children')
+    .select('sort_order')
+    .eq('family_id', familyId)
+    .order('sort_order', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return data?.length ? data[0].sort_order + 1 : 0;
+}
+
+/**
+ * Ensure childPersonId belongs to familyId as their parent family.
+ * If they were already linked to another family, move them so cha/mẹ map
+ * to this couple only (one parent-family per person).
+ */
+export async function ensureChildInFamily(
+  familyId: string,
+  childPersonId: string
+): Promise<void> {
+  const { data: family, error: familyError } = await supabase
+    .from('families')
+    .select('id, father_id, mother_id')
+    .eq('id', familyId)
+    .maybeSingle();
+  if (familyError) throw familyError;
+  if (!family) throw new Error('Không tìm thấy gia đình');
+
+  if (childPersonId === family.father_id || childPersonId === family.mother_id) {
+    throw new Error('Không thể thêm bố/mẹ làm con trong cùng gia đình');
+  }
+
+  const { data: existingLinks, error: linksError } = await supabase
+    .from('children')
+    .select('id, family_id')
+    .eq('person_id', childPersonId);
+  if (linksError) throw linksError;
+
+  const inTarget = (existingLinks || []).find((r) => r.family_id === familyId);
+  if (inTarget) return;
+
+  const nextSort = await nextChildSortOrder(familyId);
+  const otherLinks = (existingLinks || []).filter((r) => r.family_id !== familyId);
+
+  if (otherLinks.length > 0) {
+    const [primary, ...extras] = otherLinks;
+    const { error: moveError } = await supabase
+      .from('children')
+      .update({ family_id: familyId, sort_order: nextSort })
+      .eq('id', primary.id);
+    if (moveError) throw moveError;
+
+    for (const extra of extras) {
+      const { error: deleteError } = await supabase
+        .from('children')
+        .delete()
+        .eq('id', extra.id);
+      if (deleteError) throw deleteError;
+    }
+    return;
+  }
+
+  await addChildToFamily(familyId, childPersonId, nextSort);
+}
+
+/**
+ * Add a child under a specific family (correct father_id/mother_id pair).
+ * Used by the family-relations card "Thêm con" action.
+ */
+export async function addChildToExistingFamily(
+  familyId: string,
+  childPersonId: string
+): Promise<void> {
+  await ensureChildInFamily(familyId, childPersonId);
+}
+
+/**
+ * Add a child for a person who may not have an own family yet.
+ * - If familyId is provided, attach to that family (and its parents).
+ * - Otherwise find/create a single-parent family for this person, then attach.
+ */
+export async function addChildForPerson(
+  parentPersonId: string,
+  parentGender: 1 | 2,
+  childPersonId: string,
+  familyId?: string
+): Promise<void> {
+  if (childPersonId === parentPersonId) {
+    throw new Error('Không thể thêm chính mình làm con');
+  }
+
+  if (familyId) {
+    const { data: family, error } = await supabase
+      .from('families')
+      .select('id, father_id, mother_id')
+      .eq('id', familyId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!family) throw new Error('Không tìm thấy gia đình');
+
+    const belongsToParent =
+      family.father_id === parentPersonId || family.mother_id === parentPersonId;
+    if (!belongsToParent) {
+      throw new Error('Gia đình không thuộc về thành viên này');
+    }
+
+    await ensureChildInFamily(familyId, childPersonId);
+    return;
+  }
+
+  const fatherId = parentGender === 1 ? parentPersonId : null;
+  const motherId = parentGender === 2 ? parentPersonId : null;
+  await addPersonToParentFamily(fatherId, motherId, childPersonId);
+}
+
 // ─── Person Relations ─────────────────────────────────────────────────────────
 
 export async function getPersonRelations(personId: string): Promise<PersonRelations> {
   // Parallel: find parent family + own families
   const [childRowsRes, ownFamiliesRes] = await Promise.all([
-    supabase.from('children').select('family_id').eq('person_id', personId),
+    supabase
+      .from('children')
+      .select('family_id, created_at')
+      .eq('person_id', personId)
+      .order('created_at', { ascending: false })
+      .limit(1),
     supabase
       .from('families')
       .select('*')
@@ -457,26 +577,79 @@ export async function getPersonRelations(personId: string): Promise<PersonRelati
 }
 
 // Find or create a family for the given parents, then add childPersonId as a child.
+// Resolves the correct couple family so cha/mẹ on the child's page match the intended parents.
 export async function addPersonToParentFamily(
   fatherId: string | null,
   motherId: string | null,
   childPersonId: string
 ): Promise<void> {
   if (!fatherId && !motherId) return;
+  if (childPersonId === fatherId || childPersonId === motherId) {
+    throw new Error('Không thể thêm bố/mẹ làm con');
+  }
 
-  // Find existing family matching these parents exactly
-  let query = supabase.from('families').select('id');
-  if (fatherId) query = query.eq('father_id', fatherId);
-  else query = query.is('father_id', null);
-  if (motherId) query = query.eq('mother_id', motherId);
-  else query = query.is('mother_id', null);
+  let familyId: string | null = null;
 
-  const { data: existing } = await query.maybeSingle();
-  let familyId: string;
+  if (fatherId && motherId) {
+    // Exact couple — use their existing family when present
+    const { data: couple, error } = await supabase
+      .from('families')
+      .select('id')
+      .eq('father_id', fatherId)
+      .eq('mother_id', motherId)
+      .order('sort_order', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (couple?.id) familyId = couple.id;
+  } else if (fatherId) {
+    // Prefer father's half-family; if he has exactly one complete marriage, use that
+    const { data: half, error: halfError } = await supabase
+      .from('families')
+      .select('id')
+      .eq('father_id', fatherId)
+      .is('mother_id', null)
+      .order('sort_order', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (halfError) throw halfError;
+    if (half?.id) {
+      familyId = half.id;
+    } else {
+      const { data: completes, error: completeError } = await supabase
+        .from('families')
+        .select('id')
+        .eq('father_id', fatherId)
+        .not('mother_id', 'is', null)
+        .order('sort_order', { ascending: true });
+      if (completeError) throw completeError;
+      if (completes?.length === 1) familyId = completes[0].id;
+    }
+  } else if (motherId) {
+    const { data: half, error: halfError } = await supabase
+      .from('families')
+      .select('id')
+      .eq('mother_id', motherId)
+      .is('father_id', null)
+      .order('sort_order', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (halfError) throw halfError;
+    if (half?.id) {
+      familyId = half.id;
+    } else {
+      const { data: completes, error: completeError } = await supabase
+        .from('families')
+        .select('id')
+        .eq('mother_id', motherId)
+        .not('father_id', 'is', null)
+        .order('sort_order', { ascending: true });
+      if (completeError) throw completeError;
+      if (completes?.length === 1) familyId = completes[0].id;
+    }
+  }
 
-  if (existing?.id) {
-    familyId = existing.id;
-  } else {
+  if (!familyId) {
     const handle = `fam-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const insertData: Record<string, unknown> = { handle, sort_order: 0 };
     if (fatherId) insertData.father_id = fatherId;
@@ -484,22 +657,14 @@ export async function addPersonToParentFamily(
     const { data: newFamily, error } = await supabase
       .from('families')
       .insert(insertData)
-      .select()
+      .select('id')
       .single();
     if (error) throw error;
     familyId = newFamily.id;
   }
 
-  // Next sort_order
-  const { data: existingChildren } = await supabase
-    .from('children')
-    .select('sort_order')
-    .eq('family_id', familyId)
-    .order('sort_order', { ascending: false })
-    .limit(1);
-  const nextSortOrder = existingChildren?.length ? existingChildren[0].sort_order + 1 : 0;
-
-  await addChildToFamily(familyId, childPersonId, nextSortOrder);
+  if (!familyId) throw new Error('Không tạo được gia đình cho cha/mẹ');
+  await ensureChildInFamily(familyId, childPersonId);
 }
 
 function parentRoleColumns(gender: 1 | 2): { own: 'father_id' | 'mother_id'; other: 'father_id' | 'mother_id' } {
