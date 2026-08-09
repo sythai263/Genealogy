@@ -41,3 +41,13 @@ export interface PersonRelations {
     children: Person[];
   }>;
 }
+
+/** Half-family waiting for the other spouse (bulk entry worklist). */
+export interface FamilyMissingSpouse {
+  family_id: string;
+  /** The parent already recorded on the family. */
+  person: Person;
+  /** Which side is filled in — the opposite side is the one to enter. */
+  knownRole: 'father' | 'mother';
+  childrenCount: number;
+}

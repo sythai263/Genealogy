@@ -25,3 +25,4 @@ export * from './directory';
 export * from './book';
 export * from './mfa';
 export * from './pagination';
+export * from './spouse';

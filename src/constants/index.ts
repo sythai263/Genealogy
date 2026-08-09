@@ -18,4 +18,5 @@ export * from './people';
 export * from './registrations';
 export * from './settings';
 export * from './setup';
+export * from './spouses';
 export * from './stats';

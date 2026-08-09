@@ -6,7 +6,7 @@ import type {
   CreatePersonInput, UpdatePersonInput, CreateMediaInput, EventType,
   PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
   PeopleListResult, EventsListFilters, PaginatedResult, ContributionsListFilters,
-  ProfilesListFilters,
+  ProfilesListFilters, FamilyMissingSpouse,
 } from '@types';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -252,16 +252,6 @@ export async function getFamilyChildren(familyId: string): Promise<Person[]> {
   );
 }
 
-export interface FamilyMissingSpouse {
-  family_id: string;
-  /** The parent already recorded on the family. */
-  person: Person;
-  /** Which side is filled in — the opposite side is the one to enter. */
-  knownRole: 'father' | 'mother';
-  childrenCount: number;
-}
-
-/** Families that record one parent but not the other, for bulk spouse entry. */
 export async function getFamiliesMissingSpouse(): Promise<FamilyMissingSpouse[]> {
   const { data: families, error } = await supabase
     .from('families')
