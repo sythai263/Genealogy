@@ -75,7 +75,6 @@ export function AncestralHallContent() {
                   fill
                   className='object-cover'
                   sizes='(max-width: 768px) 50vw, 33vw'
-                  unoptimized
                 />
               </button>
             ))}
@@ -94,7 +93,7 @@ export function AncestralHallContent() {
             width={1200}
             height={900}
             className='max-w-full max-h-[85vh] w-auto h-auto rounded-lg'
-            unoptimized
+            sizes='(max-width: 1200px) 100vw, 1200px'
             onClick={e => e.stopPropagation()}
           />
         </div>

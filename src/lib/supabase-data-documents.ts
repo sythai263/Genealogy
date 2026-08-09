@@ -8,7 +8,12 @@
 
 import { supabase } from './supabase';
 import { escapeIlikePattern } from './utils';
-import { getPaginationRange } from '@constants';
+import {
+  DOCUMENTS_BUCKET,
+  DOCUMENT_SIGNED_URL_TTL_SECONDS,
+  MEDIA_BUCKET,
+  getPaginationRange,
+} from '@constants';
 import type { ClanDocument, CreateClanDocumentInput, DocumentsListFilters, PaginatedResult, UpdateClanDocumentInput } from '@types';
 
 export async function getDocuments(
@@ -107,38 +112,86 @@ export async function deleteDocument(id: string): Promise<void> {
   if (error) throw error;
 }
 
+/**
+ * Files uploaded before the private bucket existed are stored as absolute public
+ * URLs on the old `media` bucket; new ones are stored as a path inside `documents`.
+ */
+function isLegacyPublicUrl(fileRef: string): boolean {
+  return fileRef.startsWith('http://') || fileRef.startsWith('https://');
+}
+
+/** Returns the object path — the value persisted in `clan_documents.file_url` */
 export async function uploadDocumentFile(file: File, path: string): Promise<string> {
   const { error } = await supabase.storage
-    .from('media')
-    .upload(`documents/${path}`, file, { upsert: true });
+    .from(DOCUMENTS_BUCKET)
+    .upload(path, file, { upsert: true });
 
   if (error) throw error;
 
-  const { data: urlData } = supabase.storage
-    .from('media')
-    .getPublicUrl(`documents/${path}`);
-
-  return urlData.publicUrl;
+  return path;
 }
 
-export async function deleteDocumentFile(fileUrl: string): Promise<void> {
+/**
+ * Resolves stored file references to URLs the browser can open. Paths in the
+ * private bucket become short-lived signed URLs; legacy public URLs pass through.
+ */
+export async function getDocumentFileUrls(
+  fileRefs: string[]
+): Promise<Record<string, string>> {
+  const resolved: Record<string, string> = {};
+  const paths: string[] = [];
+
+  for (const ref of fileRefs) {
+    if (!ref) continue;
+    if (isLegacyPublicUrl(ref)) {
+      resolved[ref] = ref;
+    } else {
+      paths.push(ref);
+    }
+  }
+
+  if (paths.length === 0) return resolved;
+
+  const { data, error } = await supabase.storage
+    .from(DOCUMENTS_BUCKET)
+    .createSignedUrls(paths, DOCUMENT_SIGNED_URL_TTL_SECONDS);
+
+  if (error) throw error;
+
+  for (const entry of data || []) {
+    // A null signedUrl means RLS denied this object — leave it unresolved
+    if (entry.path && entry.signedUrl) {
+      resolved[entry.path] = entry.signedUrl;
+    }
+  }
+
+  return resolved;
+}
+
+export async function deleteDocumentFile(fileRef: string): Promise<void> {
+  if (!isLegacyPublicUrl(fileRef)) {
+    await supabase.storage.from(DOCUMENTS_BUCKET).remove([fileRef]);
+    return;
+  }
+
   // SEC-WARN-02: Use indexOf to handle URLs that contain multiple '/media/' segments.
   // e.g. https://x.co/storage/v1/object/public/media/documents/media/file.pdf
   // → correct path: 'documents/media/file.pdf' (not 'file.pdf')
-  const markerIdx = fileUrl.indexOf('/storage/v1/object/public/media/');
+  const publicPrefix = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
+  const markerIdx = fileRef.indexOf(publicPrefix);
   if (markerIdx !== -1) {
-    const storagePath = fileUrl.slice(markerIdx + '/storage/v1/object/public/media/'.length);
+    const storagePath = fileRef.slice(markerIdx + publicPrefix.length);
     if (storagePath) {
-      await supabase.storage.from('media').remove([storagePath]);
+      await supabase.storage.from(MEDIA_BUCKET).remove([storagePath]);
     }
     return;
   }
   // Fallback: try splitting on last '/media/' occurrence
-  const lastMediaIdx = fileUrl.lastIndexOf('/media/');
+  const lastMediaIdx = fileRef.lastIndexOf(`/${MEDIA_BUCKET}/`);
   if (lastMediaIdx !== -1) {
-    const storagePath = fileUrl.slice(lastMediaIdx + '/media/'.length);
+    const storagePath = fileRef.slice(lastMediaIdx + MEDIA_BUCKET.length + 2);
     if (storagePath) {
-      await supabase.storage.from('media').remove([storagePath]);
+      await supabase.storage.from(MEDIA_BUCKET).remove([storagePath]);
     }
   }
 }

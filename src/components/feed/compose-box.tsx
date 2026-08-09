@@ -25,7 +25,7 @@ import {
   POST_TYPE_LABELS,
 } from '@constants';
 import { useCreatePost } from '@hooks';
-import { supabase } from '@lib';
+import { StorageError, uploadFeedImage } from '@lib';
 import type { PostType } from '@types';
 import { ImagePlus, Loader2, Send, X } from 'lucide-react';
 import Image from 'next/image';
@@ -60,31 +60,20 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
     try {
       const newUrls: string[] = [];
 
+      // One failure must not discard the images that already uploaded
       for (const file of filesToUpload) {
-        if (!file.type.startsWith('image/')) {
-          toast.error(`"${file.name}" không phải ảnh`);
-          continue;
+        try {
+          newUrls.push(await uploadFeedImage(file));
+        } catch (error) {
+          toast.error(
+            error instanceof StorageError
+              ? `"${file.name}": ${error.message}`
+              : `Lỗi khi tải "${file.name}" lên`
+          );
         }
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`"${file.name}" quá lớn (tối đa 5MB)`);
-          continue;
-        }
-
-        const ext = file.name.split('.').pop() || 'jpg';
-        const path = `feed/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error } = await supabase.storage
-          .from('media')
-          .upload(path, file);
-        if (error) throw error;
-        const { data: urlData } = supabase.storage
-          .from('media')
-          .getPublicUrl(path);
-        newUrls.push(urlData.publicUrl);
       }
 
       setImageUrls(prev => [...prev, ...newUrls]);
-    } catch {
-      toast.error('Lỗi khi tải ảnh lên');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -142,7 +131,6 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
                   fill
                   className='object-cover'
                   sizes='80px'
-                  unoptimized
                 />
                 <button
                   type='button'

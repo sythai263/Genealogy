@@ -12,3 +12,15 @@ export interface Media {
 }
 
 export type CreateMediaInput = Omit<Media, 'id' | 'created_at'>;
+
+/** Where an uploaded image ends up — selects the matching compression preset */
+export type ImageUploadKind = 'avatar' | 'gallery' | 'feed';
+
+export interface ImageCompressionOptions {
+  /** Longest edge of the output image, in pixels */
+  maxDimension: number;
+  /** Starting WebP encoder quality, between 0 and 1 */
+  quality: number;
+  /** Encoder retries at lower quality until the result fits this budget */
+  targetBytes: number;
+}

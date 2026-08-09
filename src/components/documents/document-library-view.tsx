@@ -19,7 +19,7 @@ import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@constants';
-import { useDocuments, usePeopleByIds } from '@hooks';
+import { useDocumentFileUrls, useDocuments, usePeopleByIds } from '@hooks';
 import type { DocumentCategory } from '@types';
 import { DocumentLibraryCard } from './document-library-card';
 import { DocumentLibraryFilters } from './document-library-filters';
@@ -48,6 +48,9 @@ export function DocumentLibraryView() {
     () => [...new Set(items.map((doc) => doc.person_id).filter((id): id is string => Boolean(id)))],
     [items]
   );
+  const fileRefs = useMemo(() => items.map((doc) => doc.file_url), [items]);
+  const { data: fileUrls } = useDocumentFileUrls(fileRefs);
+
   const { data: people } = usePeopleByIds(personIds);
   const peopleMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -110,6 +113,7 @@ export function DocumentLibraryView() {
               <DocumentLibraryCard
                 key={document.id}
                 document={document}
+                fileUrl={fileUrls?.[document.file_url]}
                 personName={
                   document.person_id
                     ? peopleMap.get(document.person_id)

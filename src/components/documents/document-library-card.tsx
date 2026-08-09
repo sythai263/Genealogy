@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+import Image from 'next/image';
 import { Download, ExternalLink, File } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
 import {
@@ -27,11 +28,14 @@ function resolvePrivacyLevel(level: number): 0 | 1 | 2 | null {
 interface DocumentLibraryCardProps {
   document: ClanDocument;
   personName?: string;
+  /** Resolved signed URL; undefined while loading or when access is denied */
+  fileUrl?: string;
 }
 
 export function DocumentLibraryCard({
   document,
   personName,
+  fileUrl,
 }: DocumentLibraryCardProps) {
   const Icon = DOCUMENT_CATEGORY_ICONS[document.category] || File;
   const isImage = isDocumentImageUrl(document.file_url, document.file_type);
@@ -39,13 +43,14 @@ export function DocumentLibraryCard({
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      {isImage ? (
-        <div className="h-40 overflow-hidden bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={document.file_url}
+      {isImage && fileUrl ? (
+        <div className="relative h-40 overflow-hidden bg-muted">
+          <Image
+            src={fileUrl}
             alt={document.title}
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </div>
       ) : (
@@ -84,19 +89,23 @@ export function DocumentLibraryCard({
               <span>{formatDocumentFileSize(document.file_size)}</span>
             ) : null}
           </div>
-          <a
-            href={document.file_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700"
-          >
-            {isImage ? (
-              <ExternalLink className="h-3 w-3" />
-            ) : (
-              <Download className="h-3 w-3" />
-            )}
-            {isImage ? 'Xem' : 'Tải'}
-          </a>
+          {fileUrl ? (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700"
+            >
+              {isImage ? (
+                <ExternalLink className="h-3 w-3" />
+              ) : (
+                <Download className="h-3 w-3" />
+              )}
+              {isImage ? 'Xem' : 'Tải'}
+            </a>
+          ) : (
+            <span className="text-muted-foreground/60">Đang mở khoá…</span>
+          )}
         </div>
       </CardContent>
     </Card>

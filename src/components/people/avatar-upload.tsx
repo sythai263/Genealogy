@@ -46,7 +46,7 @@ export function AvatarUpload({ person, canEdit, size = 'lg' }: AvatarUploadProps
 
     setIsUploading(true);
     try {
-      const url = await uploadFile(file, person.id);
+      const url = await uploadFile(file, person.id, 'avatar');
       await updateMutation.mutateAsync({ id: person.id, input: { avatar_url: url } });
       toast.success('Đã cập nhật ảnh đại diện');
     } catch (err) {

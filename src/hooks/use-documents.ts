@@ -10,8 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
-import { getDocuments, getDocumentsByPerson, createDocument, updateDocument, deleteDocument, uploadDocumentFile, deleteDocumentFile } from '@lib';
+import { DOCUMENT_SIGNED_URL_TTL_SECONDS, PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
+import { getDocuments, getDocumentsByPerson, getDocumentFileUrls, createDocument, updateDocument, deleteDocument, uploadDocumentFile, deleteDocumentFile } from '@lib';
 import type { CreateClanDocumentInput, DocumentsListFilters, UpdateClanDocumentInput } from '@types';
 
 export const documentKeys = {
@@ -28,7 +28,24 @@ export const documentKeys = {
       },
     ] as const,
   byPerson: (personId: string) => [...documentKeys.all, 'person', personId] as const,
+  fileUrls: (fileRefs: string[]) => [...documentKeys.all, 'file-urls', fileRefs] as const,
 };
+
+/**
+ * Resolves stored file references to openable URLs. Signed URLs expire, so the
+ * result is refetched a little before the TTL runs out.
+ */
+export function useDocumentFileUrls(fileRefs: string[]) {
+  const sorted = [...new Set(fileRefs.filter(Boolean))].sort();
+
+  return useQuery({
+    queryKey: documentKeys.fileUrls(sorted),
+    queryFn: () => getDocumentFileUrls(sorted),
+    enabled: sorted.length > 0,
+    staleTime: (DOCUMENT_SIGNED_URL_TTL_SECONDS - 300) * 1000,
+    gcTime: DOCUMENT_SIGNED_URL_TTL_SECONDS * 1000,
+  });
+}
 
 export function useDocuments(filters: DocumentsListFilters) {
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);

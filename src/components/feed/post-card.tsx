@@ -108,7 +108,7 @@ export function PostCard({
             width={800}
             height={384}
             className='w-full max-h-96 object-cover'
-            unoptimized
+            sizes='(max-width: 768px) 100vw, 800px'
           />
         </div>
       );
@@ -135,7 +135,6 @@ export function PostCard({
               fill
               className='object-cover'
               sizes='(max-width: 768px) 50vw, 33vw'
-              unoptimized
             />
             {i === 3 && images.length > 4 && (
               <div className='absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-bold'>

@@ -136,7 +136,6 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                    unoptimized
                   />
                   {photo.is_primary && (
                     <Badge className="absolute top-1 left-1 bg-amber-500 text-xs">
@@ -170,7 +169,7 @@ export function PhotoGallery({ personId, canEdit }: PhotoGalleryProps) {
                 width={800}
                 height={600}
                 className="w-full rounded-lg"
-                unoptimized
+                sizes="(max-width: 768px) 100vw, 800px"
               />
               {canEdit && (
                 <div className="flex gap-2 justify-end">

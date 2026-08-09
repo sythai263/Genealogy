@@ -66,6 +66,7 @@ export function MfaEnrollPanel({
             alt='QR code cho Google Authenticator'
             width={180}
             height={180}
+            // Inline data: URL from the MFA enrolment response — nothing to optimise
             unoptimized
           />
         </div>

@@ -34,7 +34,7 @@ export function useUploadMedia() {
       personId: string;
       caption?: string;
     }) => {
-      const url = await uploadFile(file, personId);
+      const url = await uploadFile(file, personId, 'gallery');
       const input: CreateMediaInput = {
         person_id: personId,
         type: 'photo',
