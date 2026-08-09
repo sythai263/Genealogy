@@ -83,7 +83,7 @@ status: approved
 ### v1.0.0 - MVP (Sprint 2-3)
 
 **Target:** Week 3-4 (Early Mar 2026)
-**Goal:** Production-ready for Chi tộc Đặng Đình
+**Goal:** Production-ready for Chi tộc Lê Sỹ
 
 | Epic | Stories | Priority |
 |------|---------|----------|

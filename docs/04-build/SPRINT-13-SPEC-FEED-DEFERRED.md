@@ -17,10 +17,10 @@ status: draft
 > "Người trẻ cũng nhiều, đi khắp trong nước, có cả nước ngoài.
 > Có box giao lưu thi thoảng gửi cái ảnh ở quê cho người xa nhà."
 
-Con cháu họ Đặng sống rải rác khắp nơi — Hà Tĩnh, Sài Gòn, Hà Nội, nước ngoài.
+Con cháu họ Đặng sống rải rác khắp nơi — Thanh Hóa, Sài Gòn, Hà Nội, nước ngoài.
 Ngoài việc tra cứu gia phả, họ cần một **không gian giao lưu** để:
 
-1. **Chia sẻ ảnh quê hương** — nhà thờ họ, làng xóm, phong cảnh Thạch Lâm
+1. **Chia sẻ ảnh quê hương** — nhà thờ họ, làng xóm, phong cảnh Thường Xuân
 2. **Kể chuyện gia đình** — kỷ niệm, hồi ức, lời dặn dò
 3. **Thông báo tin vui** — tốt nghiệp, cưới hỏi, sinh con, thăng chức
 4. **Giao lưu thế hệ** — người già kể chuyện xưa, người trẻ chia sẻ cuộc sống mới

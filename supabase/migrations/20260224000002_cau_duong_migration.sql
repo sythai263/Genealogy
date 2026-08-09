@@ -7,7 +7,7 @@
 --    Mỗi nhóm được định nghĩa bởi một tổ tông và tiêu chí đủ điều kiện
 CREATE TABLE IF NOT EXISTS cau_duong_pools (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            VARCHAR(200) NOT NULL,       -- VD: "Nhánh ông Đặng Đình Nhân"
+    name            VARCHAR(200) NOT NULL,       -- VD: "Nhánh ông Lê Sỹ Nhân"
     ancestor_id     UUID NOT NULL REFERENCES people(id) ON DELETE RESTRICT,
     min_generation  INTEGER NOT NULL DEFAULT 1,  -- Đời tối thiểu (VD: 12)
     max_age_lunar   INTEGER NOT NULL DEFAULT 70, -- Tuổi âm tối đa (dưới 70)
@@ -95,7 +95,7 @@ CREATE POLICY "Admins and editors can manage cau duong assignments"
 -- ═══════════════════════════════════════════════════════════════════════════
 -- INSERT INTO cau_duong_pools (name, ancestor_id, min_generation, max_age_lunar, description)
 -- SELECT
---   'Nhóm Cầu đương Chi tộc Đặng Đình',
+--   'Nhóm Cầu đương Chi tộc Lê Sỹ',
 --   id,
 --   12,   -- Đời 12 trở xuống
 --   70,   -- Dưới 70 tuổi âm

@@ -361,8 +361,8 @@ Prefer: return=minimal                 (khi không cần response body)
 **CreatePersonInput:**
 ```json
 {
-  "handle": "dang-dinh-a",          // required, unique slug
-  "display_name": "Đặng Đình A",    // required
+  "handle": "le-sy-a",          // required, unique slug
+  "display_name": "Lê Sỹ A",    // required
   "first_name": "A",
   "middle_name": "Đình",
   "surname": "Đặng",
@@ -373,7 +373,7 @@ Prefer: return=minimal                 (khi không cần response body)
   "chi": 1,
   "birth_date": "1950-01-15",
   "birth_year": 1950,
-  "birth_place": "Hà Tĩnh",
+  "birth_place": "Thanh Hóa",
   "death_date": null,
   "death_year": null,
   "death_place": null,
@@ -384,8 +384,8 @@ Prefer: return=minimal                 (khi không cần response body)
   "email": "user@example.com",
   "zalo": "0901234567",
   "facebook": "https://fb.com/user",
-  "address": "Thạch Lâm, Hà Tĩnh",
-  "hometown": "Hà Tĩnh",
+  "address": "Thường Xuân, Thanh Hóa",
+  "hometown": "Thanh Hóa",
   "occupation": "Nông dân",
   "biography": "...",
   "notes": "...",
@@ -413,7 +413,7 @@ Prefer: return=minimal                 (khi không cần response body)
   "father_id": "uuid",
   "mother_id": "uuid",
   "marriage_date": "1975-02-15",
-  "marriage_place": "Hà Tĩnh",
+  "marriage_place": "Thanh Hóa",
   "divorce_date": null,
   "notes": null,
   "sort_order": 0
@@ -568,7 +568,7 @@ Authorization: Bearer {JWT}
   "category": "hoc_tap | su_nghiep | cong_hien | other",
   "description": "...",
   "year": 2025,
-  "awarded_by": "UBND tỉnh Hà Tĩnh",
+  "awarded_by": "UBND tỉnh Thanh Hóa",
   "is_featured": false
 }
 ```
@@ -671,7 +671,7 @@ Authorization: Bearer {JWT}
 **ClanDocument body:**
 ```json
 {
-  "title": "Ảnh làng Thạch Lâm 1975",
+  "title": "Ảnh làng Thường Xuân 1975",
   "description": "Ảnh lịch sử của làng",
   "file_url": "https://...supabase.co/storage/v1/object/public/media/documents/...",
   "file_type": "image/jpeg",

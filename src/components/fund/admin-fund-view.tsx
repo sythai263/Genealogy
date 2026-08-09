@@ -8,9 +8,6 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Plus, Trash2, CheckCircle, Wallet } from 'lucide-react';
-import { toast } from 'sonner';
 import { useAuth } from '@components/auth';
 import { PersonCombobox } from '@components/people';
 import {
@@ -51,24 +48,27 @@ import {
 } from '@components/ui';
 import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@constants';
 import {
-  useFundTransactions,
-  useFundBalance,
   useCreateFundTransaction,
-  useDeleteFundTransaction,
-  useScholarships,
   useCreateScholarship,
-  useUpdateScholarshipStatus,
+  useDeleteFundTransaction,
   useDeleteScholarship,
+  useFundBalance,
+  useFundTransactions,
   usePeopleByIds,
   useResettablePage,
+  useScholarships,
+  useUpdateScholarshipStatus,
 } from '@hooks';
 import { formatVND } from '@lib';
 import type {
-  Person,
   CreateFundTransactionInput,
   CreateScholarshipInput,
+  Person,
   ScholarshipStatus,
 } from '@types';
+import { CheckCircle, Plus, Trash2, Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { ScholarshipStatusBadge } from './scholarship-status-badge';
 
 export function AdminFundView() {
@@ -357,7 +357,7 @@ export function AdminFundView() {
                 </div>
                 <div>
                   <Label>Trường</Label>
-                  <Input value={schSchool} onChange={e => setSchSchool(e.target.value)} placeholder="THPT Hà Tĩnh" />
+                  <Input value={schSchool} onChange={e => setSchSchool(e.target.value)} placeholder="THPT Cầm Bá Thước" />
                 </div>
                 <div>
                   <Label>Lý do</Label>

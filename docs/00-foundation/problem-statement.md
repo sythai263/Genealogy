@@ -14,7 +14,7 @@ status: approved
 
 ### 1.1 Current Situation
 
-Chi tộc Đặng Đình tại Hà Tĩnh hiện đang quản lý gia phả theo phương pháp truyền thống:
+Chi tộc Lê Sỹ tại Thanh Hóa hiện đang quản lý gia phả theo phương pháp truyền thống:
 
 | Phương pháp | Vấn đề |
 |-------------|--------|
@@ -55,7 +55,7 @@ Chi tộc Đặng Đình tại Hà Tĩnh hiện đang quản lý gia phả theo 
 
 ## 2. Problem Statement
 
-> **"Chi tộc Đặng Đình cần một giải pháp số hóa gia phả để bảo tồn, quản lý và chia sẻ thông tin dòng họ một cách chính xác, dễ truy cập và bền vững qua nhiều thế hệ."**
+> **"Chi tộc Lê Sỹ cần một giải pháp số hóa gia phả để bảo tồn, quản lý và chia sẻ thông tin dòng họ một cách chính xác, dễ truy cập và bền vững qua nhiều thế hệ."**
 
 ### 2.1 Root Causes (5 Whys Analysis)
 

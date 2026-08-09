@@ -627,7 +627,7 @@ Cầu đương là nghi lễ cúng tổ tiên xoay vòng trong dòng họ:
 ```sql
 cau_duong_pools          -- Cấu hình nhóm xoay vòng
 ├── id (UUID PK)
-├── name                 -- VD: "Nhánh ông Đặng Đình Nhân"
+├── name                 -- VD: "Nhánh ông Lê Sỹ Nhân"
 ├── ancestor_id          -- FK → people (tổ tông gốc của nhóm)
 ├── min_generation       -- Đời tối thiểu (VD: 12)
 ├── max_age_lunar        -- Tuổi âm tối đa (mặc định: 70)
@@ -1436,8 +1436,8 @@ frontend/
 | **PWA Mobile** | Progressive Web App cho điện thoại | P2 |
 
 > **Multi-tenant SaaS Note (2026-03-01):**
-> Hiện tại [ancestortree.info](https://ancestortree.info) chỉ phục vụ riêng chi tộc Đặng Đình,
-> Thạch Lâm, Hà Tĩnh — không phải SaaS platform. Nếu có thời gian, sẽ phát triển thành
+> Hiện tại [lesy.vn](https://lesy.vn) chỉ phục vụ riêng chi tộc Lê Sỹ,
+> Thường Xuân, Thanh Hóa — không phải SaaS platform. Nếu có thời gian, sẽ phát triển thành
 > multi-tenant platform cho nhiều dòng họ. Yêu cầu:
 >
 > - Tenant isolation (DB schema per tenant hoặc RLS-based)

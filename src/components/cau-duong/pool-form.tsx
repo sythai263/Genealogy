@@ -8,29 +8,29 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonCombobox } from '@components/people';
 import {
-  Button,
-  Checkbox,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-  Textarea,
+    Button,
+    Checkbox,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+    Textarea,
 } from '@components/ui';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { usePerson } from '@hooks';
 import {
-  cauDuongPoolSchema,
-  defaultCauDuongPoolValues,
-  type CauDuongPoolFormData,
+    cauDuongPoolSchema,
+    defaultCauDuongPoolValues,
+    type CauDuongPoolFormData,
 } from '@schemas';
 import type { CauDuongPool, Person } from '@types';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface PoolFormProps {
   pool?: CauDuongPool;
@@ -86,7 +86,7 @@ export function PoolForm({ pool, onSubmit, isPending }: PoolFormProps) {
             <FormItem>
               <FormLabel>Tên nhóm *</FormLabel>
               <FormControl>
-                <Input placeholder="Nhánh ông Đặng Đình Nhân" {...field} />
+                <Input placeholder="Nhánh ông Lê Sỹ Nhân" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

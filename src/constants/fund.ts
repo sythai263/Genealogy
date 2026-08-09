@@ -27,4 +27,4 @@ export const FUND_SCHOLARSHIP_STATUS_CLASSES: Record<ScholarshipStatus, string> 
     paid: 'bg-green-100 text-green-800',
   };
 
-export const FUND_REPORT_CLAN_NAME = 'CHI TỘC ĐẶNG ĐÌNH';
+export const FUND_REPORT_CLAN_NAME = 'CHI TỘC Lê Sỹ';

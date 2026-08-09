@@ -15,14 +15,14 @@ status: approved
 ### 1.1 Opportunity
 
 Xây dựng phần mềm gia phả điện tử **miễn phí, mã nguồn mở** phục vụ:
-1. **Chi tộc Đặng Đình** (Hà Tĩnh) - Primary user
+1. **Chi tộc Lê Sỹ** (Thanh Hóa) - Primary user
 2. **Cộng đồng Việt Nam** - Các dòng họ khác có thể tái sử dụng
 
 ### 1.2 Value Proposition
 
 | Stakeholder | Value |
 |-------------|-------|
-| **Chi tộc Đặng Đình** | Số hóa, bảo tồn gia phả; Kết nối thành viên |
+| **Chi tộc Lê Sỹ** | Số hóa, bảo tồn gia phả; Kết nối thành viên |
 | **HĐGT** | Công cụ quản lý tập trung; Báo cáo thống kê |
 | **Thành viên** | Tra cứu dễ dàng; Đóng góp thông tin |
 | **Cộng đồng** | Giải pháp mở, miễn phí cho mọi dòng họ |

@@ -181,15 +181,15 @@ Xuất gia phả dạng văn bản Markdown, phân nhóm theo đời.
 ### C2. Output format
 
 ```markdown
-# Gia phả họ Đặng — Thạch Lâm, Hà Tĩnh
+# Gia phả họ Đặng — Thường Xuân, Thanh Hóa
 
 ## Đời 1 (Thủy tổ)
 
-### Đặng Đình X (1820–1890)
+### Lê Sỹ X (1820–1890)
 - Giới tính: Nam
-- Nơi sinh: Thạch Lâm, Hà Tĩnh
+- Nơi sinh: Thường Xuân, Thanh Hóa
 - Vợ: Nguyễn Thị Y
-- Con: Đặng Đình A, Đặng Đình B
+- Con: Lê Sỹ A, Lê Sỹ B
 
 ## Đời 2
 ...

@@ -270,15 +270,15 @@ Danh sách phân nhóm theo đời:
 
 ```text
 Đời 1 (Thủy tổ)
-├── Đặng Đình X (1820-1890)
+├── Lê Sỹ X (1820-1890)
 
 Đời 2
-├── Đặng Đình Y (1845-1920) — con ông X
-├── Đặng Đình Z (1850-1925) — con ông X
+├── Lê Sỹ Y (1845-1920) — con ông X
+├── Lê Sỹ Z (1850-1925) — con ông X
 
 Đời 3
-├── Đặng Đình A (1875-1950) — con ông Y
-├── Đặng Đình B (1880-1955) — con ông Y
+├── Lê Sỹ A (1875-1950) — con ông Y
+├── Lê Sỹ B (1880-1955) — con ông Y
 ```
 
 Click vào tên → mở `/people/[id]`.
@@ -445,7 +445,7 @@ frontend/src/
 | #    | Risk                                          | Impact | Mitigation                                                       |
 | ---- | --------------------------------------------- | ------ | ---------------------------------------------------------------- |
 | R-01 | GEDCOM export fail with large datasets (500+) | Medium | Stream output, test with seed data 18 members first              |
-| R-02 | Vietnamese name parsing edge cases             | Medium | Handle single-word names, compound surnames (Đặng Đình)          |
+| R-02 | Vietnamese name parsing edge cases             | Medium | Handle single-word names, compound surnames (Lê Sỹ)          |
 | R-03 | Duplicate detection false positives            | Low    | Conservative thresholds (60%+), admin review only, no auto-merge |
 | R-04 | Elderly mode CSS conflicts with existing UI    | Low    | Use `.elderly-mode` scope, test all pages                        |
 | R-05 | Desktop mode GEDCOM export fails               | Low    | Same API endpoint, SQLite shim handles getTreeData()             |

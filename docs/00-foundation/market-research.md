@@ -292,7 +292,7 @@ liệu gia phả.
 ### 6.2 Vietnamese Name Conventions
 
 ```
-Full name: Đặng Đình Tài
+Full name: Lê Sỹ Tài
 ├── Họ (Surname): Đặng
 ├── Tên đệm (Middle): Đình
 └── Tên (Given): Tài

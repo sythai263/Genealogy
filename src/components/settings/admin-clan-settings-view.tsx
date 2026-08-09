@@ -9,6 +9,7 @@
 'use client';
 
 import { useAuth } from '@components/auth';
+import { AccessDenied } from '@components/shared';
 import {
   Badge,
   Button,
@@ -52,7 +53,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
-import { AccessDenied } from '@components/shared';
 
 export function AdminClanSettingsView() {
   const router = useRouter();
@@ -247,7 +247,7 @@ export function AdminClanSettingsView() {
                 <Input
                   value={clanFullName}
                   onChange={e => setClanFullName(e.target.value)}
-                  placeholder='Họ Đặng làng Kỷ Các, Thạch Lâm, Hà Tĩnh'
+                  placeholder='Họ Lê Sỹ, xã Thường Xuân, Thanh Hóa'
                   className='mt-1'
                 />
                 <p className='text-xs text-muted-foreground mt-1'>
@@ -261,7 +261,7 @@ export function AdminClanSettingsView() {
                   <Input
                     value={patriarch}
                     onChange={e => setPatriarch(e.target.value)}
-                    placeholder='Cụ Đặng Đình...'
+                    placeholder='Cụ Lê Sỹ...'
                     className='mt-1'
                   />
                 </div>
@@ -270,7 +270,7 @@ export function AdminClanSettingsView() {
                   <Input
                     value={origin}
                     onChange={e => setOrigin(e.target.value)}
-                    placeholder='Thạch Lâm, Thạch Hà, Hà Tĩnh'
+                    placeholder='xã Thường Xuân, tỉnh Thanh Hóa'
                     className='mt-1'
                   />
                 </div>
@@ -474,7 +474,7 @@ export function AdminClanSettingsView() {
             <Input
               value={hallAddress}
               onChange={e => setHallAddress(e.target.value)}
-              placeholder='Xã Thạch Lâm, Thạch Hà, Hà Tĩnh'
+              placeholder='xã Thường Xuân, tỉnh Thanh Hóa'
               className='mt-1'
             />
           </div>

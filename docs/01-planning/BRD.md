@@ -29,7 +29,7 @@ status: approved
 
 | ID | Objective | Priority | Success Criteria |
 |----|-----------|----------|------------------|
-| **BO-01** | Số hóa toàn bộ gia phả Chi tộc Đặng Đình | P0 | 100% dữ liệu được nhập |
+| **BO-01** | Số hóa toàn bộ gia phả Chi tộc Lê Sỹ | P0 | 100% dữ liệu được nhập |
 | **BO-02** | Cung cấp công cụ tra cứu cho thành viên | P0 | >50% thành viên sử dụng |
 | **BO-03** | Open source cho cộng đồng Việt Nam | P1 | MIT license, docs đầy đủ |
 

@@ -163,7 +163,7 @@ export function AchievementForm({
             <FormItem>
               <FormLabel>Trao bởi</FormLabel>
               <FormControl>
-                <Input placeholder="Sở GD&ĐT Hà Tĩnh" {...field} />
+                <Input placeholder="Sở GD&ĐT Thanh Hóa" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

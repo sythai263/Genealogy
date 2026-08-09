@@ -521,7 +521,7 @@ Configuration for a ceremony rotation group. Each pool is anchored to a root anc
 ```sql
 CREATE TABLE cau_duong_pools (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            VARCHAR(200) NOT NULL,    -- VD: "Nhánh ông Đặng Đình Nhân"
+    name            VARCHAR(200) NOT NULL,    -- VD: "Nhánh ông Lê Sỹ Nhân"
     ancestor_id     UUID NOT NULL REFERENCES people(id) ON DELETE RESTRICT,
     min_generation  INTEGER NOT NULL DEFAULT 1,  -- Đời tối thiểu (VD: 12)
     max_age_lunar   INTEGER NOT NULL DEFAULT 70, -- Tuổi âm tối đa (mặc định: dưới 70)

@@ -261,8 +261,8 @@ Phase 6: Build & verify (30m)
 
 ### Fuzzy Search
 
-- [ ] Tìm "dang" → ra kết quả "Đặng" (diacritics tolerant)
-- [ ] Tìm "thach lam" → ra người có birth_place "Thạch Lâm"
+- [ ] Tìm "le sy" → ra kết quả "Lê Sỹ" (diacritics tolerant)
+- [ ] Tìm "thuong xuan" → ra người có birth_place "Thường Xuân"
 - [ ] Results instant (client-side)
 
 ### SEO

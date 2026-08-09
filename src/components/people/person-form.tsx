@@ -353,7 +353,7 @@ export function PersonForm({ person, defaultValues: extraDefaults, lockedGenerat
                   <FormItem>
                     <FormLabel>Nơi sinh</FormLabel>
                     <FormControl>
-                      <Input placeholder="Hà Tĩnh" {...field} />
+                      <Input placeholder="Thanh Hóa" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -432,7 +432,7 @@ export function PersonForm({ person, defaultValues: extraDefaults, lockedGenerat
                 <FormItem>
                   <FormLabel>Quê quán</FormLabel>
                   <FormControl>
-                    <Input placeholder="Thạch Lâm, Thạch Hà, Hà Tĩnh" {...field} />
+                    <Input placeholder="Thường Xuân, Thanh Hóa" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
