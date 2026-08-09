@@ -181,7 +181,7 @@ Xuất gia phả dạng văn bản Markdown, phân nhóm theo đời.
 ### C2. Output format
 
 ```markdown
-# Gia phả họ Đặng — Thường Xuân, Thanh Hóa
+# Gia phả họ Lê Sỹ — Thường Xuân, Thanh Hóa
 
 ## Đời 1 (Thủy tổ)
 
