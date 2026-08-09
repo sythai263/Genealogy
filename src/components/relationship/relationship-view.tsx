@@ -38,7 +38,9 @@ export function RelationshipView() {
           Tìm quan hệ giữa 2 thành viên
         </h1>
         <p className="text-muted-foreground">
-          Chọn 2 thành viên bất kỳ để tìm mối quan hệ và tổ tiên chung
+          Chọn 2 thành viên để tìm quan hệ theo tổ tông 18 đời — danh xưng Hán-Việt
+          kèm diễn giải (ví dụ: <strong>Tằng Tổ (ông cố)</strong>,{' '}
+          <strong>Huyền Tôn (chút trai)</strong>)
         </p>
       </div>
 

@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/components/relationship/relationship-result-card.tsx
- * @description Displays relationship pathfinding result
- * @version 1.0.0
- * @updated 2026-07-18
+ * @description Displays relationship pathfinding result with bold Hán-Việt kinship terms
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import Link from 'next/link';
@@ -23,6 +23,31 @@ interface RelationshipResultCardProps {
   treeRootId: string;
 }
 
+/**
+ * Render text with **Hán Việt (diễn giải)** segments bolded.
+ */
+function KinshipText({ text, className }: { text: string; className?: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return (
+    <span className={className}>
+      {parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+          return (
+            <strong
+              key={index}
+              className="font-bold text-foreground underline decoration-primary/40 decoration-2 underline-offset-2"
+            >
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
 export function RelationshipResultCard({
   result,
   treeRootId,
@@ -34,10 +59,12 @@ export function RelationshipResultCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
-          <p className="text-lg font-semibold">{result.description}</p>
+          <p className="text-lg leading-relaxed">
+            <KinshipText text={result.description} />
+          </p>
           {result.descriptionDetail && (
-            <p className="text-sm text-muted-foreground">
-              {result.descriptionDetail}
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              <KinshipText text={result.descriptionDetail} />
             </p>
           )}
         </div>
