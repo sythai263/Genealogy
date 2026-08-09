@@ -130,6 +130,131 @@ function buildParentMap(data: TreeData): Map<string, string[]> {
   return parentMap;
 }
 
+/** personId → spouse ids (from families with both parents). */
+function buildSpouseMap(data: TreeData): Map<string, string[]> {
+  const spouseMap = new Map<string, string[]>();
+  const add = (a: string, b: string) => {
+    const list = spouseMap.get(a) || [];
+    if (!list.includes(b)) list.push(b);
+    spouseMap.set(a, list);
+  };
+
+  for (const f of data.families) {
+    if (f.father_id && f.mother_id) {
+      add(f.father_id, f.mother_id);
+      add(f.mother_id, f.father_id);
+    }
+  }
+  return spouseMap;
+}
+
+function getSiblings(
+  personId: string,
+  parentMap: Map<string, string[]>,
+  personMap: Map<string, Person>,
+): Person[] {
+  const parents = parentMap.get(personId) || [];
+  if (parents.length === 0) return [];
+
+  const siblingIds = new Set<string>();
+  for (const [childId, childParents] of parentMap) {
+    if (childId === personId) continue;
+    if (childParents.some((p) => parents.includes(p))) {
+      siblingIds.add(childId);
+    }
+  }
+
+  return [...siblingIds]
+    .map((id) => personMap.get(id))
+    .filter((p): p is Person => p != null);
+}
+
+/**
+ * Quan hệ dâu/rể qua anh chị em ruột.
+ * VD: Thái (em trai Mạnh) ↔ Trang (vợ Mạnh) → chị dâu / em chồng.
+ */
+function describeSiblingInLaw(
+  personA: Person,
+  personB: Person,
+  parentMap: Map<string, string[]>,
+  spouseMap: Map<string, string[]>,
+  personMap: Map<string, Person>,
+): { description: string; detail: string } | null {
+  // Case 1: B là vợ/chồng của anh/chị/em ruột của A
+  for (const sibling of getSiblings(personA.id, parentMap, personMap)) {
+    const spouses = spouseMap.get(sibling.id) || [];
+    if (!spouses.includes(personB.id)) continue;
+
+    const towardInLaw = labelSiblingSpouse(personA, sibling);
+    const towardSibling = labelSpouseSibling(personB, sibling, personA);
+    return {
+      description: `${personA.display_name} gọi ${personB.display_name} là ${towardInLaw}`,
+      detail: `${personB.display_name} gọi ${personA.display_name} là ${towardSibling}. Qua ${sibling.display_name} (anh/chị/em ruột)`,
+    };
+  }
+
+  // Case 2: B là anh/chị/em ruột của vợ/chồng của A
+  for (const spouseId of spouseMap.get(personA.id) || []) {
+    const spouse = personMap.get(spouseId);
+    if (!spouse) continue;
+    const spouseSiblings = getSiblings(spouse.id, parentMap, personMap);
+    if (!spouseSiblings.some((s) => s.id === personB.id)) continue;
+
+    const towardSibling = labelSpouseSibling(personA, spouse, personB);
+    const towardInLaw = labelSiblingSpouse(personB, spouse);
+    return {
+      description: `${personA.display_name} gọi ${personB.display_name} là ${towardSibling}`,
+      detail: `${personB.display_name} gọi ${personA.display_name} là ${towardInLaw}. Qua ${spouse.display_name} (vợ/chồng)`,
+    };
+  }
+
+  return null;
+}
+
+/** A gọi vợ/chồng của anh/chị/em (sibling) bằng gì. */
+function labelSiblingSpouse(ego: Person, sibling: Person): string {
+  const siblingOlder = isOlder(sibling, ego);
+
+  if (sibling.gender === 1) {
+    // Vợ của anh/em trai
+    if (siblingOlder === true) return markKinship('Tẩu', 'chị dâu — vợ của anh trai');
+    if (siblingOlder === false) return markKinship('Đệ tức', 'em dâu — vợ của em trai');
+    return markKinship('Tẩu/Đệ tức', 'chị dâu/em dâu — vợ anh em trai');
+  }
+
+  // Chồng của chị/em gái
+  if (siblingOlder === true) return markKinship('Tỷ phu', 'anh rể — chồng của chị gái');
+  if (siblingOlder === false) return markKinship('Muội phu', 'em rể — chồng của em gái');
+  return markKinship('Tỷ/Muội phu', 'anh rể/em rể — chồng chị em gái');
+}
+
+/** In-law (đã kết hôn với spouse) gọi anh/chị/em của spouse bằng gì. */
+function labelSpouseSibling(inLaw: Person, spouse: Person, sibling: Person): string {
+  const siblingOlder = isOlder(sibling, spouse);
+
+  if (spouse.gender === 1) {
+    // Anh/chị/em bên chồng
+    if (sibling.gender === 1) {
+      if (siblingOlder === true) return markKinship('Đại bá', 'anh chồng');
+      if (siblingOlder === false) return markKinship('Tiểu thúc', 'em chồng');
+      return markKinship('Huynh/Đệ (chồng)', 'anh/em chồng');
+    }
+    if (siblingOlder === true) return markKinship('Đại tỷ', 'chị chồng');
+    if (siblingOlder === false) return markKinship('Tiểu muội', 'em gái chồng');
+    return markKinship('Tỷ/Muội (chồng)', 'chị/em chồng');
+  }
+
+  // Anh/chị/em bên vợ
+  if (sibling.gender === 1) {
+    if (siblingOlder === true) return markKinship('Ngoại huynh', 'anh vợ');
+    if (siblingOlder === false) return markKinship('Ngoại đệ', 'em vợ');
+    return markKinship('Huynh/Đệ (vợ)', 'anh/em vợ');
+  }
+  if (siblingOlder === true) return markKinship('Ngoại tỷ', 'chị vợ');
+  if (siblingOlder === false) return markKinship('Ngoại muội', 'em gái vợ');
+  return markKinship('Tỷ/Muội (vợ)', 'chị/em vợ');
+}
+
 function findLCA(
   parentMap: Map<string, string[]>,
   personMap: Map<string, Person>,
@@ -482,6 +607,7 @@ function describeRelationship(
   path: Person[],
   parentMap: Map<string, string[]>,
   personMap: Map<string, Person>,
+  spouseMap: Map<string, string[]>,
 ): { description: string; detail: string } {
   if (personA.id === personB.id) {
     return { description: 'Cùng một người', detail: '' };
@@ -516,6 +642,11 @@ function describeRelationship(
       detail: 'Quan hệ hôn nhân',
     };
   }
+
+  // 3. Chị dâu / em dâu / anh rể / em rể (và anh/em chồng, anh/em vợ)
+  //    Ưu tiên trước chú/bác — cháu vì path thường đi qua bố → anh → vợ
+  const inLaw = describeSiblingInLaw(personA, personB, parentMap, spouseMap, personMap);
+  if (inLaw) return inLaw;
 
   if (!lca) {
     if (path.length > 0) {
@@ -632,6 +763,7 @@ export function findRelationship(
 
   const graph = buildGraph(data);
   const parentMap = buildParentMap(data);
+  const spouseMap = buildSpouseMap(data);
   const path = bfs(graph, personAId, personBId, personMap);
 
   if (!path) {
@@ -653,6 +785,7 @@ export function findRelationship(
     path,
     parentMap,
     personMap,
+    spouseMap,
   );
 
   return {
