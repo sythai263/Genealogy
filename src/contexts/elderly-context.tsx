@@ -2,13 +2,13 @@
  * @project AncestorTree
  * @file src/contexts/elderly-context.tsx
  * @description Elderly mode context — larger fonts, simplified UI
- * @version 1.0.0
- * @updated 2026-03-09
+ * @version 1.0.1
+ * @updated 2026-08-09
  */
 
 'use client';
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 interface ElderlyContextValue {
   elderlyMode: boolean;
@@ -20,26 +20,32 @@ const ElderlyContext = createContext<ElderlyContextValue>({
   toggleElderlyMode: () => {},
 });
 
+function applyElderlyClass(enabled: boolean) {
+  if (enabled) {
+    document.documentElement.classList.add('elderly-mode');
+  } else {
+    document.documentElement.classList.remove('elderly-mode');
+  }
+}
+
 export function ElderlyProvider({ children }: { children: React.ReactNode }) {
-  const [elderlyMode, setElderlyMode] = useState(() => {
-    if (typeof window === 'undefined') return false;
+  // Always start false so SSR and the first client render match; hydrate from
+  // localStorage after mount to avoid nav/menu hydration mismatches.
+  const [elderlyMode, setElderlyMode] = useState(false);
+
+  useEffect(() => {
     const stored = localStorage.getItem('elderlyMode');
     if (stored === 'true') {
-      document.documentElement.classList.add('elderly-mode');
-      return true;
+      setElderlyMode(true);
+      applyElderlyClass(true);
     }
-    return false;
-  });
+  }, []);
 
   const toggleElderlyMode = useCallback(() => {
-    setElderlyMode(prev => {
+    setElderlyMode((prev) => {
       const next = !prev;
       localStorage.setItem('elderlyMode', String(next));
-      if (next) {
-        document.documentElement.classList.add('elderly-mode');
-      } else {
-        document.documentElement.classList.remove('elderly-mode');
-      }
+      applyElderlyClass(next);
       return next;
     });
   }, []);
