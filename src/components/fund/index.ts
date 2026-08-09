@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+export * from './admin-fund-view';
 export * from './export-fund-report';
 export * from './fund-donations-tab';
 export * from './fund-history-tab';

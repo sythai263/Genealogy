@@ -6,9 +6,11 @@
  * @updated 2026-07-18
  */
 
+export * from './admin-documents-view';
 export * from './book-chapter-section';
 export * from './book-person-entry';
 export * from './book-view';
+export * from './document-form';
 export * from './document-hub-link-card';
 export * from './document-library-card';
 export * from './document-library-filters';

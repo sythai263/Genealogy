@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+export * from './admin-clan-settings-view';
 export * from './mfa-enroll-panel';
 export * from './mfa-unenroll-dialog';
 export * from './password-form';

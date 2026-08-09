@@ -6,6 +6,7 @@
  * @updated 2026-07-18
  */
 
+export * from './admin-contributions-view';
 export * from './contribution-form';
 export * from './contribution-list-item';
 export * from './contributions-view';

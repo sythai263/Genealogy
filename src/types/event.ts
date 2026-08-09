@@ -23,6 +23,9 @@ export interface Event {
   created_at: string;
 }
 
+export type CreateEventInput = Omit<Event, 'id' | 'created_at'>;
+export type UpdateEventInput = Partial<CreateEventInput>;
+
 export interface EventsListFilters {
   type?: EventType;
   search?: string;

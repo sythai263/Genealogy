@@ -1,9 +1,9 @@
 /**
  * @project AncestorTree
  * @file src/lib/format-utils.ts
- * @description Shared formatting utilities — relative time, initials
- * @version 1.0.0
- * @updated 2026-03-09
+ * @description Shared formatting utilities — relative time, initials, file size
+ * @version 1.1.0
+ * @updated 2026-08-09
  */
 
 import { removeVietnameseTones } from './helper';
@@ -64,6 +64,13 @@ export function getPersonTreeNameParts(person: {
     givenName: tokens[tokens.length - 1],
     familyLine: tokens.slice(0, -1).join(' '),
   };
+}
+
+export function formatFileSize(bytes?: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function formatBackupDate(value: Date | string | null): string {

@@ -17,6 +17,7 @@ import type { Person } from '@types';
 
 interface PersonComboboxProps {
   label: string;
+  hint?: string;
   selected: Person | null;
   onSelect: (person: Person | null) => void;
   excludeId?: string;
@@ -24,6 +25,7 @@ interface PersonComboboxProps {
 
 export function PersonCombobox({
   label,
+  hint,
   selected,
   onSelect,
   excludeId,
@@ -132,6 +134,9 @@ export function PersonCombobox({
   return (
     <div className="space-y-1.5">
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      {hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
       {selected ? (
         <div className="flex items-center gap-2 rounded-md border bg-muted/50 p-2">
           <div
