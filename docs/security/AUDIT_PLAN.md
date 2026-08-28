@@ -298,3 +298,162 @@ nhiều instance/serverless).
    in-memory tạm ổn; nếu deploy multi-instance/Vercel thì bắt buộc chuyển
    sang Redis/Upstash) rồi mới xử lý mục rate-limit.
 5. Các mục MEDIUM/LOW còn lại xử lý dần khi rảnh.
+
+---
+---
+
+# Audit hiệu năng chuyên sâu (Supabase query + Frontend)
+
+Đào sâu hơn phần hiệu năng đã nêu rải rác ở các audit trước, tách riêng theo
+2 mảng: (1) cách app query Postgres/Supabase (index, N+1, over-fetch, RPC vs
+tính toán client-side), (2) hiệu năng frontend (code-splitting, bundle size,
+memoization, ảnh, React Query config). Kết luận chung: **kiến trúc query
+tổng thể khá tốt** (đã có RPC cho search/stats/fund, client singleton đúng,
+React Query đã có global default hợp lý), nhưng có **1 điểm nghẽn kiến trúc
+lớn**: toàn bộ pathfinding quan hệ họ hàng và tính thống kê chi tiết đang tải
+nguyên 3 bảng `people`/`families`/`children` về trình duyệt rồi tính bằng JS,
+thay vì dùng RPC/CTE — trong khi hạ tầng RPC cho việc này đã tồn tại sẵn cho
+các phần khác của app.
+
+## 🔴 HIGH — Ảnh hưởng rõ rệt khi dữ liệu lớn dần
+
+- [ ] **Pathfinding & thống kê chi tiết tính toàn bộ trên client thay vì
+  dùng RPC.** `src/lib/pathfinding.ts` và `src/lib/stats-calculator.ts` chỉ
+  nhận `TreeData` (đã fetch sẵn) làm input, tự làm BFS/aggregation bằng JS,
+  không gọi `.rpc()` nào — trong khi app đã có sẵn RPC
+  `get_people_stats`, `search_people_advanced`, `is_person_in_subtree` dùng
+  tốt ở chỗ khác. → Viết RPC/CTE đệ quy trong Postgres cho: (a) tìm đường
+  quan hệ giữa 2 người (`RelationshipResult`), (b) các số liệu trong
+  `DetailedStats`/`GenerationStat`/`ChiStat`/`GenderStat`/`LivingStat`, để
+  chỉ trả về kết quả tính sẵn thay vì toàn bộ bảng.
+
+- [ ] **`getTreeData()` luôn `select('*')` cho `people` và `families`.**
+  `src/lib/supabase-data.ts:1228-1267` — đây là hàm được gọi nhiều nhất
+  (dùng cho tree view, book export, GEDCOM export, stats view, phát hiện
+  trùng lặp), tải toàn bộ cột kể cả các consumer chỉ cần vài cột (VD stats
+  view chỉ cần `generation`/`chi`/`gender`/`is_living`). → Tách các hàm gọi
+  riêng theo nhu cầu cột thay vì dùng chung 1 `getTreeData()` full-column
+  cho mọi nơi, hoặc thêm tham số chọn cột.
+
+- [ ] **`d3` import cả thư viện (~500KB) thay vì import theo submodule.**
+  `src/components/tree/family-tree.tsx:14` và
+  `family-tree-canvas.tsx:11` dùng `import * as d3 from 'd3'`. Dù đã được
+  lazy-load qua `next/dynamic` (tốt), vẫn tải dư thừa. → Đổi sang import
+  submodule cụ thể (`d3-selection`, `d3-hierarchy`, `d3-zoom`,...).
+
+- [ ] **`jspdf`/`html2canvas` có nguy cơ lọt vào bundle chung.**
+  `src/lib/pdf-export.ts:9-10` import 2 thư viện nặng này ở module scope, và
+  bị re-export qua barrel `src/lib/index.ts` (`export *`) — trong khi
+  `layout.tsx` import `{ CLAN_NAME, CLAN_FULL_NAME }` từ `@lib`, kéo theo cả
+  barrel vào cây module của mọi trang. Hiện **không có** component `.tsx`
+  nào gọi `exportTreeToPdf`/`exportFullGiaPha` (code chết), nhưng vì
+  `jspdf`/`html2canvas` là CJS có side-effect nên tree-shaking không chắc
+  loại được. → Xác minh bằng bundle analyzer (`next build` + phân tích
+  `.next/static`); tách `pdf-export.ts` ra khỏi barrel `@lib`, chỉ import nó
+  qua `next/dynamic` tại đúng nơi gọi (khi tính năng export PDF được dùng
+  lại).
+
+## 🟠 MEDIUM — Nên cải thiện
+
+- [ ] **Tìm kiếm `ilike '%...%'` với wildcard ở đầu chuỗi không dùng được
+  index.** `searchPeople` (`supabase-data.ts:115`),
+  `supabase-data-achievements.ts:35`, `supabase-data-documents.ts:40`,
+  `supabase-data-feed.ts:52` đều query `ilike '%keyword%'` — dấu `%` ở đầu
+  khiến Postgres không dùng được GIN/trigram index sẵn có, phải quét tuần
+  tự. Xảy ra ở mọi lần gõ phím autocomplete. → Cân nhắc trigram index
+  (`pg_trgm`) hoặc chuyển sang full-text search (`to_tsvector`) đã có sẵn
+  cho `people.display_name` sang cả các bảng còn lại.
+- [ ] **`events.title` search không có index phù hợp.**
+  `supabase-data.ts:1289` — cần thêm GIN/trigram index nếu tìm kiếm sự kiện
+  theo tên trở nên phổ biến.
+- [ ] **Vòng lặp update tuần tự khi gộp gia đình/chuyển con.**
+  `src/lib/supabase-data.ts:820-833` (`mergeFamilies`/chuyển con) — lặp
+  `await` từng bản ghi một thay vì 1 câu `UPDATE ... WHERE person_id IN
+  (...)` duy nhất. Với gia đình đông con sẽ tốn nhiều round-trip. → Gộp
+  thành 1 bulk update.
+- [ ] **Đếm `count: 'exact'` ở khắp nơi, không dùng `'estimated'`.** 23 chỗ
+  dùng `.select('*', { count: 'exact' })` (notifications, feed, fund,
+  documents, registrations, events, people) — kể cả 3 lần đếm liên tiếp
+  trong `supabase-data.ts:1195-1197` cho thống kê người còn sống/đã mất/tổng
+  số. Càng nhiều dữ liệu càng chậm. → Đổi sang `{ count: 'estimated' }` cho
+  các UI phân trang không cần số chính xác tuyệt đối.
+- [ ] **Toàn bộ page dưới `(main)/**` hydrate như 1 client island lớn.**
+  Pattern hiện tại: `page.tsx` (Server Component) chỉ render 1 wrapper
+  `"use client"` duy nhất (VD `TreeView`, `PeopleListView`,
+  `DirectoryView`), khiến toàn bộ cây trang (header, filter, card) đều là
+  client-rendered, không có phần tĩnh server-rendered nào. → Khi refactor
+  các view lớn (đã liệt kê ở phần Coding Standard —
+  `admin-users-view.tsx` v.v.), cân nhắc tách phần chrome tĩnh
+  (title/layout) ở Server Component, chỉ đưa phần thực sự tương tác xuống
+  client component con.
+- [ ] **Không dùng `priority` cho ảnh above-the-fold.** Không có component
+  nào dùng prop `priority` của `next/image` — ảnh banner ancestral-hall, ảnh
+  đầu tiên trong feed vẫn lazy-load mặc định, ảnh hưởng nhẹ tới LCP. → Thêm
+  `priority` cho ảnh đầu tiên hiển thị ngay khi vào trang.
+- [ ] **`framer-motion` là dependency nhưng không dùng ở đâu.** Grep toàn bộ
+  `src/` không thấy import nào từ `framer-motion`. → Gỡ khỏi
+  `package.json`/lockfile nếu chắc chắn không dùng, giảm rủi ro cài đặt và
+  kích thước `node_modules`.
+
+## 🟡 LOW — Tinh chỉnh thêm
+
+- [ ] **Thiếu batch delete cho bản ghi trùng lặp khi chuyển con giữa gia
+  đình.** `src/lib/supabase-data.ts:440-446` (`moveChildToFamily`) — lặp
+  `DELETE` từng dòng trùng thay vì `.in('id', ids)`. Ít xảy ra (chỉ khi có
+  dữ liệu trùng) nên ưu tiên thấp.
+- [ ] **`getFundBalance` có fallback phân trang 1000 dòng cộng dồn bằng JS**
+  khi RPC `get_fund_balance` lỗi (`supabase-data-fund.ts:98-115`) — chỉ là
+  đường dự phòng, không phải luồng chính, nhưng nếu RPC lỗi thường xuyên sẽ
+  thành điểm nghẽn.
+- [ ] **Avatar dùng `<img>` thường qua Radix `AvatarPrimitive.Image`, không
+  qua `next/image`.** Chấp nhận được vì danh sách nhiều avatar nhỏ, nhưng
+  vẫn là request ảnh không tối ưu — có thể cân nhắc tự viết avatar component
+  bọc `next/image` nếu muốn tối ưu thêm.
+- [ ] **Không có `React.memo` cho các item trong danh sách** (`person-card`,
+  `directory-table-row`, `notification-list-item`, `post-card`). Rủi ro thấp
+  vì danh sách đã phân trang (không quá dài), nhưng kết hợp với callback
+  inline mới mỗi lần render cha có thể gây re-render thừa toàn bộ danh sách
+  khi gõ filter.
+
+## ✅ Đã kiểm tra, ổn — không cần sửa
+
+- **Index cơ bản đầy đủ**: các FK chính (`people.surname/generation/chi`,
+  `families.father_id/mother_id`, `children.family_id/person_id`,
+  `notifications(user_id,is_read,created_at)`, `posts(status,created_at)`)
+  đã được đánh index trong migration.
+- **Không có N+1 nghiêm trọng** ở các luồng chính (feed/notifications/
+  documents đều dùng `.in()` đúng cách).
+- **RPC đã dùng tốt** cho search (`search_people_advanced`), fund
+  (`get_fund_balance`), filter options (`get_people_filter_options`), and
+  stats cơ bản (`get_people_stats`) — chỉ riêng pathfinding/detailed-stats là
+  chưa theo pattern này (đã nêu ở mục HIGH).
+- **Không có Realtime subscription nào** (`supabase.channel`/
+  `postgres_changes`) — không có tải thêm từ đây.
+- **Supabase client là singleton** ở `src/lib/supabase.ts`, không tạo mới
+  mỗi lần gọi (trừ `createServiceRoleClient()` — factory có chủ đích, chấp
+  nhận được).
+- **Code-splitting cơ bản đã đúng**: cây d3 (`family-tree.tsx`) và biểu đồ
+  recharts (`stats-charts.tsx`) đều dùng `next/dynamic` với `ssr:false`.
+- **React Query đã có global default hợp lý**:
+  `src/components/providers/query-provider.tsx` set sẵn `staleTime: 60_000`,
+  `retry: 1`, `refetchOnWindowFocus: false` — khắc phục phần lớn lo ngại về
+  staleTime mặc định 0 đã nêu ở audit trước (các hook riêng lẻ thiếu
+  staleTime vẫn dùng chung default này, không tệ như đã lo ban đầu).
+- **Font tối ưu đúng chuẩn**: `next/font/google` (Inter) self-host, không có
+  `<link>` ngoài, `display: swap` mặc định.
+- **Không cần virtualization**: danh sách dài đều đã phân trang server-side
+  (`page`/`pageSize`), không render toàn bộ mảng không giới hạn.
+- **Không có duplicate library** (date/icon) gây phình bundle ngoài 2 vấn đề
+  đã nêu ở HIGH (`d3` full import, `framer-motion` chưa dùng).
+
+## Gợi ý thứ tự xử lý (hiệu năng chuyên sâu)
+
+1. Viết RPC cho pathfinding quan hệ + detailed stats — đây là thay đổi kiến
+   trúc quan trọng nhất, nên làm trước khi dữ liệu dòng họ phình to.
+2. Xác minh bundle thật bằng `next build` + phân tích xem `jspdf`/
+   `html2canvas` có lọt vào chunk chung không; tách khỏi barrel `@lib` nếu có.
+3. Đổi `d3` sang import submodule; gỡ `framer-motion` nếu xác nhận không
+   dùng.
+4. Đổi các `count: 'exact'` sang `'estimated'` ở UI phân trang không cần số
+   chính xác; gộp vòng lặp update tuần tự thành bulk update.
+5. Các mục LOW còn lại xử lý dần khi rảnh.
