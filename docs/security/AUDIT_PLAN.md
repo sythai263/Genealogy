@@ -1,156 +1,21 @@
-# Audit bảo mật & hiệu năng — Gia phả Dòng họ
+# Audit tuân thủ Coding Standard — Gia phả Dòng họ
 
 ## Bối cảnh
 
-Dự án dùng Next.js 16 + Supabase (RLS) + react-query. Đã audit toàn bộ
-`src/` theo 3 mảng: (1) auth/Supabase client/data layer, (2) API routes/server
-actions, (3) components/hooks/rendering. Nhìn chung kiến trúc auth cốt lõi
-(`getUser()` trong middleware, service-role key chỉ dùng server-side) đã đúng
-chuẩn. Vấn đề nghiêm trọng nhất là **2 API route backup/restore không có
-auth check** — có thể bị khai thác để tải toàn bộ DB hoặc xóa dữ liệu. Phần
-còn lại là các cải thiện về hiệu năng (pagination, staleTime, re-render cây
-gia phả) và một vài điểm cần làm cứng thêm (hardening) chứ không phải lỗ hổng
-đang bị khai thác.
+Sau khi hoàn thành audit bảo mật/hiệu năng (`docs/security/AUDIT_PLAN.md`),
+tiếp tục scan toàn bộ `src/` để đối chiếu với chuẩn code tại
+`.cursor/rules/coding-standard.md` (barrel pattern 2nd-level, absolute
+imports, no `any`/`unknown`, Server Component mặc định, function declaration
+cho component, Props interface, tách data layer/hooks, dùng `cn()`, không màu
+inline, form dùng react-hook-form+zod với schema tập trung). Kết quả tổng thể
+**khá tốt** — phần lớn quy tắc được tuân thủ nghiêm túc, chỉ có một số vi phạm
+nhỏ/rải rác cần dọn dần, không có vi phạm mang tính hệ thống.
 
-Danh sách dưới đây xếp theo mức độ nghiêm trọng để sửa dần, tick từng mục khi
+File plan này sẽ được đặt tại **`docs/CODING_STANDARD_PLAN.md`** (cùng cấp
+với `docs/security/AUDIT_PLAN.md`) để theo dõi tiến độ, tick từng mục khi sửa
 xong.
 
 ---
-
-## 🔴 HIGH — Cần sửa ngay
-
-- [ ] **`src/app/api/backup/route.ts`** — endpoint `POST` export toàn bộ 13
-  bảng DB (dùng service-role client, bỏ qua RLS) thành file ZIP, nhưng
-  **không gọi `requireRole()`** như `src/app/api/export/gedcom/route.ts` đã
-  làm đúng. `src/middleware.ts` (`authRequiredPaths`) chỉ liệt kê các route
-  trang (`/people`, `/admin`...), không bao gồm `/api/backup`, nên middleware
-  cho qua request bất kể có đăng nhập hay không.
-  → **Fix:** thêm `requireRole(request, 'admin')` (hoặc tương đương) ngay đầu
-  handler, giống cách `gedcom/route.ts` đang làm.
-  → Đồng thời route này hiện có bug runtime: `exportedData` không được điền
-  dữ liệu thật từ DB trước khi đọc `.length` ở dòng ~41-51 → luôn throw
-  TypeError (bị nuốt bởi `withApiHandler` thành lỗi 500 chung chung). Cần sửa
-  luôn logic fetch dữ liệu khi thêm auth check.
-
-- [ ] **`src/app/api/backup/restore/route.ts`** — cũng không có auth check.
-  Hiện là stub (`notImplemented`) nhưng docstring ghi rõ đây là thao tác
-  **destructive** (xóa toàn bộ bảng trước khi restore). Phải thêm
-  `requireRole()` **trước khi** implement logic restore thật, tránh trở
-  thành endpoint xóa/ghi đè dữ liệu không cần xác thực.
-  → Khi implement, thêm `allowedMimeTypes: ['application/zip']` vào
-  `validateUpload()` (hiện chỉ check size).
-
----
-
-## 🟠 MEDIUM — Nên sửa sớm
-
-- [ ] **Trùng lặp logic kiểm tra quyền admin.** `src/app/(main)/admin/users/actions.ts:26-57`
-  tự check `caller.role === 'admin'` (đúng, vì Server Actions không đi qua
-  middleware `matcher`), nhưng logic này lặp lại ở nhiều nơi. Nên tách thành
-  helper dùng chung `requireAdmin()` trong `src/lib/api/guards.ts` để mọi
-  server action/route admin trong tương lai không quên check.
-
-- [ ] **Client-side MIME check có thể bị bypass.** `src/lib/supabase-storage.ts`
-  (`assertAllowedType()`) chỉ kiểm tra `file.type` (giá trị do browser cung
-  cấp, có thể giả mạo) trước khi upload thẳng lên Supabase Storage. Cần xác
-  nhận bucket Supabase có cấu hình `allowedMimeTypes` ở tầng server/storage
-  policy — nếu chưa có, thêm vào config bucket để chặn upload SVG có
-  script/file độc hại kể cả khi JS check bị bypass.
-
-- [ ] **React Query thiếu `staleTime`/`gcTime`.** Các hook sau đang dùng mặc
-  định `staleTime: 0` → refetch liên tục mỗi lần mount/focus window:
-  `src/hooks/use-notifications.ts`, `use-feed.ts`, `use-registrations.ts`,
-  `use-events.ts`, `use-profiles.ts`, `use-media.ts`, `use-contributions.ts`.
-  → Thêm `staleTime` hợp lý (ví dụ 30s-5 phút tùy loại dữ liệu) cho từng hook,
-  ưu tiên feed và notification vì tần suất gọi cao nhất.
-
-- [ ] **Re-render toàn bộ cây gia phả khi chỉ chọn 1 node.**
-  `src/components/tree/family-tree-canvas.tsx:258-566` — effect chính build
-  lại `d3.hierarchy`/`d3.tree()` và toàn bộ DOM node có `selectedPersonId`
-  trong dependency array (dòng ~562), nghĩa là mỗi lần click chọn người sẽ
-  tính lại layout + re-render toàn bộ card, kể cả cây có hàng trăm/nghìn
-  thành viên. → Tách effect: việc tô sáng node được chọn nên chỉ toggle CSS
-  class, không trigger lại tính toán layout.
-
----
-
-## 🟡 LOW — Hardening / cải thiện dần
-
-- [ ] **Debug endpoint lộ một phần secret.** `src/app/api/debug/auth/route.ts:95`
-  trả về preview 20 ký tự đầu của `SUPABASE_SERVICE_ROLE_KEY`. Dù đã có
-  `guardDevelopmentOnly()` + cờ `DEBUG_AUTH=true` chặn ở production, nên bỏ
-  hẳn việc trả preview service-role key thay vì chỉ truncate, để tránh rủi ro
-  nếu env bị cấu hình sai ở production.
-
-- [ ] **Không có rate limiting cho `/api/*`.** `src/middleware.ts` hiện chỉ
-  rate-limit các route trang (`/login`, `/register`...), không áp dụng cho
-  API routes — càng cần thiết sau khi vá lỗ hổng backup ở trên để tránh lạm
-  dụng export dữ liệu lặp lại.
-
-- [ ] **`select('*')` tràn lan, không phân trang.** Nhiều hàm trong
-  `src/lib/supabase-data*.ts` (46+ lần riêng trong `supabase-data.ts`) fetch
-  toàn bộ cột và không có `.range()`/`.limit()`, đặc biệt `getTreeData()`
-  (dòng ~1252-1256) load toàn bộ `people`, `families`, `children`. Khi dữ
-  liệu dòng họ lớn dần, cần: chọn cột cụ thể thay vì `*`, và thêm phân trang
-  cho các danh sách (feed, tài liệu, tìm kiếm người) — giữ nguyên load toàn
-  bộ cho riêng cây phả hệ nếu UI yêu cầu render trọn cây.
-
-- [ ] **Hàm escape HTML thủ công trong tree canvas dễ vỡ khi thêm field mới.**
-  `family-tree-canvas.tsx` dùng `escapeHtml()` (dòng 92-98) thủ công trước khi
-  build chuỗi HTML để d3 `.html()` vào `foreignObject`. An toàn hiện tại,
-  nhưng nếu sau này thêm field mới (VD: tiểu sử/ghi chú) vào template mà quên
-  escape sẽ tạo lỗ hổng XSS lưu trữ. Nên chuyển sang dựng DOM node thay vì
-  string template, hoặc thêm comment/lint nhắc nhở escape bắt buộc.
-
-- [ ] **`useEffect` fetch thay vì react-query.**
-  `src/components/settings/profile-form.tsx` tự fetch bằng `useEffect` —
-  chuyển sang react-query hook để nhất quán cache/loading state với phần còn
-  lại của app.
-
-- [ ] **`<img>` thường thay vì `next/image`.** `src/app/(landing)/page.tsx:346`
-  (ảnh hero landing page) — chuyển sang `next/image` để tối ưu ảnh
-  (lazy-load, responsive sizes tự động).
-
----
-
-## ✅ Đã kiểm tra, không có vấn đề
-
-- Service-role key chỉ dùng server-side, không lộ vào bundle client.
-- Không có secret hardcode / commit vào git (`.env.local` đã `.gitignore`).
-- Middleware dùng `getUser()` (verify JWT) cho quyết định phân quyền, đúng
-  khuyến nghị Supabase; 3 chỗ dùng `getSession()` đều ở client, chỉ dùng cho
-  UI branching — chấp nhận được.
-- Không có SQL injection: `searchPeople()` escape `%`, `_`, `\` trước khi
-  `.ilike()`; không có raw SQL string interpolation.
-- Không có N+1 query loop.
-- Không có `dangerouslySetInnerHTML`, không CORS wildcard, không
-  `eval`/`child_process`.
-- Không có `NEXT_PUBLIC_*` env nhạy cảm bị lộ.
-
----
-
-## Gợi ý thứ tự xử lý (bảo mật & hiệu năng)
-
-1. Vá 2 endpoint backup/restore (HIGH) — ưu tiên tuyệt đối vì đang khai thác
-   được ngay hôm nay.
-2. Tách `requireAdmin()` helper dùng chung + xác nhận bucket storage MIME
-   allowlist (MEDIUM).
-3. Thêm `staleTime` cho các hook react-query + sửa re-render tree khi chọn
-   node (MEDIUM, cải thiện trải nghiệm rõ rệt).
-4. Dọn dần các mục LOW khi có thời gian.
-
----
----
-
-# Audit tuân thủ Coding Standard
-
-Đối chiếu `src/` với `.cursor/rules/coding-standard.md` (barrel pattern
-2nd-level, absolute imports, no `any`/`unknown`, Server Component mặc định,
-function declaration cho component, Props interface, tách data layer/hooks,
-dùng `cn()`, không màu inline, form dùng react-hook-form+zod với schema tập
-trung). Kết quả tổng thể **khá tốt** — phần lớn quy tắc được tuân thủ nghiêm
-túc, chỉ có một số vi phạm nhỏ/rải rác cần dọn dần, không có vi phạm mang
-tính hệ thống.
 
 ## 🟠 Vi phạm đáng chú ý nhất (ưu tiên xử lý)
 
@@ -181,6 +46,8 @@ tính hệ thống.
     `GenerationStat`, `ChiStat`, `GenderStat`, `LivingStat`, `DetailedStats`
     (trong `src/lib/stats-calculator.ts`); `RelationshipResult` (trong
     `src/lib/pathfinding.ts`).
+
+---
 
 ## 🟡 Vi phạm nhỏ, dọn dần
 
@@ -232,6 +99,8 @@ tính hệ thống.
   gốc của shadcn hoặc đổi sang `export function Toaster(props: ToasterProps)`
   để đồng bộ 100% — ưu tiên thấp.
 
+---
+
 ## ✅ Đã kiểm tra, tuân thủ tốt — không cần sửa
 
 - **Barrel pattern 2nd-level**: mọi thư mục 2nd-level dưới `components/`,
@@ -259,7 +128,9 @@ tính hệ thống.
 - **Form dùng react-hook-form + zod schema tập trung**: toàn bộ 17 file form
   đều import schema từ `src/schemas/`, không có schema định nghĩa inline.
 
-## Gợi ý thứ tự xử lý (coding standard)
+---
+
+## Gợi ý thứ tự xử lý
 
 1. Gộp `TreeData` interface trùng lặp về `src/types/` (nhanh, rủi ro thấp).
 2. Tách nhỏ các `admin-*-view.tsx` quá lớn (ưu tiên `admin-users-view.tsx`
@@ -268,3 +139,162 @@ tính hệ thống.
    sửa (không cần làm riêng 1 đợt).
 4. Các mục còn lại (props interface, arrow-function sonner, useQuery inline)
    sửa khi có thời gian rảnh, mức độ ưu tiên thấp.
+
+---
+---
+
+# Audit khả năng triển khai Production
+
+Kiểm tra `src/` + config repo (`next.config.ts`, `package.json`,
+`vercel.json`, `Dockerfile`, `src/proxy.ts`) xem đã sẵn sàng deploy production
+hay chưa, theo 3 mảng: (1) build/deploy config, (2) độ ổn định
+runtime/observability, (3) hardening bảo mật riêng cho production (headers,
+cookie, rate-limit). Phát hiện quan trọng nhất: **endpoint backup hiện luôn
+lỗi 500** (bug logic, không fetch dữ liệu thật) nên app **chưa có cơ chế
+backup/restore nào hoạt động** — cần vá song song với phần auth đã ghi ở audit
+bảo mật phía trên. Ngoài ra thiếu hẳn security headers (CSP/HSTS), thiếu
+`.env.example`/validation env vars, thiếu CI pipeline, thiếu health-check
+endpoint, và rate-limit hiện chỉ chạy đúng khi tự host (không đúng nếu deploy
+nhiều instance/serverless).
+
+## 🔴 HIGH — Chặn go-live / rủi ro lớn
+
+- [ ] **Backup export luôn lỗi 500 (bug, không chỉ thiếu auth).**
+  `src/app/api/backup/route.ts:41-52` — biến `exportedData` khởi tạo rỗng và
+  **không có vòng lặp fetch dữ liệu thật** từ các bảng
+  `BACKUP_EXPORT_TABLES` trước khi đọc `exportedData[table].length` →
+  luôn throw `TypeError`, bị `withApiHandler` nuốt thành lỗi 500 chung chung.
+  Kết hợp với thiếu auth check (đã ghi ở phần Audit bảo mật phía trên), route
+  này cần viết lại hoàn toàn logic fetch + thêm `requireRole()` cùng lúc.
+- [ ] **Restore route mới là stub `501 Not Implemented`.**
+  `src/app/api/backup/restore/route.ts:52-56` — báo lỗi rõ ràng (không giả
+  vờ thành công) nhưng nghĩa là **hiện tại không có đường restore nào chạy
+  được**. Ưu tiên thấp hơn export (vì export cũng đang hỏng), nhưng cần lên
+  kế hoạch implement + auth check trước khi bật tính năng.
+- [ ] **Thiếu toàn bộ security headers.** Không có `headers()` trong
+  `next.config.ts`, `src/proxy.ts` không set response header nào. Không có
+  Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options,
+  Referrer-Policy (chỉ có `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy` set trong `vercel.json`, thiếu CSP và HSTS). Mọi trang
+  kể cả `/admin` chứa dữ liệu cá nhân dòng họ đều thiếu lớp bảo vệ này.
+  → Thêm `headers()` trong `next.config.ts` hoặc mở rộng `vercel.json` với
+  CSP phù hợp (cho phép domain Supabase storage) và HSTS.
+- [ ] **Rate limiting chỉ hoạt động đúng khi self-host 1 instance.**
+  `src/proxy.ts:34` (`_rateLimitStore = new Map()`) là in-memory store cấp
+  module — mỗi Vercel Edge isolate/serverless instance có map riêng, nên rate
+  limit gần như vô hiệu khi scale nhiều instance (comment trong code đã tự
+  ghi nhận, dựa vào rate-limit của GoTrue làm tuyến phòng thủ chính — không
+  đủ). → Nếu deploy multi-instance/serverless, chuyển sang Upstash/Redis
+  hoặc dịch vụ rate-limit tập trung.
+- [ ] **Thiếu `.env.example` và validation env vars khi khởi động.** Không
+  có file `.env.example` nào ở root để làm hợp đồng biến môi trường bắt
+  buộc. Code dùng `process.env.X!` (non-null assertion, VD `src/proxy.ts:170,184`)
+  hoặc fallback âm thầm (`next.config.ts` trả `[]` cho `remotePatterns` nếu
+  thiếu `NEXT_PUBLIC_SUPABASE_URL`) thay vì fail rõ ràng lúc build/start. →
+  Tạo `.env.example` liệt kê đủ:
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_INTERNAL_URL`,
+  `NEXT_PUBLIC_CLAN_NAME`, `NEXT_PUBLIC_CLAN_FULL_NAME`,
+  `NEXT_PUBLIC_SITE_URL`, `CRON_SECRET`, `DEBUG_AUTH`, `MIDDLEWARE_LOG`,
+  `BACKUP_DIR`; đồng thời thêm 1 module validate bằng `zod` chạy lúc app khởi
+  động để fail sớm nếu thiếu biến bắt buộc.
+
+## 🟠 MEDIUM — Nên xử lý trước khi/ngay sau go-live
+
+- [ ] **Không có error tracking/alerting.** Không có Sentry hay dịch vụ
+  tương tự, logging chỉ là `console.error` rải rác qua `withApiHandler`. Lỗi
+  production sẽ vô hình ngoài log thô của hosting, không ai được cảnh báo.
+  → Thêm Sentry (hoặc tương đương) tối thiểu cho error boundary + API routes.
+- [ ] **Cron job im lặng khi lỗi, không có alerting.**
+  `src/app/api/cron/route.ts` được bảo vệ đúng bằng `requireCronSecret`
+  (OK), nhưng nếu lỗi (VD DB tạm ngưng ở gói free) chỉ trả JSON lỗi, không
+  ai được thông báo cho đến khi người dùng report app down. → Thêm cảnh báo
+  (Slack webhook / Sentry alert) khi cron thất bại.
+- [ ] **Không có CI pipeline.** Không có `.github/workflows/*` — build/lint
+  không được kiểm tra tự động trước khi deploy, phụ thuộc hoàn toàn vào build
+  check của Vercel lúc deploy (không có gate sớm hơn, không chạy test).
+  → Thêm workflow tối thiểu: lint + build trên PR.
+- [ ] **Không có health-check endpoint chuẩn.** Chỉ có `/api/cron` (có secret,
+  không dùng được cho uptime monitor công khai). → Thêm `/api/health` đơn
+  giản (chỉ ping DB, không secret) để gắn uptime monitoring.
+- [ ] **Không pin Node engine trong `package.json`.** `Dockerfile` pin
+  `node:20-alpine` nhưng `package.json` không có field `engines`, nếu build
+  bằng cách khác (không qua Docker) có thể dùng version Node khác gây lệch
+  hành vi. → Thêm `"engines": { "node": ">=20" }`.
+- [ ] **Server/client boundary chưa được enforce cứng cho service-role
+  client.** `src/lib/supabase.ts` định nghĩa `createServiceRoleClient()`
+  cùng file với browser client, không có `import 'server-only'` guard, và
+  được re-export qua `src/lib/index.ts` — nhiều `'use client'` component
+  import từ barrel `@lib` này. Giá trị secret không bị inline (đọc qua
+  `process.env` runtime, không phải `NEXT_PUBLIC_*`) nên chưa lộ key thật,
+  nhưng đây là vi phạm ranh giới server/client cần dọn. → Tách
+  `createServiceRoleClient()` sang file riêng (VD `src/lib/supabase-admin.ts`),
+  thêm `import 'server-only'` ở đầu file, và xác nhận bằng `next build` +
+  bundle analyzer rằng code này không lọt vào client chunk.
+- [ ] **Cookie SSR chưa override tường minh `Secure`/`SameSite`.**
+  `src/proxy.ts:182-207` dùng `createServerClient` của `@supabase/ssr` nhưng
+  không truyền `options` tường minh cho `response.cookies.set` — đang dựa
+  hoàn toàn vào default của thư viện. → Thêm override tường minh
+  (`secure: true` khi production, `sameSite: 'lax'`) để chắc chắn thay vì
+  phụ thuộc default ẩn.
+- [ ] **`remotePatterns` ảnh Supabase có thể rỗng âm thầm khi thiếu env.**
+  `next.config.ts` sinh `images.remotePatterns` từ
+  `NEXT_PUBLIC_SUPABASE_URL`; nếu biến này chưa set lúc build, patterns trả
+  về `[]` mà build vẫn pass — ảnh từ Supabase Storage sẽ bị Next.js Image
+  chặn hoàn toàn ở production mà không có cảnh báo build-time. → Thêm check
+  fail-fast trong `next.config.ts` nếu thiếu biến này.
+
+## 🟡 LOW — Cải thiện thêm
+
+- [ ] **GEDCOM export không phân trang/stream.**
+  `src/app/api/export/gedcom/route.ts:29-33` load toàn bộ `people`/
+  `families`/`children` vào memory bằng `select('*')` không giới hạn — ổn
+  với quy mô hiện tại nhưng sẽ là điểm nghẽn khi cây phả hệ lớn dần trên giới
+  hạn bộ nhớ serverless (mặc định ~1024MB).
+- [ ] **Vài `.then()` không có `.catch()` ở client.**
+  `src/components/fund/admin-fund-view.tsx:388,564`,
+  `src/components/auth/auth-provider.tsx:61,96` — chỉ ảnh hưởng phản hồi UI
+  (toast báo lỗi), không gây crash vì chạy trong browser, nhưng nên thêm
+  `.catch()` để không bỏ sót lỗi âm thầm.
+- [ ] **`createServiceRoleClient()` tạo client mới mỗi lần gọi.**
+  Không phải leak nghiêm trọng vì mỗi serverless invocation vốn là sandbox
+  riêng, nhưng có thể cache thành singleton trong phạm vi 1 request để giảm
+  overhead nhỏ.
+- [ ] **Không có retry cho lỗi transient khi gọi Supabase.** Một lỗi mạng
+  thoáng qua sẽ trả thẳng lỗi 500 cho người dùng thay vì tự retry 1-2 lần.
+
+## ✅ Đã kiểm tra, ổn — không cần sửa
+
+- `next.config.ts`: không bật `eslint.ignoreDuringBuilds` /
+  `typescript.ignoreBuildErrors`; `output: 'standalone'` chỉ bật khi
+  `DOCKER_BUILD=true`, đúng thiết kế dual-target (Vercel/Docker).
+- `Dockerfile`: multi-stage build, non-root user (`nextjs:1001`), dùng
+  `.next/standalone` đúng chuẩn.
+- `src/proxy.ts` (middleware) chỉ dùng API tương thích Edge Runtime
+  (`NextResponse`, `Map`, `fetch`, `@supabase/ssr`), không có `fs`/Node
+  `crypto` — chạy được trên Edge.
+- `error.tsx`, `global-error.tsx`, `not-found.tsx` đã có đầy đủ; mọi API
+  route đều bọc qua `withApiHandler` nên không có unhandled exception làm
+  sập process.
+- Debug routes (`guardDevelopmentOnly`, `DEBUG_AUTH`) chỉ dựa vào biến môi
+  trường server-side, không thể bypass qua header/query param từ client.
+- `robots.txt`/`sitemap.ts` cấu hình đúng — chặn index các route dữ liệu
+  riêng tư (`/people`, `/tree`, `/directory`, `/admin`), chỉ để lộ landing
+  page công khai.
+- Không có CORS wildcard, không có route public bị lộ cross-origin ngoài ý
+  muốn.
+- GEDCOM/PDF export chạy phía client (browser), không tốn thời gian
+  chạy/serverless timeout của server.
+
+## Gợi ý thứ tự xử lý (production readiness)
+
+1. Vá bug backup export (viết lại logic fetch + thêm auth) — chặn go-live
+   nếu tính năng backup được quảng cáo là đã có.
+2. Thêm security headers (CSP, HSTS) + `.env.example` + zod validate env vars
+   — nhanh, rủi ro thấp, tác động lớn tới an toàn khi lên production.
+3. Thêm health-check endpoint + error tracking (Sentry) + alerting cho cron
+   — giúp phát hiện sự cố sớm thay vì chờ người dùng report.
+4. Đánh giá nhu cầu scale (nếu chỉ self-host 1 instance thì rate-limit
+   in-memory tạm ổn; nếu deploy multi-instance/Vercel thì bắt buộc chuyển
+   sang Redis/Upstash) rồi mới xử lý mục rate-limit.
+5. Các mục MEDIUM/LOW còn lại xử lý dần khi rảnh.
