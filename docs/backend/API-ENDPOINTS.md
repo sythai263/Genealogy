@@ -85,25 +85,27 @@ Nút "Đăng nhập" hiển thị countdown `Thử lại sau Xs` khi đang bị 
 
 | Method | Path | Mô tả | Trạng thái |
 |--------|------|--------|------------|
-| POST | `/api/backup` | Xuất DB ra file ZIP | ❌ **BUG: luôn 500** (xem §1.1) |
-| POST | `/api/backup/restore` | Khôi phục từ file ZIP | ❌ **501 Not Implemented** (xem §1.2) |
-| GET | `/api/cron` | Vercel Cron keep-alive ping (daily, `vercel.json`) — yêu cầu `CRON_SECRET` | ✅ |
+| POST | `/api/backup` | Xuất DB ra file ZIP | ✅ |
+| POST | `/api/backup/restore` | Khôi phục từ file ZIP | ✅ |
+| GET | `/api/cron` | Vercel Cron keep-alive + `event_reminder` notifications (daily, `vercel.json`) — yêu cầu `CRON_SECRET` | ✅ |
 | GET | `/api/debug/auth` | Debug auth/env/Supabase connectivity — chỉ non-production + `DEBUG_AUTH=true` | ✅ |
 | GET | `/api/export/gedcom` | Export GEDCOM (.ged) toàn bộ cây | ✅ |
+| GET | `/api/health` | Health check (liveness) | ✅ |
+| POST | `/api/notifications/broadcast` | Gửi notification `system` tới toàn bộ user (admin) | ✅ |
 
-### 1.1 Backup Export — `POST /api/backup` ⚠️ ĐANG HỎNG
+### 1.1 Backup Export — `POST /api/backup` ✅
 
-> **Known bug (P0):** `exportedData` được khởi tạo rỗng và không có vòng lặp
-> fetch dữ liệu → `exportedData[table].length` throw `TypeError` →
-> `withApiHandler` trả 500. Route cũng **chưa có `requireRole` check**.
-> Xem kế hoạch sửa: [CODEBASE-AUDIT.md](../CODEBASE-AUDIT.md) §2 P0.
+> **Status:** Đã fix (2026-09-16). Route yêu cầu `Authorization: Bearer
+> <access_token>` của user có role `admin`/`editor` (`requireRole`), dùng
+> service-role client để bypass RLS, fetch `select('*')` phân trang 1000
+> dòng/lần cho từng bảng trong `BACKUP_EXPORT_TABLES`.
 
-**Thiết kế dự kiến** (theo `src/app/api/backup/route.ts` + `constants/backup.ts`):
+**Thiết kế** (theo `src/app/api/backup/route.ts` + `constants/backup.ts`):
 
 - Zip bằng `adm-zip`, tên file `giapha-YYYY-MM-DD.zip`.
-- `BACKUP_EXPORT_TABLES` hiện gồm 13 bảng (chưa gồm `posts`, `post_comments`,
-  `post_likes`, `notifications`, `member_registrations`, `clan_settings`,
-  `profiles` — cần mở rộng khi fix).
+- `BACKUP_EXPORT_TABLES` gồm đủ 20 bảng (đã mở rộng: `profiles`, `posts`,
+  `post_comments`, `post_likes`, `notifications`, `member_registrations`,
+  `clan_settings`, ...).
 - Nếu env `BACKUP_DIR` được set (Docker volume), ZIP được ghi thêm ra host.
 
 **manifest.json schema (v1.0):**
@@ -119,29 +121,48 @@ Nút "Đăng nhập" hiển thị countdown `Thử lại sau Xs` khi đang bị 
 
 **Response:** `application/zip` binary.
 
-### 1.2 Backup Restore — `POST /api/backup/restore` ⚠️ CHƯA IMPLEMENT
+### 1.2 Backup Restore — `POST /api/backup/restore` ✅
 
-> **Status:** Parse + validate đã xong (multipart file, `manifest.json` bắt
-> buộc, giới hạn 500 MB qua `validateUpload`), nhưng bước ghi DB trả
-> **501 Not Implemented**. Xem CODEBASE-AUDIT §2 P0.
+> **Status:** Đã implement (2026-09-16). Yêu cầu `Authorization: Bearer
+> <access_token>` của admin/editor; validate đầy đủ rồi ghi DB bằng
+> service-role client.
 
 **Request:**
 ```
 Content-Type: multipart/form-data
+Authorization: Bearer <access_token>
 Form fields: file: <ZIP binary>
 ```
 
-**Giới hạn bảo mật đã có:**
-- Max file size: 500 MB (`BACKUP_MAX_IMPORT_SIZE`)
-- Web mode: yêu cầu `SUPABASE_SERVICE_ROLE_KEY` server-side
+**Pipeline:**
+1. Validate multipart file, giới hạn 500 MB (`BACKUP_MAX_IMPORT_SIZE`).
+2. Parse `manifest.json` (`src/lib/backup-manifest.ts`): check version, table
+   names nằm trong whitelist, column names theo `BACKUP_TABLE_COLUMNS`
+   allowlist per-table (SEC-CRIT-03), row shape.
+3. Xóa dữ liệu theo thứ tự **ngược FK** (`BACKUP_RESTORE_ORDER` đảo) —
+   destructive.
+4. Insert batch 500 rows theo thứ tự FK xuôi qua service-role client.
+5. Trả `{ ok, tables, total_inserted, errors }` (`RestoreResult`).
 
-**Chưa có:** column allowlist per table (SEC-CRIT-03), delete-then-insert,
-batch upsert 500 rows.
+**Giới hạn bảo mật:**
+- Max file size: 500 MB (`BACKUP_MAX_IMPORT_SIZE`)
+- `requireRole` admin/editor + `SUPABASE_SERVICE_ROLE_KEY` server-side
 
 ### 1.3 Cron — `GET /api/cron`
 
-Keep-alive ping để Supabase free-tier không bị pause. Cấu hình trong
-`vercel.json` (`"schedule": "0 0 * * *"`).
+Keep-alive ping để Supabase free-tier không bị pause + sinh notification
+`event_reminder` cho sự kiện/ngày giỗ sắp tới. Cấu hình trong `vercel.json`
+(`"schedule": "0 0 * * *"`), yêu cầu `CRON_SECRET`.
+
+### 1.4 Health — `GET /api/health`
+
+Liveness probe cho Docker/uptime monitor: trả `{ ok: true, ... }`, không yêu
+cầu auth.
+
+### 1.5 Notification Broadcast — `POST /api/notifications/broadcast`
+
+`requireRole` admin. Body `{ title, body }` → insert notification loại
+`system` cho toàn bộ user. UI: Admin → Settings → "Broadcast notification".
 
 - Header bắt buộc: `Authorization: Bearer <CRON_SECRET>` (qua `requireCronSecret`).
 - Hành vi: `SELECT user_id FROM profiles LIMIT 1` bằng service-role client.
@@ -752,11 +773,10 @@ verify_enabled = true
 
 ## 6. PDF Export — Client-side Library (`src/lib/pdf-export.ts`)
 
-> **⚠️ Status 2026-09: DEAD CODE.** Lib tồn tại (~600 dòng, deps
-> `jspdf@^4.2.1` + `html2canvas@^1.4.1` đã cài) nhưng **không component nào
-> gọi** — nút "Xuất Gia Phả" mô tả ở §6.4 hiện không có trong tree toolbar.
-> Cần wire lại vào `/admin/export` (qua `next/dynamic`, tách khỏi barrel
-> `@lib`) hoặc xóa — xem CODEBASE-AUDIT §2 P1.2.
+> **✅ Status 2026-09: ĐÃ WIRE.** Lib được gọi từ tree toolbar
+> (`family-tree-toolbar.tsx` → `family-tree.tsx`) và `/admin/export`
+> (`admin-export-view.tsx`). Giữ **ngoài barrel `@lib`** (import trực tiếp
+> `next/dynamic`) để `jspdf`/`html2canvas` không lọt vào bundle chung.
 >
 > **Kiến trúc:** Toàn bộ xử lý PDF diễn ra **phía client** (browser), không có API route server-side.
 > **Dependencies:** `jspdf@^4.2.0`, `html2canvas@^1.4.1`
@@ -866,12 +886,11 @@ Người dùng click "Xuất Gia Phả"
 
 ## 7. Word Export — Client-side Library (`src/lib/word-export.ts`)
 
-> **⚠️ Status 2026-09: CHƯA IMPLEMENT.** `src/lib/word-export.ts` không tồn
-> tại; `docx` và `file-saver` không có trong `package.json`. Phần dưới đây là
-> **spec thiết kế** — xem kế hoạch implement tại CODEBASE-AUDIT §2 P1.1.
+> **✅ Status 2026-09: ĐÃ IMPLEMENT.** `src/lib/word-export.ts` tồn tại và
+> được gọi từ `/admin/export`; deps `docx@^9.7.1` + `file-saver@^2.0.5` đã cài.
 >
-> **Kiến trúc (dự kiến):** Xử lý hoàn toàn **phía client** (browser), không gọi API server.
-> **Dependencies (dự kiến):** `docx@^9.7.1`, `file-saver@^2.0.5`
+> **Kiến trúc:** Xử lý hoàn toàn **phía client** (browser), không gọi API server.
+> **Dependencies:** `docx@^9.7.1`, `file-saver@^2.0.5`
 > **Định dạng đầu ra:** Microsoft Word `.docx` (Open XML), tương thích Word/LibreOffice/Google Docs.
 
 ### 7.1 Hàm `exportFullGiaPhaWord()` — Xuất Gia Phả đầy đủ ra Word

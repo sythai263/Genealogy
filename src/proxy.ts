@@ -21,9 +21,9 @@
  *   - Primary defense is GoTrue (config.toml [auth.rate_limit]); this is secondary layer
  */
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
@@ -186,6 +186,11 @@ export async function proxy(request: NextRequest) {
       global: {
         // dockerFetch rewrites localhost → host.docker.internal for server-side requests
         fetch: dockerFetch,
+      },
+      cookieOptions: {
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
       },
       cookies: {
         getAll() {

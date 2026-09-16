@@ -31,6 +31,9 @@ function supabaseImagePatterns(): RemotePatterns {
       pathname,
     }));
   } catch {
+    console.warn(
+      `[next.config] NEXT_PUBLIC_SUPABASE_URL is not a valid URL: ${supabaseUrl}`
+    );
     return [];
   }
 }

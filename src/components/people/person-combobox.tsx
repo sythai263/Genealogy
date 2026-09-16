@@ -8,13 +8,13 @@
 
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
 import { useSearchPeopleAdvanced } from '@hooks';
 import { cn } from '@lib';
 import type { Person } from '@types';
+import { Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useEffect, useId, useRef, useState } from 'react';
 
 interface PersonComboboxProps {
   label: string;
@@ -41,9 +41,12 @@ export function PersonCombobox({
 
   const filtered = (results || []).filter((person) => person.id !== excludeId);
 
-  useEffect(() => {
+  const filterKey = `${query}:${filtered.length}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
     setHighlightedIndex(filtered.length > 0 ? 0 : -1);
-  }, [query, filtered.length]);
+  }
 
   useEffect(() => {
     if (!open || highlightedIndex < 0 || !listRef.current) return;

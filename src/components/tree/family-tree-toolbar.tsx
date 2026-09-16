@@ -8,31 +8,33 @@
 
 'use client';
 
-import { useTranslations } from 'next-intl';
 import {
-  ArrowDownFromLine,
-  ArrowRightFromLine,
-  Maximize2,
-  RotateCcw,
-  Search,
-  Undo2,
-  ZoomIn,
-  ZoomOut,
-} from 'lucide-react';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+    Button,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@components/ui';
 import { TREE_SEARCH_MIN_CHARS } from '@constants';
 import { cn, getInitials } from '@lib';
 import type { Person, TreeOrientation } from '@types';
+import {
+    ArrowDownFromLine,
+    ArrowRightFromLine,
+    FileDown,
+    Loader2,
+    Maximize2,
+    RotateCcw,
+    Search,
+    Undo2,
+    ZoomIn,
+    ZoomOut
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FamilyTreeToolbarProps {
   filterSearch: string;
@@ -58,6 +60,9 @@ interface FamilyTreeToolbarProps {
   onExpandAll: () => void;
   orientation: TreeOrientation;
   onOrientationChange: (orientation: TreeOrientation) => void;
+  /** When provided, renders the "Export PDF" action (app variant only). */
+  onExportPdf?: () => void;
+  exportingPdf?: boolean;
   /** Tighter layout for public / mobile landing. */
   compact?: boolean;
 }
@@ -86,6 +91,8 @@ export function FamilyTreeToolbar({
   onExpandAll,
   orientation,
   onOrientationChange,
+  onExportPdf,
+  exportingPdf = false,
   compact = false,
 }: FamilyTreeToolbarProps) {
   const t = useTranslations('Tree');
@@ -267,6 +274,23 @@ export function FamilyTreeToolbar({
           <span className="sm:hidden">{t('actions.expandShort')}</span>
           <span className="hidden sm:inline">{t('actions.expandAll')}</span>
         </Button>
+
+        {onExportPdf && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-1.5 shadow-sm sm:h-9"
+            onClick={onExportPdf}
+            disabled={exportingPdf}
+          >
+            {exportingPdf ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FileDown className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">{t('actions.exportPdf')}</span>
+          </Button>
+        )}
       </div>
 
       {focusRootPerson && (

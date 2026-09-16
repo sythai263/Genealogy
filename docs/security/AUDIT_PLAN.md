@@ -162,6 +162,13 @@ bảo mật phía trên. Ngoài ra thiếu hẳn security headers (CSP/HSTS), th
 endpoint, và rate-limit hiện chỉ chạy đúng khi tự host (không đúng nếu deploy
 nhiều instance/serverless).
 
+> ✅ **Cập nhật 2026-09-16:** đã vá phần lớn findings — `/api/backup` fetch
+> đủ 20 bảng + `requireRole`, `/api/backup/restore` implement đầy đủ
+> (whitelist bảng/cột, delete/insert theo FK order), `.env.example`,
+> `docker-compose.yml`, `/api/health`, CSP/HSTS trong `vercel.json`, CI
+> workflow (`.github/workflows/ci.yml`). **Còn mở:** rate-limit cho deploy
+> multi-instance/serverless, Sentry/observability, RPC cho pathfinding/stats.
+
 ## 🔴 HIGH — Chặn go-live / rủi ro lớn
 
 - [ ] **Backup export luôn lỗi 500 (bug, không chỉ thiếu auth).**

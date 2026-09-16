@@ -8,6 +8,12 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+// This module reads SUPABASE_SERVICE_ROLE_KEY — it must never be bundled into
+// client code. Fail fast if it ever gets imported from a browser bundle.
+if (typeof window !== 'undefined') {
+  throw new Error('supabase-admin is a server-only module');
+}
+
 /**
  * Builds a service-role client (bypasses RLS). Returns `null` when either env
  * var is missing so callers can respond with a misconfiguration error instead

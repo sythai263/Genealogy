@@ -7,13 +7,26 @@
  */
 
 import { API_ERROR_MESSAGES } from '@constants';
+import { supabase } from '@lib';
 import type { RestoreResult } from '@types';
 import { downloadBlob, requestBlob, requestJson } from './http';
+
+/**
+ * API routes guard with `requireRole`, which expects a Bearer token — the
+ * browser session lives in cookies so the access token is attached manually.
+ */
+async function authHeaders(): Promise<HeadersInit> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error(API_ERROR_MESSAGES.unauthorized);
+  return { Authorization: `Bearer ${session.access_token}` };
+}
 
 export async function exportBackup(): Promise<Blob> {
   return requestBlob(
     '/api/backup',
-    { method: 'POST' },
+    { method: 'POST', headers: await authHeaders() },
     API_ERROR_MESSAGES.backupFailed
   );
 }
@@ -28,7 +41,11 @@ export async function restoreBackup(file: File): Promise<RestoreResult> {
 
   return requestJson<RestoreResult>(
     '/api/backup/restore',
-    { method: 'POST', body: formData },
+    {
+      method: 'POST',
+      body: formData,
+      headers: await authHeaders(),
+    },
     API_ERROR_MESSAGES.restoreFailed
   );
 }

@@ -8,14 +8,15 @@
 
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Star } from 'lucide-react';
 import { Badge, Card, CardContent } from '@components/ui';
-import type { Achievement, Person } from '@types';
 import {
-  ACHIEVEMENT_CATEGORY_ICONS,
-  getAchievementCategoryIcon,
+    ACHIEVEMENT_CATEGORY_ICONS,
+    getAchievementCategoryIcon,
 } from '@constants';
+import type { Achievement, Person } from '@types';
+import { Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { createElement } from 'react';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -24,16 +25,18 @@ interface AchievementCardProps {
 
 export function AchievementCard({ achievement, person }: AchievementCardProps) {
   const t = useTranslations('Achievements');
-  const CategoryIcon =
+  const categoryIcon = createElement(
     getAchievementCategoryIcon(achievement.category) ??
-    ACHIEVEMENT_CATEGORY_ICONS.other;
+      ACHIEVEMENT_CATEGORY_ICONS.other,
+    { className: 'h-4 w-4' },
+  );
 
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-            <CategoryIcon className="h-4 w-4" />
+            {categoryIcon}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold">{achievement.title}</h3>

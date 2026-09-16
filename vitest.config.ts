@@ -1,14 +1,14 @@
 /**
  * @project AncestorTree
  * @file vitest.config.ts
- * @description Vitest configuration for all integration/E2E tests.
- * @version 2.0.0
+ * @description Vitest configuration for unit/integration tests.
+ * @version 2.1.0
  * @updated 2026-08-09
  */
 
-import { defineConfig } from 'vitest/config';
-import path from 'path';
 import dotenv from 'dotenv';
+import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 // Load root-level .env so SUPABASE_SERVICE_ROLE_KEY etc. are available in tests
 // (override: false — local .env.local takes priority if present)
@@ -29,8 +29,30 @@ export default defineConfig({
     testTimeout: 20000,
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: /^@components$/, replacement: path.resolve(__dirname, 'src/components') },
+      { find: /^@components\//, replacement: path.resolve(__dirname, 'src/components') + '/' },
+      { find: /^@constants$/, replacement: path.resolve(__dirname, 'src/constants') },
+      { find: /^@constants\//, replacement: path.resolve(__dirname, 'src/constants') + '/' },
+      { find: /^@contexts$/, replacement: path.resolve(__dirname, 'src/contexts') },
+      { find: /^@contexts\//, replacement: path.resolve(__dirname, 'src/contexts') + '/' },
+      { find: /^@data$/, replacement: path.resolve(__dirname, 'src/data') },
+      { find: /^@data\//, replacement: path.resolve(__dirname, 'src/data') + '/' },
+      { find: /^@hooks$/, replacement: path.resolve(__dirname, 'src/hooks') },
+      { find: /^@hooks\//, replacement: path.resolve(__dirname, 'src/hooks') + '/' },
+      { find: /^@lib$/, replacement: path.resolve(__dirname, 'src/lib') },
+      { find: /^@lib\//, replacement: path.resolve(__dirname, 'src/lib') + '/' },
+      { find: /^@schemas$/, replacement: path.resolve(__dirname, 'src/schemas') },
+      { find: /^@schemas\//, replacement: path.resolve(__dirname, 'src/schemas') + '/' },
+      { find: /^@services$/, replacement: path.resolve(__dirname, 'src/services') },
+      { find: /^@services\//, replacement: path.resolve(__dirname, 'src/services') + '/' },
+      { find: /^@types$/, replacement: path.resolve(__dirname, 'src/types') },
+      { find: /^@types\//, replacement: path.resolve(__dirname, 'src/types') + '/' },
+      { find: /^@messages$/, replacement: path.resolve(__dirname, 'src/messages') },
+      { find: /^@messages\//, replacement: path.resolve(__dirname, 'src/messages') + '/' },
+      { find: /^@i18n$/, replacement: path.resolve(__dirname, 'src/i18n') },
+      { find: /^@i18n\//, replacement: path.resolve(__dirname, 'src/i18n') + '/' },
+      { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
+    ],
   },
 });

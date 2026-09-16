@@ -17,7 +17,7 @@ quan đến Desktop/Electron.
 - **Data Fetching:** `@tanstack/react-query` v5 + `@supabase/ssr`
 - **Database & Auth:** Supabase
 - **Styling:** Tailwind CSS v4, shadcn/ui
-- **UI & Animation:** framer-motion, d3, react-zoom-pan-pinch
+- **UI & Animation:** d3, react-zoom-pan-pinch
 - **Form & Validation:** react-hook-form, zod
 
 ## 2. STRICT CODING RULES (BẮT BUỘC TUÂN THỦ)

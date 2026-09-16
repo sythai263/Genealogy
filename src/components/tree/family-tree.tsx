@@ -8,29 +8,30 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import * as d3 from 'd3';
-import { AlertCircle } from 'lucide-react';
 import { Skeleton } from '@components/ui';
 import {
-  TREE_ROOT_QUERY_PARAM,
-  TREE_SEARCH_DEBOUNCE_MS,
-  TREE_ZOOM_IN_FACTOR,
-  TREE_ZOOM_OUT_FACTOR,
+    TREE_ROOT_QUERY_PARAM,
+    TREE_SEARCH_DEBOUNCE_MS,
+    TREE_ZOOM_IN_FACTOR,
+    TREE_ZOOM_OUT_FACTOR,
 } from '@constants';
 import { useIsMobile, useSearchPeopleAdvanced, useTreeData } from '@hooks';
 import {
-  buildPersonHierarchy,
-  cn,
-  expandAllNodes,
+    buildPersonHierarchy,
+    cn,
+    expandAllNodes,
 } from '@lib';
 import type {
-  Person,
-  TreeOrientation,
-  TreeSvgDatum,
+    Person,
+    TreeOrientation,
+    TreeSvgDatum,
 } from '@types';
+import { select, type ZoomBehavior } from 'd3';
+import { AlertCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
 import { FamilyTreeToolbar } from './family-tree-toolbar';
@@ -53,6 +54,7 @@ export function FamilyTree({
   className,
 }: FamilyTreeProps) {
   const tCommon = useTranslations('Common');
+  const tTree = useTranslations('Tree');
   const isPublic = variant === 'public';
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -69,6 +71,7 @@ export function FamilyTree({
     useState<TreeOrientation>('vertical');
 
   const [filterSearch, setFilterSearch] = useState('');
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -77,7 +80,7 @@ export function FamilyTree({
   const defaultChiApplied = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
+  const zoomBehaviorRef = useRef<ZoomBehavior<
     SVGSVGElement,
     TreeSvgDatum
   > | null>(null);
@@ -240,21 +243,21 @@ export function FamilyTree({
 
   function handleZoomIn() {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
-    d3.select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
+    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
       .transition()
       .call(zoomBehaviorRef.current.scaleBy, TREE_ZOOM_IN_FACTOR);
   }
 
   function handleZoomOut() {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
-    d3.select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
+    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
       .transition()
       .call(zoomBehaviorRef.current.scaleBy, TREE_ZOOM_OUT_FACTOR);
   }
 
   function handleResetZoom() {
     if (!svgRef.current || !zoomBehaviorRef.current) return;
-    d3.select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
+    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
       .transition()
       .call(zoomBehaviorRef.current.scaleTo, 1);
   }
@@ -263,6 +266,39 @@ export function FamilyTree({
     setChiFilter(value);
     setFocusRootId(null);
     setSelectedPerson(null);
+  }
+
+  /**
+   * Exports the rendered tree SVG to PDF. The content bounding box is measured
+   * off `g.main-container` (zoom transform lives on that <g>, so getBBox()
+   * returns pre-zoom local coordinates) and passed as offsets so the export
+   * captures the full tree regardless of the current pan/zoom.
+   */
+  async function handleExportPdf() {
+    const container = wrapperRef.current;
+    const mainG = svgRef.current?.querySelector('g.main-container');
+    if (!container || !mainG || !(mainG instanceof SVGGElement)) {
+      toast.error(tTree('export.error'));
+      return;
+    }
+
+    setIsExportingPdf(true);
+    try {
+      const bbox = mainG.getBBox();
+      const { exportTreeToPdf } = await import('@lib/pdf-export');
+      await exportTreeToPdf(
+        container,
+        Math.max(bbox.width, 1),
+        Math.max(bbox.height, 1),
+        -bbox.x,
+        -bbox.y
+      );
+      toast.success(tTree('export.success'));
+    } catch {
+      toast.error(tTree('export.error'));
+    } finally {
+      setIsExportingPdf(false);
+    }
   }
 
   if (error) {
@@ -325,6 +361,8 @@ export function FamilyTree({
         onExpandAll={handleExpandAll}
         orientation={orientation}
         onOrientationChange={handleOrientationChange}
+        onExportPdf={isPublic ? undefined : handleExportPdf}
+        exportingPdf={isExportingPdf}
         compact={isPublic}
       />
 

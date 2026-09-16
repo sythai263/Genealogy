@@ -1,14 +1,30 @@
-import { supabase } from './supabase';
-import { escapeIlikePattern } from './utils';
 import { getPaginationRange } from '@constants';
 import type {
-  Person, Family, Profile, Contribution, Event, Media,
-  CreatePersonInput, UpdatePersonInput, CreateMediaInput, EventType,
-  PersonRelations, JsonObject, PeopleListFilters, PeopleFilterOptions,
-  PeopleListResult, EventsListFilters, PaginatedResult, ContributionsListFilters,
-  ProfilesListFilters, FamilyMissingSpouse, FamiliesMissingSpouseFilters,
-  MemorialPerson,
+    Contribution,
+    ContributionsListFilters,
+    CreateMediaInput,
+    CreatePersonInput,
+    Event,
+    EventsListFilters,
+    EventType,
+    FamiliesMissingSpouseFilters,
+    Family,
+    FamilyMissingSpouse,
+    JsonObject,
+    Media,
+    MemorialPerson,
+    PaginatedResult,
+    PeopleFilterOptions,
+    PeopleListFilters,
+    PeopleListResult,
+    Person,
+    PersonRelations,
+    Profile,
+    ProfilesListFilters,
+    UpdatePersonInput,
 } from '@types';
+import { supabase } from './supabase';
+import { escapeIlikePattern } from './utils';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Security: Contact field definitions
@@ -1433,6 +1449,100 @@ export async function createContribution(input: {
   return data;
 }
 
+/** people columns a contribution is allowed to write — everything else is dropped */
+const CONTRIBUTION_ALLOWED_FIELDS = new Set([
+  'display_name', 'first_name', 'middle_name', 'surname', 'pen_name', 'taboo_name',
+  'phone', 'email', 'zalo', 'facebook', 'address', 'hometown',
+  'birth_year', 'death_year', 'death_lunar', 'birth_place', 'death_place',
+  'occupation', 'biography', 'notes', 'generation', 'chi', 'gender',
+]);
+
+const CONTRIBUTION_INTEGER_FIELDS = new Set([
+  'birth_year',
+  'death_year',
+  'generation',
+  'chi',
+  'gender',
+]);
+
+/**
+ * Filters `changes` down to whitelisted people columns and coerces the
+ * string-valued form payload into the column types.
+ */
+function buildSafePersonChanges(changes: JsonObject): JsonObject {
+  const safeChanges: JsonObject = {};
+  for (const [key, raw] of Object.entries(changes)) {
+    if (!CONTRIBUTION_ALLOWED_FIELDS.has(key)) continue;
+    if (CONTRIBUTION_INTEGER_FIELDS.has(key)) {
+      const parsed = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+      if (Number.isNaN(parsed)) continue;
+      safeChanges[key] = parsed;
+    } else {
+      safeChanges[key] = raw;
+    }
+  }
+  return safeChanges;
+}
+
+/** Generates a unique people.handle for contribution-created rows */
+function generateContributionHandle(): string {
+  return `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Applies an approved contribution to the people table.
+ * Throws when the change cannot be applied so the contribution stays pending
+ * instead of being silently marked approved.
+ */
+async function applyApprovedContribution(
+  contribution: Contribution
+): Promise<void> {
+  if (contribution.change_type === 'update') {
+    if (!contribution.target_person) return;
+    const safeChanges = buildSafePersonChanges(contribution.changes);
+    if (Object.keys(safeChanges).length === 0) return;
+
+    const { error } = await supabase
+      .from('people')
+      .update({ ...safeChanges, updated_at: new Date().toISOString() })
+      .eq('id', contribution.target_person);
+
+    if (error) throw error;
+    return;
+  }
+
+  if (contribution.change_type === 'create') {
+    const safeChanges = buildSafePersonChanges(contribution.changes);
+    const displayName = safeChanges.display_name;
+    if (typeof displayName !== 'string' || !displayName.trim()) {
+      throw new Error('Contribution create requires display_name');
+    }
+
+    const { error } = await supabase.from('people').insert({
+      ...safeChanges,
+      handle: generateContributionHandle(),
+      is_living: true,
+      is_patrilineal: true,
+      privacy_level: 0,
+    });
+
+    if (error) throw error;
+    return;
+  }
+
+  if (contribution.change_type === 'delete') {
+    if (!contribution.target_person) {
+      throw new Error('Contribution delete requires target_person');
+    }
+    const { error } = await supabase
+      .from('people')
+      .delete()
+      .eq('id', contribution.target_person);
+
+    if (error) throw error;
+  }
+}
+
 export async function reviewContribution(
   id: string,
   status: 'approved' | 'rejected',
@@ -1448,28 +1558,10 @@ export async function reviewContribution(
 
   if (fetchError) throw fetchError;
 
-  // If approving an update, apply the changes to the person record
-  if (status === 'approved' && contribution.change_type === 'update' && contribution.target_person) {
-    const allowedFields = [
-      'display_name', 'first_name', 'middle_name', 'surname', 'pen_name', 'taboo_name',
-      'phone', 'email', 'zalo', 'facebook', 'address', 'hometown',
-      'birth_year', 'death_year', 'death_lunar', 'birth_place', 'death_place',
-      'occupation', 'biography', 'notes',
-    ];
-    const safeChanges: JsonObject = {};
-    for (const key of Object.keys(contribution.changes)) {
-      if (allowedFields.includes(key)) {
-        safeChanges[key] = contribution.changes[key];
-      }
-    }
-    if (Object.keys(safeChanges).length > 0) {
-      const { error: updateError } = await supabase
-        .from('people')
-        .update({ ...safeChanges, updated_at: new Date().toISOString() })
-        .eq('id', contribution.target_person);
-
-      if (updateError) throw updateError;
-    }
+  // Apply the proposed change only when approving a still-pending item —
+  // guards against double-applying if the review is retried.
+  if (status === 'approved' && contribution.status === 'pending') {
+    await applyApprovedContribution(contribution);
   }
 
   // Update the contribution status

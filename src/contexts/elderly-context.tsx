@@ -8,7 +8,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from 'react';
 
 interface ElderlyContextValue {
   elderlyMode: boolean;
@@ -28,26 +28,45 @@ function applyElderlyClass(enabled: boolean) {
   }
 }
 
+const elderlyModeListeners = new Set<() => void>();
+
+function subscribeElderlyMode(callback: () => void) {
+  elderlyModeListeners.add(callback);
+  return () => {
+    elderlyModeListeners.delete(callback);
+  };
+}
+
+function getElderlyModeSnapshot() {
+  return localStorage.getItem('elderlyMode') === 'true';
+}
+
+function getElderlyModeServerSnapshot() {
+  return false;
+}
+
+function setStoredElderlyMode(enabled: boolean) {
+  localStorage.setItem('elderlyMode', String(enabled));
+  applyElderlyClass(enabled);
+  elderlyModeListeners.forEach((listener) => listener());
+}
+
 export function ElderlyProvider({ children }: { children: React.ReactNode }) {
-  // Always start false so SSR and the first client render match; hydrate from
-  // localStorage after mount to avoid nav/menu hydration mismatches.
-  const [elderlyMode, setElderlyMode] = useState(false);
+  // SSR/first client render always reads the server snapshot (false);
+  // localStorage is hydrated through the external store to avoid nav/menu
+  // hydration mismatches.
+  const elderlyMode = useSyncExternalStore(
+    subscribeElderlyMode,
+    getElderlyModeSnapshot,
+    getElderlyModeServerSnapshot
+  );
 
   useEffect(() => {
-    const stored = localStorage.getItem('elderlyMode');
-    if (stored === 'true') {
-      setElderlyMode(true);
-      applyElderlyClass(true);
-    }
-  }, []);
+    applyElderlyClass(elderlyMode);
+  }, [elderlyMode]);
 
   const toggleElderlyMode = useCallback(() => {
-    setElderlyMode((prev) => {
-      const next = !prev;
-      localStorage.setItem('elderlyMode', String(next));
-      applyElderlyClass(next);
-      return next;
-    });
+    setStoredElderlyMode(!getElderlyModeSnapshot());
   }, []);
 
   return (

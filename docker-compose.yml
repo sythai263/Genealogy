@@ -1,0 +1,27 @@
+# @project AncestorTree
+# @file docker-compose.yml
+# @description Self-host compose for the Next.js web app. Reads .env for both
+#              build args (NEXT_PUBLIC_*) and runtime secrets.
+# @version 1.0.0
+# @updated 2026-08-09
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_CLAN_NAME: ${NEXT_PUBLIC_CLAN_NAME:-}
+        NEXT_PUBLIC_CLAN_FULL_NAME: ${NEXT_PUBLIC_CLAN_FULL_NAME:-}
+    ports:
+      - '4000:4000'
+    env_file: .env
+    environment:
+      BACKUP_DIR: /data/backups
+    volumes:
+      - backups:/data/backups
+    restart: unless-stopped
+
+volumes:
+  backups:

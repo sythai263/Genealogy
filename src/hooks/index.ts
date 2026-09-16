@@ -1,6 +1,7 @@
 export * from './use-achievements';
 export * from './use-backup';
 export * from './use-backup-schedule';
+export * from './use-broadcast-notification';
 export * from './use-can-edit';
 export * from './use-cau-duong';
 export * from './use-clan-articles';
@@ -21,7 +22,9 @@ export * from './use-notifications';
 export * from './use-pathfinding';
 export * from './use-people';
 export * from './use-profiles';
+export * from './use-recent-activity';
 export * from './use-register';
 export * from './use-registrations';
 export * from './use-reset-password';
 export * from './use-resettable-page';
+

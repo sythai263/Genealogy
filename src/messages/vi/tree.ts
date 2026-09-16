@@ -28,8 +28,13 @@ export const Tree = {
     viewFromHere: 'Xem cây từ đây',
     viewFull: 'Xem toàn bộ cây',
     exportGedcom: 'Xuất GEDCOM',
+    exportPdf: 'Xuất PDF',
     focusPerson: 'Tập trung vào thành viên',
     backToRoot: 'Về gốc',
+  },
+  export: {
+    success: 'Đã xuất cây gia phả ra PDF',
+    error: 'Xuất PDF thất bại',
   },
   guide: {
     title: 'Hướng dẫn',

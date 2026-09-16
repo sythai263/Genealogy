@@ -30,8 +30,13 @@ export const Tree = {
     viewFromHere: 'View tree from here',
     viewFull: 'View full tree',
     exportGedcom: 'Export GEDCOM',
+    exportPdf: 'Export PDF',
     focusPerson: 'Focus on person',
     backToRoot: 'Back to root',
+  },
+  export: {
+    success: 'Family tree exported to PDF',
+    error: 'PDF export failed',
   },
   guide: {
     title: 'Guide',

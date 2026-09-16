@@ -197,6 +197,6 @@ pnpm test:e2e      # E2E tests (Playwright) — chưa cấu hình
 pnpm test:coverage # With coverage
 ```
 
-> ⚠️ **2026-09:** `vitest.config.ts` tồn tại nhưng hiện **0 file test** trong
-> `src/`, và `package.json` chưa có script `test`. Cần thêm lại script + test
-> tối thiểu — xem CODEBASE-AUDIT §2 P2.3.
+> ✅ **2026-09-16:** `pnpm test` (vitest run) đã có trong `package.json`;
+> hiện có 13 unit tests tại `src/lib/__tests__/` (backup-manifest +
+> GEDCOM/CSV exports). E2E Playwright vẫn chưa cấu hình.

@@ -19,6 +19,17 @@ export const Admin = {
     recentActivity: 'Hoạt động gần đây',
     recentActivityDesc: 'Các thay đổi mới nhất trong hệ thống',
     comingSoon: 'Tính năng đang phát triển',
+    activityEmpty: 'Chưa có hoạt động nào',
+    activityKinds: {
+      contribution: 'Đề xuất {detail}',
+      registration: 'Đơn đăng ký thành viên',
+      post: 'Bài viết mới',
+    },
+    activityChangeTypes: {
+      create: 'thêm mới',
+      update: 'chỉnh sửa',
+      delete: 'xóa',
+    },
     stats: {
       people: 'Tổng thành viên',
       generations: 'Số đời',
@@ -290,6 +301,13 @@ export const Admin = {
       cau_duong_pools: 'Nhóm cầu đương',
       cau_duong_assignments: 'Lịch cầu đương',
       clan_documents: 'Tài liệu',
+      member_registrations: 'Đơn đăng ký',
+      posts: 'Bài viết',
+      post_comments: 'Bình luận',
+      post_likes: 'Lượt thích',
+      notifications: 'Thông báo',
+      profiles: 'Hồ sơ tài khoản',
+      clan_settings: 'Cài đặt dòng họ',
     },
     toasts: {
       exportSuccess: 'Sao lưu thành công! File đã được tải xuống.',
@@ -348,6 +366,19 @@ export const Admin = {
     markdownFormat:
       'Markdown (.md) — mở bằng bất kỳ trình soạn thảo',
     exportMarkdown: 'Xuất Markdown',
+    pdfTitle: 'PDF',
+    pdfDesc:
+      'Tài liệu gia phả hoàn chỉnh: trang bìa, lịch sử dòng họ, lý lịch thành viên.',
+    pdfIncludes: 'Trang bìa, lịch sử & nguồn gốc, lý lịch thành viên theo đời',
+    pdfExcludes:
+      'Sơ đồ cây (xuất PDF cây trực tiếp từ trang Cây gia phả), thông tin liên lạc',
+    exportPdf: 'Xuất PDF',
+    wordTitle: 'Word (.docx)',
+    wordDesc:
+      'Tài liệu Word chỉnh sửa được: trang bìa, lịch sử dòng họ, lý lịch thành viên.',
+    wordIncludes: 'Trang bìa, lịch sử & nguồn gốc, lý lịch thành viên theo đời',
+    wordExcludes: 'Sơ đồ cây, thông tin liên lạc',
+    exportWord: 'Xuất Word',
     toasts: {
       gedcomSuccess: 'Xuất file GEDCOM 7.0 thành công',
       gedcomError: 'Lỗi khi xuất file',
@@ -355,6 +386,10 @@ export const Admin = {
       csvError: 'Lỗi khi xuất file CSV',
       markdownSuccess: 'Xuất file Markdown thành công',
       markdownError: 'Lỗi khi xuất file Markdown',
+      pdfSuccess: 'Xuất file PDF thành công',
+      pdfError: 'Lỗi khi xuất file PDF',
+      wordSuccess: 'Xuất file Word thành công',
+      wordError: 'Lỗi khi xuất file Word',
     },
   },
   import: {
@@ -535,6 +570,19 @@ export const Admin = {
           'Không cần mật khẩu — hệ thống gửi mã 6 chữ số đến email. Phù hợp cho thành viên cao tuổi, không rành công nghệ.',
         badge: 'Miễn phí • Supabase Magic Link',
       },
+    },
+    broadcast: {
+      title: 'Gửi thông báo hệ thống',
+      description: 'Gửi thông báo tới tất cả thành viên đã xác minh',
+      titleLabel: 'Tiêu đề',
+      titlePlaceholder: 'Thông báo quan trọng...',
+      titleRequired: 'Vui lòng nhập tiêu đề',
+      bodyLabel: 'Nội dung',
+      bodyPlaceholder: 'Nội dung thông báo (không bắt buộc)',
+      linkLabel: 'Đường dẫn (không bắt buộc)',
+      submit: 'Gửi thông báo',
+      success: 'Đã gửi tới {count} thành viên',
+      error: 'Gửi thông báo thất bại',
     },
     system: {
       title: 'Thông tin hệ thống',

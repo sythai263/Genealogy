@@ -9,7 +9,9 @@
 export * from './admin-clan-settings-view';
 export * from './mfa-enroll-panel';
 export * from './mfa-unenroll-dialog';
+export * from './notification-broadcast-card';
 export * from './password-form';
 export * from './profile-form';
 export * from './profile-settings-view';
 export * from './security-settings-view';
+

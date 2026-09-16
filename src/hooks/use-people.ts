@@ -8,28 +8,28 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PEOPLE_SEARCH_DEBOUNCE_MS } from '@constants';
 import {
-  createPerson,
-  deletePerson,
-  getPeopleByGeneration,
-  getPeopleByIds,
-  getPeopleFilterOptions,
-  getPerson,
-  getStats,
-  getUpcomingMemorialPeople,
-  searchPeople,
-  searchPeopleAdvanced,
-  searchPeopleFiltered,
-  updatePerson,
+    createPerson,
+    deletePerson,
+    getPeopleByGeneration,
+    getPeopleByIds,
+    getPeopleFilterOptions,
+    getPerson,
+    getStats,
+    getUpcomingMemorialPeople,
+    searchPeople,
+    searchPeopleAdvanced,
+    searchPeopleFiltered,
+    updatePerson,
 } from '@lib';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
-  CreatePersonInput,
-  PeopleListFilters,
-  UpdatePersonInput,
+    CreatePersonInput,
+    PeopleListFilters,
+    UpdatePersonInput,
 } from '@types';
+import { useEffect, useState } from 'react';
 
 export const peopleKeys = {
   all: ['people'] as const,
@@ -99,12 +99,15 @@ export function usePerson(id: string | undefined) {
 function useDebouncedSearchQuery(query: string): string {
   const trimmed = query.trim();
   const [debouncedQuery, setDebouncedQuery] = useState(trimmed);
+  const [prevTrimmed, setPrevTrimmed] = useState(trimmed);
+
+  if (trimmed !== prevTrimmed) {
+    setPrevTrimmed(trimmed);
+    if (trimmed.length < 2) setDebouncedQuery(trimmed);
+  }
 
   useEffect(() => {
-    if (trimmed.length < 2) {
-      setDebouncedQuery(trimmed);
-      return;
-    }
+    if (trimmed.length < 2) return;
     const timer = setTimeout(() => {
       setDebouncedQuery(trimmed);
     }, PEOPLE_SEARCH_DEBOUNCE_MS);

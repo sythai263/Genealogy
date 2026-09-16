@@ -8,19 +8,19 @@
 
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import { Check, ExternalLink, Loader2, Search, X } from 'lucide-react';
 import { Button, Input } from '@components/ui';
 import {
-  PEOPLE_SEARCH_MIN_CHARS,
-  SPOUSE_SEARCH_BLUR_CLOSE_MS,
+    PEOPLE_SEARCH_MIN_CHARS,
+    SPOUSE_SEARCH_BLUR_CLOSE_MS,
 } from '@constants';
 import { useSearchPeopleAdvanced } from '@hooks';
 import { cn } from '@lib';
 import type { FamilyMissingSpouse, Person, SpouseSavePayload } from '@types';
+import { Check, ExternalLink, Loader2, Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface SpouseRowProps {
   entry: FamilyMissingSpouse;
@@ -75,9 +75,12 @@ export function SpouseRow({
     if (autoFocus && !isSaved) nameInputRef.current?.focus();
   }, [autoFocus, isSaved]);
 
-  useEffect(() => {
+  const filterKey = `${fullName}:${filtered.length}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
     setHighlightedIndex(filtered.length > 0 ? 0 : -1);
-  }, [fullName, filtered.length]);
+  }
 
   useEffect(() => {
     if (!open || highlightedIndex < 0 || !listRef.current) return;

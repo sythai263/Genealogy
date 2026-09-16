@@ -17,12 +17,16 @@ status: approved
 > 1. **Desktop/Electron đã bị xóa khỏi codebase** (CLAUDE.md v3: pure web) nhưng
 >    vẫn còn mô tả rộng rãi trong ~10 docs → các docs đó đã được đánh dấu
 >    "historical" hoặc cập nhật.
-> 2. **Backup/Restore đang hỏng**: `/api/backup` luôn lỗi 500,
->    `/api/backup/restore` trả 501 → cần implement (xem §Kế hoạch).
-> 3. **Word export chưa tồn tại** dù docs mô tả chi tiết; **PDF export là dead
->    code** (lib có sẵn nhưng không có UI nào gọi).
-> 4. DB hiện có **20 bảng + 16 RPC**, docs chỉ mô tả ~13 bảng + 1 RPC.
-> 5. Không còn file test nào (`vitest.config.ts` tồn tại nhưng 0 `*.test.*`).
+> 2. ~~**Backup/Restore đang hỏng**~~ → **ĐÃ SỬA** (đợt implement 2026-09-16,
+>    xem §4): `/api/backup` fetch đủ 20 bảng qua service-role + `requireRole`;
+>    `/api/backup/restore` validate + xóa/insert theo thứ tự FK.
+> 3. ~~**Word export chưa tồn tại**~~ → **ĐÃ IMPLEMENT** `lib/word-export.ts`
+>    (`docx` + `file-saver`); ~~PDF dead code~~ → đã wire vào tree toolbar +
+>    `/admin/export`.
+> 4. DB hiện có **20 bảng + 16+ RPC**, docs chỉ mô tả ~13 bảng + 1 RPC → đã bổ
+>    sung vào API-ENDPOINTS.
+> 5. ~~Không còn file test~~ → **ĐÃ THÊM** `pnpm test` + 13 unit tests
+>    (`src/lib/__tests__/`), CI workflow chạy lint/typecheck/test/build.
 
 ---
 
@@ -57,16 +61,24 @@ status: approved
 
 ### 1.2 Documented nhưng KHÔNG có trong code / đang hỏng
 
-| Hạng mục | Docs nói | Thực tế | Độ ưu tiên |
+> Trạng thái sau đợt implement 2026-09-16: các mục P0/P1/P2 dưới đây **đã được
+> triển khai** — chi tiết tại §4. Cột "Thực tế" mô tả tình trạng _trước khi
+> sửa_.
+
+| Hạng mục | Docs nói | Thực tế (trước khi sửa) | Trạng thái |
 |----------|----------|---------|------------|
-| **POST `/api/backup`** | Xuất 13 bảng → ZIP | `exportedData` khởi tạo rỗng, không fetch → **luôn 500** | 🔴 P0 |
-| **POST `/api/backup/restore`** | Restore ZIP vào DB | Trả **501 Not Implemented** | 🔴 P0 |
-| **Word export** (`lib/word-export.ts`, deps `docx`+`file-saver`) | API-ENDPOINTS §7 mô tả đầy đủ | File và deps **không tồn tại** | 🟠 P1 |
-| **PDF export** (`lib/pdf-export.ts`, `jspdf`+`html2canvas`) | API-ENDPOINTS §6 mô tả + nút "Xuất Gia Phả" trong tree toolbar | Lib tồn tại nhưng **không component nào gọi** → dead code ~600 dòng | 🟠 P1 (wire lại hoặc xóa) |
+| **POST `/api/backup`** | Xuất 13 bảng → ZIP | `exportedData` khởi tạo rỗng, không fetch → **luôn 500** | ✅ Đã sửa (P0) |
+| **POST `/api/backup/restore`** | Restore ZIP vào DB | Trả **501 Not Implemented** | ✅ Đã implement (P0) |
+| **Contribution review `create`/`delete`** | Form cho phép 3 loại (`create`/`update`/`delete`) | `reviewContribution` chỉ apply `update` → duyệt `create`/`delete` **đánh dấu approved nhưng không ghi gì vào DB** | ✅ Đã sửa (P0) |
+| **5 loại notification** | Enum có `new_post`, `account_verified`, `event_reminder`, `new_member`, `system` | Chỉ `post_comment`/`post_like` được tạo bởi trigger — **5 loại còn lại không bao giờ được insert** | ✅ Đã implement (P1) |
+| **Admin dashboard "Recent Activity"** | Card hiển thị hoạt động gần đây | `admin/page.tsx` chỉ là placeholder "coming soon" | ✅ Đã implement (P1) |
+| **Word export** (`lib/word-export.ts`, deps `docx`+`file-saver`) | API-ENDPOINTS §7 mô tả đầy đủ | File và deps **không tồn tại** | ✅ Đã implement (P1) |
+| **PDF export** (`lib/pdf-export.ts`, `jspdf`+`html2canvas`) | API-ENDPOINTS §6 mô tả + nút "Xuất Gia Phả" trong tree toolbar | Lib tồn tại nhưng **không component nào gọi** → dead code ~600 dòng | ✅ Đã wire vào UI (P1) |
 | **Desktop app (Electron + sql.js)** | SPRINT-PLAN S9, INSTALLATION-GUIDE, TEST-PLAN §5, TEST-PLAN-sprint9, technical-design §10.3, ADR-003 | **Đã xóa hoàn toàn** — không `desktop/`, không `/api/desktop-*`, `/api/media/[...path]` | N/A (đánh dấu historical) |
-| **Tests** | TEST-PLAN-sprint9: "63/63 passing", `pnpm test` | `vitest.config.ts` có nhưng **0 file test**; `package.json` không có script `test` | 🟠 P2 |
-| **`docker-compose.yml` + `.env.docker.example`** | DOCKER-GUIDE | Không tồn tại trong repo (chỉ có `Dockerfile` ở root) | 🟡 P2 |
-| **`.env.example` / `.env.local.example`** | LOCAL-DEVELOPMENT, AUDIT_PLAN | Không tồn tại | 🟡 P2 |
+| **Tests** | TEST-PLAN-sprint9: "63/63 passing", `pnpm test` | `vitest.config.ts` có nhưng **0 file test**; `package.json` không có script `test` | ✅ Đã thêm script + 13 tests (P2) |
+| **`docker-compose.yml` + `.env.docker.example`** | DOCKER-GUIDE | Không tồn tại trong repo (chỉ có `Dockerfile` ở root) | ✅ Đã tạo (P2) |
+| **`.env.example` / `.env.local.example`** | LOCAL-DEVELOPMENT, AUDIT_PLAN | Không tồn tại | ✅ Đã tạo `.env.example` (P2) |
+| **`/api/health`, CSP/HSTS, CI** | AUDIT_PLAN | Không có | ✅ Đã thêm (P2) |
 | **`docs/02-design/ADR/ADR-001,002,004`** | technical-design link tới | Chỉ có ADR-003 | 🟡 đã sửa link |
 | **`docs/02-design/SYSTEM-DESIGN.md`, `DATABASE-SCHEMA.md`** | docs/README link tới | Không tồn tại | 🟡 đã sửa link |
 | **`src/middleware.ts`** | docs nhiều chỗ | File thực tế là `src/proxy.ts` (Next.js 16 convention) | 🟡 đã sửa docs |
@@ -85,17 +97,20 @@ status: approved
   `notify_post_like`, `update_post_comments_count`, `update_post_likes_count`.
 - **Versions**: `package.json` hiện Next 16.3.0 / React 19.2.8 /
   `@supabase/ssr` 0.12.4 / React Query 5.101.4 / zod 4.4.3 — SPRINT-PLAN ghi
-  bản cũ hơn. `version` trong package.json là `2.5.0` dù docs gọi v3.0.0.
+  bản cũ hơn. `version` trong package.json đã bump → `3.0.0` khớp docs.
 - **Deps**: `zustand` không còn trong package.json (docs ghi "installed");
-  `framer-motion` có trong deps nhưng **0 import** (dead dependency);
+  `framer-motion` đã gỡ khỏi deps + CLAUDE.md (0 import — dead dependency);
   ADR-003 nói `archiver`+`yauzl` — thực tế dùng `adm-zip`.
-- **Backup table list**: `BACKUP_EXPORT_TABLES` chỉ có 13 bảng cũ — thiếu
-  `posts`, `post_comments`, `post_likes`, `notifications`,
-  `member_registrations`, `clan_settings`, `profiles` (7 bảng mới).
+- **Backup table list**: `BACKUP_EXPORT_TABLES` đã mở rộng đủ 20 bảng trong
+  `src/constants/backup.ts` (kèm `BACKUP_RESTORE_ORDER` FK-safe).
 
 ---
 
-## 2. Kế hoạch triển khai tính năng chưa có / đang hỏng
+## 2. Kế hoạch triển khai — ✅ ĐÃ THỰC THI (2026-09-16)
+
+> Toàn bộ P0/P1/P2 bên dưới đã được implement trong đợt này; chi tiết file và
+> quyết định kỹ thuật xem §4. Verification: `tsc --noEmit` ✅, `eslint` ✅ 0
+> lỗi, `vitest` 13/13 ✅, `next build` ✅.
 
 ### P0 — Backup & Restore (đang quảng cáo là có, thực tế hỏng)
 
@@ -120,7 +135,28 @@ status: approved
 **P0.3 — Xác minh luồng UI**: `/admin/backup` (download + restore + schedule
 reminder localStorage) hoạt động end-to-end sau khi 2 API trên chạy.
 
-### P1 — Export features
+**P0.4 — Sửa `reviewContribution` cho `create`/`delete`** (`supabase-data.ts:1452`)
+- `change_type === 'create'`: insert row `people` mới từ `contribution.changes`
+  (whitelist field như update, tự sinh `id`/`handle`).
+- `change_type === 'delete'`: xóa `target_person` (hoặc soft-delete nếu có
+  quy ước) — cần quyết định hành vi khi người đó đang có quan hệ families/children.
+- Hoặc nếu chỉ muốn hỗ trợ `update`: giới hạn enum trong `schemas/contribution.ts`
+  + bỏ 2 option khỏi form cho khớp hành vi thật.
+
+### P1 — Export features & notification gaps
+
+**P1.0 — Notification types chưa dùng** (`types/notification.ts`)
+- `new_post`: trigger khi admin publish post (hoặc client insert sau khi tạo).
+- `account_verified` / `new_member`: trigger trên `profiles` khi
+  `is_verified` đổi sang true / khi có registration mới.
+- `event_reminder`: cần job định kỳ (mở rộng `/api/cron` daily → quét events
+  sắp tới theo `event_lunar`/`event_date` → insert notifications).
+- `system`: insert thủ công từ admin khi cần broadcast.
+
+**P1.0b — Admin "Recent Activity"** (`admin/page.tsx:188`)
+- Nguồn dữ liệu khả dụng: `contributions` (mới nhất), `member_registrations`,
+  `posts` mới, `notifications`. Có thể gom 3-4 query `ORDER BY created_at DESC
+  LIMIT n` merge client-side, hoặc thêm view `admin_recent_activity`.
 
 **P1.1 — Word export**: chọn 1 trong 2 —
 (a) Implement theo đúng spec API-ENDPOINTS §7 (thêm `docx` + `file-saver`,
@@ -174,3 +210,80 @@ toolbar (import qua `next/dynamic`, **tách khỏi barrel `@lib`** để
 | `docs/05-test/TEST-PLAN-sprint9.md` | Banner historical |
 | `docs/backend/SECURE-CODING-REVIEW.md` | Thêm mục "Cập nhật trạng thái 2026-09" — phần lớn findings đã được vá hoặc obsolete cùng desktop |
 | `docs/security/AUDIT_PLAN.md` | Ghi chú findings backup vẫn còn nguyên (đã xác minh lại) |
+
+---
+
+## 4. Đợt implement 2026-09-16 — chi tiết
+
+### 4.1 P0 — Backup / Restore / Contribution
+
+- **`src/constants/backup.ts`**: `BACKUP_EXPORT_TABLES` mở rộng lên 20 bảng;
+  thêm `BACKUP_RESTORE_ORDER` (insert theo thứ tự FK: `profiles` → `people` →
+  `families` → `children` → `events` → `media` → `contributions` → `posts` →
+  `post_comments`/`post_likes` → `notifications` → `member_registrations` →
+  `cau_duong_*` → `clan_*` → ...) và `BACKUP_TABLE_COLUMNS` (allowlist cột
+  per-table cho restore).
+- **`src/app/api/backup/route.ts`**: `requireRole(request)` (admin/editor qua
+  `Authorization: Bearer`), service-role client, `select('*')` phân trang
+  1000 dòng/lần cho từng bảng → `manifest.json` + `data/<table>.json` trong
+  ZIP; giữ `persistToBackupDir()` (BACKUP_DIR) và `apiFile()`.
+- **`src/app/api/backup/restore/route.ts`**: validate file (≤500MB), parse +
+  validate `manifest.json` (version, table whitelist, column whitelist, row
+  shape) qua `src/lib/backup-manifest.ts`; xóa dữ liệu theo thứ tự ngược FK;
+  insert batch 500 rows; trả `{ ok, tables, total_inserted, errors }`.
+- **`src/services/backup.ts`**: lấy `session.access_token` từ Supabase browser
+  client, gắn `Authorization: Bearer` cho cả export/restore.
+- **`src/lib/supabase-data.ts` → `reviewContribution`**: xử lý đủ 3
+  `change_type` — `update` (whitelist field), `create` (insert `people` từ
+  `changes` đã validate), `delete` (xóa `target_person`); chỉ chuyển status
+  `pending` → `approved` **sau khi** thao tác DB thành công.
+
+### 4.2 P1 — Notifications / Activity / Export
+
+- **Migration `20260325000019_notification_triggers.sql`**: trigger tạo
+  notification cho `new_post` (insert `posts`), `account_verified`
+  (`profiles.is_verified` false→true), `new_member` (insert
+  `member_registrations` → notify admin/editor).
+- **`/api/cron`**: thêm nhánh `event_reminder` — quét sự kiện/ngày giỗ sắp tới
+  → insert notifications.
+- **`/api/notifications/broadcast`** (POST, `requireRole` admin): gửi
+  notification `system` tới toàn bộ user; UI tại
+  `components/settings/notification-broadcast-card.tsx` trong admin settings.
+- **Recent Activity**: `lib/supabase-data-activity.ts` gom `contributions` +
+  `member_registrations` + `posts` mới nhất → `useRecentActivity()` hook →
+  `admin/page.tsx` render list thật (thay placeholder).
+- **`src/lib/word-export.ts`**: implement theo spec API-ENDPOINTS §7 (cover +
+  lịch sử dòng họ + cây landscape chụp SVG qua `svgToCanvas` + tiểu sử), deps
+  `docx` + `file-saver`.
+- **PDF export**: thêm `offsetY` cho `exportTreeToPdf`, export `svgToCanvas`;
+  wire nút export vào `family-tree-toolbar.tsx` (qua `family-tree.tsx`) và
+  card PDF/Word vào `admin-export-view.tsx`.
+
+### 4.3 P2 — Chất lượng & vận hành
+
+- Gỡ `framer-motion` khỏi `package.json` + `CLAUDE.md` (0 import).
+- `.env.example`, `.env.docker.example`, `docker-compose.yml` (port 4000,
+  backup volume) — kèm ngoại lệ `.env*` trong `.gitignore`.
+- `GET /api/health` (`src/app/api/health/route.ts`).
+- `vercel.json`: thêm HSTS + CSP cho production.
+- `.github/workflows/ci.yml`: lint → typecheck → test → build.
+- `package.json`: `version` → `3.0.0`, scripts `test`/`test:watch`/
+  `test:coverage`/`typecheck`.
+- Tests: `src/lib/__tests__/backup-manifest.test.ts` (8 tests) +
+  `src/lib/__tests__/exports.test.ts` (5 tests — GEDCOM/CSV).
+- `d3`: `import * as d3` → named imports trong `family-tree.tsx` /
+  `family-tree-canvas.tsx`.
+- `remotePatterns` kiểm soát image domains trong `next.config.ts`;
+  `lib/supabase/service.ts` guard server-only; cookie options cho proxy.
+- Fix thêm 8 lỗi eslint pre-existing (`set-state-in-effect` × 5,
+  `static-components` × 1, deep-import `@lib/utils` × 1, deep-import
+  `@lib/backup-manifest` × 1) để CI sạch.
+
+### 4.4 Việc cần làm thủ công sau deploy
+
+- Apply migration `20260325000019_notification_triggers.sql` lên Supabase
+  (`supabase db push` hoặc qua dashboard) — notification trigger mới chỉ có
+  tác dụng sau khi migrate.
+- Set `CRON_SECRET` trong Vercel env để `event_reminder` hoạt động.
+- Test thủ công luồng restore trên bản sao DB trước khi dùng production
+  (restore là destructive — xóa dữ liệu hiện có theo thứ tự ngược FK).

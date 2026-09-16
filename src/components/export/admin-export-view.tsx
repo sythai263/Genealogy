@@ -8,41 +8,43 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import {
-  AlertCircle,
-  CheckCircle,
-  Download,
-  FileCode,
-  FileText,
-  GitBranchPlus,
-  Loader2,
-  Table,
-  Users,
-} from 'lucide-react';
 import { useAuth } from '@components/auth';
 import { AccessDenied } from '@components/shared';
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from '@components/ui';
-import { useTreeData } from '@hooks';
+import { useClanSettings, useTreeData } from '@hooks';
 import {
-  downloadCsv,
-  downloadGedcom,
-  downloadMarkdown,
-  generateCsv,
-  generateGedcom,
-  generateMarkdown,
-  validateGedcom,
+    downloadCsv,
+    downloadGedcom,
+    downloadMarkdown,
+    generateCsv,
+    generateGedcom,
+    generateMarkdown,
+    validateGedcom,
 } from '@lib';
+import {
+    AlertCircle,
+    CheckCircle,
+    Download,
+    FileCode,
+    FileDown,
+    FileText,
+    FileType,
+    GitBranchPlus,
+    Loader2,
+    Table,
+    Users
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ExportPreview {
   content: string;
@@ -56,7 +58,10 @@ export function AdminExportView() {
   const t = useTranslations('Admin');
   const { isEditor } = useAuth();
   const { data: treeData, isLoading: treeLoading } = useTreeData();
+  const { data: clanSettings } = useClanSettings();
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingWord, setIsExportingWord] = useState(false);
   const [preview, setPreview] = useState<ExportPreview | null>(null);
 
   if (!isEditor) {
@@ -111,6 +116,59 @@ export function AdminExportView() {
       toast.success(t('export.toasts.markdownSuccess'));
     } catch {
       toast.error(t('export.toasts.markdownError'));
+    }
+  }
+
+  /**
+   * Full genealogy PDF — cover + history + member biographies.
+   * The tree diagram section is exported from the /tree page instead, where
+   * the rendered SVG is available. jspdf/html2canvas load lazily on demand.
+   */
+  async function handleExportPdf() {
+    if (!treeData) return;
+    setIsExportingPdf(true);
+    try {
+      const { exportFullGiaPha } = await import('@lib/pdf-export');
+      await exportFullGiaPha({
+        containerElement: null,
+        treeData,
+        clanSettings: clanSettings ?? null,
+        sectionOptions: {
+          includeCover: true,
+          includeHistory: true,
+          includeTree: false,
+          includeBiographies: true,
+        },
+      });
+      toast.success(t('export.toasts.pdfSuccess'));
+    } catch {
+      toast.error(t('export.toasts.pdfError'));
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }
+
+  async function handleExportWord() {
+    if (!treeData) return;
+    setIsExportingWord(true);
+    try {
+      const { exportFullGiaPhaWord } = await import('@lib/word-export');
+      await exportFullGiaPhaWord({
+        containerElement: null,
+        treeData,
+        clanSettings: clanSettings ?? null,
+        sectionOptions: {
+          includeCover: true,
+          includeHistory: true,
+          includeTree: false,
+          includeBiographies: true,
+        },
+      });
+      toast.success(t('export.toasts.wordSuccess'));
+    } catch {
+      toast.error(t('export.toasts.wordError'));
+    } finally {
+      setIsExportingWord(false);
     }
   }
 
@@ -288,6 +346,72 @@ export function AdminExportView() {
             disabled={treeLoading || !treeData}>
             <Download className='h-4 w-4 mr-2' />
             {t('export.exportMarkdown')}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* PDF Export */}
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <FileDown className='h-5 w-5' />
+            {t('export.pdfTitle')}
+          </CardTitle>
+          <CardDescription>{t('export.pdfDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div className='rounded-md border p-3 text-sm space-y-1'>
+            <p>
+              <strong>{t('export.includesLabel')}</strong>{' '}
+              {t('export.pdfIncludes')}
+            </p>
+            <p>
+              <strong>{t('export.excludesLabel')}</strong>{' '}
+              {t('export.pdfExcludes')}
+            </p>
+          </div>
+          <Button
+            onClick={handleExportPdf}
+            disabled={isExportingPdf || treeLoading || !treeData}>
+            {isExportingPdf ? (
+              <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+            ) : (
+              <Download className='h-4 w-4 mr-2' />
+            )}
+            {t('export.exportPdf')}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Word Export */}
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <FileType className='h-5 w-5' />
+            {t('export.wordTitle')}
+          </CardTitle>
+          <CardDescription>{t('export.wordDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div className='rounded-md border p-3 text-sm space-y-1'>
+            <p>
+              <strong>{t('export.includesLabel')}</strong>{' '}
+              {t('export.wordIncludes')}
+            </p>
+            <p>
+              <strong>{t('export.excludesLabel')}</strong>{' '}
+              {t('export.wordExcludes')}
+            </p>
+          </div>
+          <Button
+            onClick={handleExportWord}
+            disabled={isExportingWord || treeLoading || !treeData}>
+            {isExportingWord ? (
+              <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+            ) : (
+              <Download className='h-4 w-4 mr-2' />
+            )}
+            {t('export.exportWord')}
           </Button>
         </CardContent>
       </Card>

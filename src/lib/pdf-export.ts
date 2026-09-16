@@ -6,10 +6,10 @@
  * @updated 2026-03-13
  */
 
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-import type { Person, Family, ClanSettings } from '@types';
 import { vi } from '@messages/vi';
+import type { ClanSettings, Family, Person } from '@types';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -419,6 +419,7 @@ export async function exportTreeToPdf(
   treeWidth: number,
   treeHeight: number,
   offsetX: number,
+  offsetY: number = 0,
   options: PdfExportOptions = {},
 ): Promise<void> {
   const {
@@ -434,7 +435,7 @@ export async function exportTreeToPdf(
   const svgEl = containerElement.querySelector('svg') as SVGSVGElement | null;
   if (!svgEl) throw new Error('Không tìm thấy phần tử SVG để xuất.');
 
-  const svgCanvas = await svgToCanvas(svgEl, treeWidth, treeHeight, offsetX);
+  const svgCanvas = await svgToCanvas(svgEl, treeWidth, treeHeight, offsetX, offsetY);
 
   // ── 5. Build PDF ──────────────────────────────────────────────────────────
   const imgData = svgCanvas.toDataURL('image/png');
@@ -483,11 +484,12 @@ export async function exportTreeToPdf(
 /**
  * Render the family tree SVG into an off-screen canvas (shared by both exports).
  */
-async function svgToCanvas(
+export async function svgToCanvas(
   svgEl: SVGSVGElement,
   treeWidth: number,
   treeHeight: number,
   offsetX: number,
+  offsetY: number = 0,
 ): Promise<HTMLCanvasElement> {
   const padding = 60;
   const fullW   = Math.max(treeWidth + padding * 2, 400);
@@ -504,7 +506,7 @@ async function svgToCanvas(
     outerG.setAttribute('transform', 'translate(0,0) scale(1)');
     const innerG = outerG.querySelector('g') as SVGGElement | null;
     if (innerG) {
-      innerG.setAttribute('transform', `translate(${offsetX + padding},${padding})`);
+      innerG.setAttribute('transform', `translate(${offsetX + padding},${offsetY + padding})`);
     }
   }
   clone.querySelectorAll('[data-html2canvas-ignore]').forEach((el) => el.remove());
@@ -558,15 +560,31 @@ export const DEFAULT_FULL_OPTIONS: FullGiaPhaOptions = {
  *  • Cây gia phả A4 landscape (tuỳ chọn)
  *  • Lý lịch từng thành viên theo từng đời (tuỳ chọn)
  */
+export interface FullGiaPhaExportParams {
+  /** Element wrapping the rendered tree <svg>; null skips the tree section */
+  containerElement: HTMLElement | null;
+  treeWidth?: number;
+  treeHeight?: number;
+  offsetX?: number;
+  offsetY?: number;
+  treeData: TreeData;
+  clanSettings: ClanSettings | null;
+  sectionOptions?: FullGiaPhaOptions;
+}
+
 export async function exportFullGiaPha(
-  containerElement: HTMLElement,
-  treeWidth: number,
-  treeHeight: number,
-  offsetX: number,
-  treeData: TreeData,
-  clanSettings: ClanSettings | null,
-  sectionOptions: FullGiaPhaOptions = DEFAULT_FULL_OPTIONS,
+  params: FullGiaPhaExportParams,
 ): Promise<void> {
+  const {
+    containerElement,
+    treeWidth = 0,
+    treeHeight = 0,
+    offsetX = 0,
+    offsetY = 0,
+    treeData,
+    clanSettings,
+    sectionOptions = DEFAULT_FULL_OPTIONS,
+  } = params;
   const date     = new Date().toISOString().slice(0, 10);
   const clanName = clanSettings?.clan_full_name ?? clanSettings?.clan_name ?? 'Gia Phả';
   const filename = `gia-pha-day-du-${date}.pdf`;
@@ -607,11 +625,11 @@ export async function exportFullGiaPha(
   }
 
   // ── Cây gia phả (A4 landscape) ───────────────────────────────────────────
-  if (includeTree) {
+  if (includeTree && containerElement) {
     const svgEl = containerElement.querySelector('svg') as SVGSVGElement | null;
     if (svgEl) {
       if (isFirstPage) isFirstPage = false; else pdf.addPage('a4', 'landscape');
-      const treeCanvas = await svgToCanvas(svgEl, treeWidth, treeHeight, offsetX);
+      const treeCanvas = await svgToCanvas(svgEl, treeWidth, treeHeight, offsetX, offsetY);
 
       const margin   = 10;
       const footerH  = 8;

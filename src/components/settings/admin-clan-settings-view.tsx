@@ -11,49 +11,50 @@
 import { useAuth } from '@components/auth';
 import { AccessDenied } from '@components/shared';
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Skeleton,
-  Textarea,
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+    Input,
+    Label,
+    Skeleton,
+    Textarea,
 } from '@components/ui';
 import { APP_VERSION_DISPLAY } from '@constants';
 import { useClanSettings, useUpdateClanSettings } from '@hooks';
 import {
-  CLAN_FULL_NAME as ENV_CLAN_FULL_NAME,
-  CLAN_NAME as ENV_CLAN_NAME,
-  deriveClanInitial,
-  deriveClanSubtitle,
+    CLAN_FULL_NAME as ENV_CLAN_FULL_NAME,
+    CLAN_NAME as ENV_CLAN_NAME,
+    deriveClanInitial,
+    deriveClanSubtitle,
 } from '@lib';
 import type {
-  CeremonyScheduleItem,
-  CouncilMember,
-  LoginMethod,
-  UpdateClanSettingsInput,
+    CeremonyScheduleItem,
+    CouncilMember,
+    LoginMethod,
+    UpdateClanSettingsInput,
 } from '@types';
 import {
-  Calendar,
-  Database,
-  Globe,
-  Landmark,
-  Loader2,
-  Lock,
-  Plus,
-  Save,
-  Settings,
-  Trash2,
-  Users,
+    Calendar,
+    Database,
+    Globe,
+    Landmark,
+    Loader2,
+    Lock,
+    Plus,
+    Save,
+    Settings,
+    Trash2,
+    Users,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
+import { NotificationBroadcastCard } from './notification-broadcast-card';
 
 export function AdminClanSettingsView() {
   const t = useTranslations('Admin');
@@ -574,6 +575,8 @@ export function AdminClanSettingsView() {
           </div>
         </CardContent>
       </Card>
+
+      <NotificationBroadcastCard />
 
       <Card>
         <CardHeader>

@@ -21,6 +21,17 @@ export const Admin = {
     recentActivity: 'Recent activity',
     recentActivityDesc: 'Latest changes in the system',
     comingSoon: 'Feature under development',
+    activityEmpty: 'No activity yet',
+    activityKinds: {
+      contribution: '{detail} suggestion',
+      registration: 'Member registration',
+      post: 'New post',
+    },
+    activityChangeTypes: {
+      create: 'create',
+      update: 'update',
+      delete: 'delete',
+    },
     stats: {
       people: 'Total people',
       generations: 'Generations',
@@ -290,6 +301,13 @@ export const Admin = {
       cau_duong_pools: 'Cầu đương groups',
       cau_duong_assignments: 'Cầu đương schedule',
       clan_documents: 'Documents',
+      member_registrations: 'Registrations',
+      posts: 'Posts',
+      post_comments: 'Comments',
+      post_likes: 'Likes',
+      notifications: 'Notifications',
+      profiles: 'Account profiles',
+      clan_settings: 'Clan settings',
     },
     toasts: {
       exportSuccess: 'Backup successful! File downloaded.',
@@ -347,6 +365,19 @@ export const Admin = {
     markdownFormatLabel: 'Format:',
     markdownFormat: 'Markdown (.md) — open in any text editor',
     exportMarkdown: 'Export Markdown',
+    pdfTitle: 'PDF',
+    pdfDesc:
+      'Complete genealogy document: cover page, clan history, member biographies.',
+    pdfIncludes: 'Cover page, history & origin, member biographies by generation',
+    pdfExcludes:
+      'Tree diagram (export the tree PDF directly from the Family Tree page), contact info',
+    exportPdf: 'Export PDF',
+    wordTitle: 'Word (.docx)',
+    wordDesc:
+      'Editable Word document: cover page, clan history, member biographies.',
+    wordIncludes: 'Cover page, history & origin, member biographies by generation',
+    wordExcludes: 'Tree diagram, contact info',
+    exportWord: 'Export Word',
     toasts: {
       gedcomSuccess: 'GEDCOM 7.0 exported successfully',
       gedcomError: 'Failed to export file',
@@ -354,6 +385,10 @@ export const Admin = {
       csvError: 'Failed to export CSV',
       markdownSuccess: 'Markdown exported successfully',
       markdownError: 'Failed to export Markdown',
+      pdfSuccess: 'PDF exported successfully',
+      pdfError: 'Failed to export PDF',
+      wordSuccess: 'Word document exported successfully',
+      wordError: 'Failed to export Word document',
     },
   },
   import: {
@@ -533,6 +568,19 @@ export const Admin = {
           'No password needed — system sends 6-digit code to email. Suitable for elderly members.',
         badge: 'Free • Supabase Magic Link',
       },
+    },
+    broadcast: {
+      title: 'Send system notification',
+      description: 'Broadcast a notification to all verified members',
+      titleLabel: 'Title',
+      titlePlaceholder: 'Important announcement...',
+      titleRequired: 'Please enter a title',
+      bodyLabel: 'Body',
+      bodyPlaceholder: 'Notification content (optional)',
+      linkLabel: 'Link (optional)',
+      submit: 'Send notification',
+      success: 'Sent to {count} members',
+      error: 'Failed to send notification',
     },
     system: {
       title: 'System information',

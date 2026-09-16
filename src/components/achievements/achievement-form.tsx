@@ -8,36 +8,36 @@
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslations } from 'next-intl';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonCombobox } from '@components/people';
 import {
-  Button,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-  Textarea,
+    Button,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    Switch,
+    Textarea,
 } from '@components/ui';
+import { ACHIEVEMENT_FORM_CATEGORY_VALUES } from '@constants';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { usePerson } from '@hooks';
 import {
-  createAchievementSchema,
-  defaultAchievementValues,
-  type AchievementFormData,
+    createAchievementSchema,
+    defaultAchievementValues,
+    type AchievementFormData,
 } from '@schemas';
-import { ACHIEVEMENT_FORM_CATEGORY_VALUES } from '@constants';
 import type { Achievement, Person } from '@types';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface AchievementFormProps {
   achievement?: Achievement;
@@ -58,7 +58,9 @@ export function AchievementForm({
     [tValidation]
   );
   const { data: loadedPerson } = usePerson(achievement?.person_id);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [personOverride, setPersonOverride] = useState<Person | null>();
+  const selectedPerson =
+    personOverride !== undefined ? personOverride : (loadedPerson ?? null);
 
   const form = useForm<AchievementFormData>({
     resolver: zodResolver(schema),
@@ -75,14 +77,8 @@ export function AchievementForm({
       : defaultAchievementValues,
   });
 
-  useEffect(() => {
-    if (loadedPerson) {
-      setSelectedPerson(loadedPerson);
-    }
-  }, [loadedPerson]);
-
   function handlePersonSelect(person: Person | null) {
-    setSelectedPerson(person);
+    setPersonOverride(person);
     form.setValue('person_id', person?.id ?? '', { shouldValidate: true });
   }
 

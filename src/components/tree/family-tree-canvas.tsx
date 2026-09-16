@@ -1,52 +1,66 @@
 /**
  * @project AncestorTree
  * @file src/components/tree/family-tree-canvas.tsx
- * @description d3.tree canvas with horizontal/vertical orientation, collapse + zoom
+ * @description tree canvas with horizontal/vertical orientation, collapse + zoom
  * @version 2.4.0
  * @updated 2026-08-09
  */
 
 'use client';
 
-import * as d3 from 'd3';
-import { useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
 import {
-  COUPLE_GAP,
-  NODE_HEIGHT,
-  NODE_WIDTH,
-  TREE_COLLAPSE_BTN_RADIUS,
-  TREE_DEPTH_GAP,
-  TREE_EXIT_TRANSITION_MS,
-  TREE_FOCUS_TRANSITION_MS,
-  TREE_MOBILE_BREAKPOINT,
-  TREE_NODE_SIZE_X,
-  TREE_NODE_SIZE_Y,
-  TREE_SIBLING_GAP,
-  TREE_TRANSITION_MS,
-  TREE_VERTICAL_NODE_SIZE_X,
-  TREE_VERTICAL_NODE_SIZE_Y,
-  TREE_VIRTUAL_ROOT_ID,
-  TREE_ZOOM_INITIAL_SCALE,
-  TREE_ZOOM_MAX,
-  TREE_ZOOM_MIN,
-  TREE_ZOOM_MOBILE_SCALE,
+    COUPLE_GAP,
+    NODE_HEIGHT,
+    NODE_WIDTH,
+    TREE_COLLAPSE_BTN_RADIUS,
+    TREE_DEPTH_GAP,
+    TREE_EXIT_TRANSITION_MS,
+    TREE_FOCUS_TRANSITION_MS,
+    TREE_MOBILE_BREAKPOINT,
+    TREE_NODE_SIZE_X,
+    TREE_NODE_SIZE_Y,
+    TREE_SIBLING_GAP,
+    TREE_TRANSITION_MS,
+    TREE_VERTICAL_NODE_SIZE_X,
+    TREE_VERTICAL_NODE_SIZE_Y,
+    TREE_VIRTUAL_ROOT_ID,
+    TREE_ZOOM_INITIAL_SCALE,
+    TREE_ZOOM_MAX,
+    TREE_ZOOM_MIN,
+    TREE_ZOOM_MOBILE_SCALE,
 } from '@constants';
 import {
-  cn,
-  getInitials,
-  getPersonTreeNameParts,
-  hierarchyHasKids,
-  hierarchyIsCollapsed,
-  toggleHierarchyNode,
+    cn,
+    getInitials,
+    getPersonTreeNameParts,
+    hierarchyHasKids,
+    hierarchyIsCollapsed,
+    toggleHierarchyNode,
 } from '@lib';
 import {
-  TREE_SVG_DATUM,
-  type HierarchyPersonNode,
-  type Person,
-  type TreeOrientation,
-  type TreeSvgDatum,
+    TREE_SVG_DATUM,
+    type HierarchyPersonNode,
+    type Person,
+    type TreeOrientation,
+    type TreeSvgDatum,
 } from '@types';
+import {
+    hierarchy,
+    linkHorizontal,
+    linkVertical,
+    select,
+    tree,
+    zoom,
+    zoomIdentity,
+    zoomTransform,
+    type BaseType,
+    type HierarchyPointLink,
+    type HierarchyPointNode,
+    type Selection,
+    type ZoomBehavior,
+} from 'd3';
+import { useTranslations } from 'next-intl';
+import { useEffect, useRef } from 'react';
 
 interface FamilyTreeCanvasProps {
   hierarchyRoot: HierarchyPersonNode | null;
@@ -55,7 +69,7 @@ interface FamilyTreeCanvasProps {
   selectedPersonId: string | null;
   onSelectPerson: (person: Person) => void;
   onHierarchyMutated: () => void;
-  zoomBehaviorRef: React.MutableRefObject<d3.ZoomBehavior<
+  zoomBehaviorRef: React.MutableRefObject<ZoomBehavior<
     SVGSVGElement,
     TreeSvgDatum
   > | null>;
@@ -67,7 +81,7 @@ interface FamilyTreeCanvasProps {
   compactHint?: boolean;
 }
 
-type HierarchyPoint = d3.HierarchyPointNode<HierarchyPersonNode>;
+type HierarchyPoint = HierarchyPointNode<HierarchyPersonNode>;
 
 interface LinkPoint {
   x: number;
@@ -163,8 +177,8 @@ function collapseBtnTransform(
 function createLinkPath(orientation: TreeOrientation) {
   const link =
     orientation === 'horizontal'
-      ? d3.linkHorizontal<LinkShape, LinkPoint>()
-      : d3.linkVertical<LinkShape, LinkPoint>();
+      ? linkHorizontal<LinkShape, LinkPoint>()
+      : linkVertical<LinkShape, LinkPoint>();
   return link.x((p) => p.x).y((p) => p.y);
 }
 
@@ -173,7 +187,7 @@ function createLinkPath(orientation: TreeOrientation) {
  * the line leaves the outer edge of a couple instead of starting under a card.
  */
 function linkEndpoints(
-  link: d3.HierarchyPointLink<HierarchyPersonNode>,
+  link: HierarchyPointLink<HierarchyPersonNode>,
   orientation: TreeOrientation
 ): LinkShape {
   const { source, target } = link;
@@ -202,7 +216,7 @@ function linkEndpoints(
 }
 
 function appendCollapseButton(
-  g: d3.Selection<SVGGElement, HierarchyPoint, d3.BaseType, unknown>,
+  g: Selection<SVGGElement, HierarchyPoint, BaseType, unknown>,
   d: HierarchyPoint,
   orientation: TreeOrientation,
   onToggle: () => void
@@ -277,8 +291,7 @@ export function FamilyTreeCanvas({
       onHierarchyMutatedRef.current();
     }
 
-    const svg = d3
-      .select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
+    const svg = select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
       .datum(TREE_SVG_DATUM);
 
     let mainContainer = svg.select<SVGGElement>('g.main-container');
@@ -293,16 +306,15 @@ export function FamilyTreeCanvas({
       mainContainer.append('g').attr('class', 'links-layer');
       mainContainer.append('g').attr('class', 'nodes-layer');
 
-      const zoom = d3
-        .zoom<SVGSVGElement, TreeSvgDatum>()
+      const zoomBehavior = zoom<SVGSVGElement, TreeSvgDatum>()
         .scaleExtent([TREE_ZOOM_MIN, TREE_ZOOM_MAX])
         .on('zoom', (event) => {
           mainContainer.attr('transform', event.transform.toString());
         });
 
-      svg.call(zoom);
+      svg.call(zoomBehavior);
       svg.on('dblclick.zoom', null);
-      zoomBehaviorRef.current = zoom;
+      zoomBehaviorRef.current = zoomBehavior;
     }
 
     const nodeSize: [number, number] =
@@ -310,7 +322,7 @@ export function FamilyTreeCanvas({
         ? [TREE_NODE_SIZE_Y, TREE_NODE_SIZE_X]
         : [TREE_VERTICAL_NODE_SIZE_X, TREE_VERTICAL_NODE_SIZE_Y];
 
-    const treeLayout = d3.tree<HierarchyPersonNode>().nodeSize(nodeSize);
+    const treeLayout = tree<HierarchyPersonNode>().nodeSize(nodeSize);
 
     if (orientation === 'vertical') {
       // Siblings run along X here, so a couple needs room for both cards.
@@ -322,13 +334,13 @@ export function FamilyTreeCanvas({
       });
     }
 
-    const root = d3.hierarchy(hierarchyRoot, (d) => d.children);
+    const root = hierarchy(hierarchyRoot, (d) => d.children);
     const treeRoot = treeLayout(root) as HierarchyPoint;
 
     const descendants = treeRoot.descendants();
 
     if (orientation === 'horizontal') {
-      // Depth runs along X here. d3.tree spaces every generation equally, which
+      // Depth runs along X here. tree spaces every generation equally, which
       // would either clip couples or pad the whole tree to the widest one, so
       // each generation column is sized to its own widest card.
       const widthByDepth = new Map<number, number>();
@@ -359,7 +371,7 @@ export function FamilyTreeCanvas({
     const py = (d: HierarchyPoint) => pointY(d, orientation);
 
     const linkBinding = linksLayer
-      .selectAll<SVGPathElement, d3.HierarchyPointLink<HierarchyPersonNode>>(
+      .selectAll<SVGPathElement, HierarchyPointLink<HierarchyPersonNode>>(
         'path.link'
       )
       .data(links, (d) => `${d.source.data.id}->${d.target.data.id}`);
@@ -427,7 +439,7 @@ export function FamilyTreeCanvas({
 
     nodeEnter.each(function (d) {
       if (!hierarchyHasKids(d.data)) return;
-      const g = d3.select<SVGGElement, HierarchyPoint>(this);
+      const g = select<SVGGElement, HierarchyPoint>(this);
       appendCollapseButton(g, d, orientation, () => {
         toggleNode(d.data);
       });
@@ -463,7 +475,7 @@ export function FamilyTreeCanvas({
       .text((d) => (hierarchyIsCollapsed(d.data) ? '+' : '−'));
 
     nodesLayer.selectAll<SVGGElement, HierarchyPoint>('g.node').each(function (d) {
-      const g = d3.select<SVGGElement, HierarchyPoint>(this);
+      const g = select<SVGGElement, HierarchyPoint>(this);
       const hasBtn = !g.select('g.collapse-btn').empty();
       if (hierarchyHasKids(d.data) && !hasBtn) {
         appendCollapseButton(g, d, orientation, () => {
@@ -495,7 +507,7 @@ export function FamilyTreeCanvas({
       const target = descendants.find((d) => d.data.id === focusNodeId);
       if (target) {
         const { clientWidth, clientHeight } = wrapperRef.current;
-        const current = d3.zoomTransform(svgRef.current);
+        const current = zoomTransform(svgRef.current);
         const scale = current.k;
 
         // Prefer a point between the opened node and its children so the
@@ -518,7 +530,7 @@ export function FamilyTreeCanvas({
           .duration(TREE_FOCUS_TRANSITION_MS)
           .call(
             zoomBehaviorRef.current.transform,
-            d3.zoomIdentity
+            zoomIdentity
               .translate(clientWidth / 2, clientHeight / 2)
               .scale(scale)
               .translate(-focusX, -focusY)
@@ -549,7 +561,7 @@ export function FamilyTreeCanvas({
         .duration(TREE_TRANSITION_MS)
         .call(
           zoomBehaviorRef.current.transform,
-          d3.zoomIdentity
+          zoomIdentity
             .translate(clientWidth / 2, clientHeight / 2)
             .scale(scale)
             .translate(-midX, -midY)

@@ -8,17 +8,17 @@
 
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@components/ui';
 import { localeCookieName, locales, type AppLocale } from '@i18n/config';
-import { cn } from '@lib/utils';
+import { cn } from '@lib';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 interface LocaleSwitcherProps {
   className?: string;

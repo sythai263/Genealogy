@@ -1,19 +1,28 @@
 /**
  * @project AncestorTree
  * @file src/app/api/backup/route.ts
- * @description Backup API — exports all 13 tables to a single ZIP file using the
- *              service-role client to bypass RLS.
- * @version 3.0.0
+ * @description Backup API — exports all data tables to a single ZIP file using
+ *              the service-role client to bypass RLS. Admin/editor only.
+ * @version 3.1.0
  * @updated 2026-08-09
  */
 
-import AdmZip from 'adm-zip';
 import {
-  APP_VERSION,
-  API_ERROR_MESSAGES,
-  BACKUP_EXPORT_TABLES,
+    API_ERROR_MESSAGES,
+    API_STATUS,
+    APP_VERSION,
+    BACKUP_EXPORT_TABLES,
+    BACKUP_FORMAT_VERSION,
 } from '@constants';
-import { apiFile, withApiHandler } from '@lib/api';
+import {
+    apiError,
+    apiFile,
+    createServiceRoleClient,
+    requireRole,
+    withApiHandler,
+} from '@lib/api';
+import type { BackupRow } from '@types';
+import AdmZip from 'adm-zip';
 
 /**
  * Docker volume persistence: when BACKUP_DIR is mounted, keep a copy of the ZIP
@@ -37,18 +46,38 @@ async function persistToBackupDir(filename: string, zipBuffer: Buffer): Promise<
 
 export const POST = withApiHandler(
   'backup/export',
-  async () => {
+  async (request) => {
+    const requester = await requireRole(request);
+    if (requester instanceof Response) return requester;
+
+    const supabase = createServiceRoleClient();
+    if (!supabase) {
+      return apiError(
+        API_ERROR_MESSAGES.serverMisconfigured,
+        API_STATUS.serverError
+      );
+    }
+
     const zip = new AdmZip();
-    const exportedData: Record<string, unknown[]> = {};
+    const rowCounts: Record<string, number> = {};
+
+    for (const table of BACKUP_EXPORT_TABLES) {
+      const { data, error } = await supabase.from(table).select('*');
+      if (error) throw error;
+
+      const rows = (data ?? []) as BackupRow[];
+      rowCounts[table] = rows.length;
+      zip.addFile(
+        `data/${table}.json`,
+        Buffer.from(JSON.stringify(rows, null, 2), 'utf-8')
+      );
+    }
 
     const manifest = {
-      version: '1.0',
+      version: BACKUP_FORMAT_VERSION,
       app_version: APP_VERSION,
       exported_at: new Date().toISOString(),
-      row_counts: Object.fromEntries(
-        BACKUP_EXPORT_TABLES.map((table) => [table, exportedData[table].length])
-      ),
-      tables: exportedData,
+      row_counts: rowCounts,
     };
 
     zip.addFile(

@@ -202,8 +202,8 @@ cp .env.local .env.local.local.bak
 
 # Khôi phục cloud config
 cp .env.local.cloud.bak .env.local   # nếu có từ pnpm local:setup
-# hoặc tự tạo .env.local và điền lại cloud credentials
-# (repo hiện CHƯA có .env.example — xem CODEBASE-AUDIT §2 P2.2)
+# hoặc tạo từ template và điền lại cloud credentials
+cp .env.example .env.local
 ```
 
 ---

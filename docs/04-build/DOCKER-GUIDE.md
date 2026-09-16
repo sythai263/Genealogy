@@ -24,16 +24,14 @@ status: approved
 
 ## Cấu trúc files Docker
 
-> ⚠️ **2026-09:** Hiện repo chỉ có `Dockerfile` ở root. `docker-compose.yml`
-> và `.env.docker.example` được mô tả ở đây nhưng **chưa tồn tại trong repo**
-> — cần tạo lại nếu muốn dùng compose, hoặc chạy `docker build` + `docker run`
-> trực tiếp với `Dockerfile` (xem CODEBASE-AUDIT §2 P2.2).
+> ✅ **2026-09-16:** `docker-compose.yml` và `.env.docker.example` đã được tạo
+> ở repo root — có thể dùng `docker compose up -d --build` trực tiếp.
 
 ```
 AncestorTree/                   # repo root = app root
 ├── Dockerfile                  # Multi-stage build (deps → builder → runner)
-├── docker-compose.yml          # ⚠️ chưa tồn tại — cần tạo
-├── .env.docker.example         # ⚠️ chưa tồn tại — cần tạo
+├── docker-compose.yml          # Compose service (port 4000, backup volume)
+├── .env.docker.example         # Template env cho container
 └── .dockerignore               # Exclude node_modules, .next, secrets
 ```
 
@@ -49,11 +47,12 @@ AncestorTree/                   # repo root = app root
 ## Quick Start
 
 ```bash
-# 1. Tạo file env (⚠️ .env.docker.example chưa có — tự tạo .env)
+# 1. Tạo file env từ template rồi điền credentials
+cp .env.docker.example .env.docker
 #    điền NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY
 
-# 2a. Nếu đã tạo docker-compose.yml:
-docker compose up -d --build
+# 2a. Chạy bằng docker compose:
+docker compose --env-file .env.docker up -d --build
 
 # 2b. Hoặc build/run trực tiếp bằng Dockerfile:
 DOCKER_BUILD=true docker build -t ancestortree-web .

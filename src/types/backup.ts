@@ -13,3 +13,17 @@ export interface RestoreResult {
   tables: Record<string, number>;
   errors?: string[];
 }
+
+/** A single exported table row — JSON-shaped, keys validated before insert */
+export type BackupRow = Record<
+  string,
+  string | number | boolean | object | null
+>;
+
+/** manifest.json schema inside the backup ZIP */
+export interface BackupManifest {
+  version: string;
+  app_version?: string;
+  exported_at: string;
+  row_counts: Record<string, number>;
+}
