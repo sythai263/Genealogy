@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/02-design/technical-design.md
 type: design
-version: 2.3.0
-updated: 2026-03-01
+version: 2.4.0
+updated: 2026-09-16
 owner: "@dev-team"
 status: approved
 ---
@@ -23,6 +23,7 @@ status: approved
 | 2.1.0   | 2026-02-26 | @pm        | Add Landing Page route group + SEO architecture (Sprint 10) |
 | 2.2.0   | 2026-02-27 | @pm        | Add In-App Help Page `/help` route (Sprint 11)    |
 | 2.3.0   | 2026-03-01 | @architect | Add Privacy, Verification & Sub-admin architecture (Sprint 12) |
+| 2.4.0   | 2026-09-16 | @team      | Codebase audit: desktop removed (§10.3 historical), `frontend/`→root, `middleware.ts`→`proxy.ts`, migration list + route tree updated |
 
 ---
 
@@ -112,15 +113,24 @@ status: approved
 
 ### 3.0 Migration Strategy
 
-> All migration files nằm trong `frontend/supabase/migrations/` (Supabase CLI format, timestamped):
+> All migration files nằm trong `supabase/migrations/` ở repo root (Supabase
+> CLI format, timestamped) — hiện có **24 files**. Các migration chính:
 >
-> | File | Tables |
+> | File | Tables / Changes |
 > |------|--------|
 > | `20260224000000_database_setup.sql` | people, families, children, profiles, contributions, events, media |
 > | `20260224000001_sprint6_migration.sql` | achievements, fund_transactions, scholarships, clan_articles |
 > | `20260224000002_cau_duong_migration.sql` | cau_duong_pools, cau_duong_assignments |
 > | `20260224000003_sprint75_migration.sql` | profiles.edit_root_person_id + is_person_in_subtree() |
 > | `20260224000004_storage_setup.sql` | Storage bucket `media` + RLS policies |
+> | `20260227000006_sprint11_kho_tai_lieu.sql` | clan_documents |
+> | `20260228000009_user_management.sql` | profiles role/suspend (Sprint 12) |
+> | `20260301000010_clan_settings.sql` | clan_settings |
+> | `20260305000013_sprint15_feed.sql` | posts, post_comments, post_likes |
+> | `20260315000016_sprint16_notifications.sql` | notifications |
+> | `20260320000018_sprint18_registrations.sql` | member_registrations |
+> | `20260322000020_login_config.sql` – `20260727000025_public_tree_data.sql` | login config, search RPCs, RLS fixes, public tree |
+> | `20260809000026`–`20260809000029` | fund balance/people stats RPCs, storage security |
 >
 > **Cloud:** Chạy thủ công trên Supabase SQL Editor.
 > **Local:** Tự động chạy khi `supabase start` (Supabase CLI + Docker).
@@ -635,7 +645,7 @@ function getNextHost(pool, lastAssignment, eligibleList): Person {
 }
 ```
 
-**Implementation:** `frontend/src/lib/supabase-data-cau-duong.ts`
+**Implementation:** `src/lib/supabase-data-cau-duong.ts`
 
 ### 3.3 Row Level Security (RLS)
 
@@ -803,12 +813,16 @@ src/
 │   ├── (auth)/                       # Auth pages (no sidebar)
 │   │   ├── login/page.tsx
 │   │   └── register/page.tsx
-│   ├── (landing)/                    # Public landing page (no auth, no sidebar)
+│   ├── (landing)/                    # Public pages (no auth, no sidebar)
 │   │   ├── layout.tsx                # Minimal layout — no AuthProvider/sidebar
-│   │   └── welcome/page.tsx          # Landing page (7 sections, SSR static)
-│   ├── (main)/                       # Main app (with sidebar)
+│   │   ├── page.tsx                  # Landing home `/` (public)
+│   │   ├── welcome/page.tsx          # Welcome/onboarding page
+│   │   ├── family-tree/page.tsx      # Public read-only family tree (public_tree_data)
+│   │   ├── ancestral-hall/page.tsx   # Nhà thờ họ public page
+│   │   ├── council/page.tsx          # Hội đồng gia tộc public page
+│   │   └── register-member/page.tsx  # Public member registration form
+│   ├── (main)/                       # Main app (with sidebar, auth required)
 │   │   ├── layout.tsx                # Sidebar + Header layout
-│   │   ├── page.tsx                  # Dashboard/Home with stats
 │   │   ├── tree/page.tsx             # Interactive family tree
 │   │   ├── people/
 │   │   │   ├── page.tsx              # People list with search/filter
@@ -820,21 +834,40 @@ src/
 │   │   ├── events/page.tsx           # Memorial calendar
 │   │   ├── contributions/page.tsx    # Contribution submissions
 │   │   ├── documents/
-│   │   │   ├── page.tsx              # GEDCOM export + book link
+│   │   │   ├── page.tsx              # Kho tài liệu hub
+│   │   │   ├── library/page.tsx      # Document library
 │   │   │   └── book/page.tsx         # Genealogy book view
 │   │   ├── achievements/page.tsx     # Achievement honors (v1.1)
 │   │   ├── fund/page.tsx             # Education fund dashboard (v1.1)
 │   │   ├── charter/page.tsx          # Hương ước / Clan rules (v1.1)
+│   │   ├── relationship/page.tsx     # Quan hệ họ hàng finder
+│   │   ├── stats/page.tsx            # Statistics dashboard (recharts)
+│   │   ├── feed/page.tsx             # Góc giao lưu (posts/comments/likes)
+│   │   ├── notifications/page.tsx    # Notification center
+│   │   ├── settings/
+│   │   │   ├── profile/page.tsx      # Profile settings
+│   │   │   └── security/page.tsx     # Security + MFA settings
 │   │   ├── help/page.tsx             # In-app help guide (v2.2)
 │   │   └── admin/
 │   │       ├── page.tsx              # Admin dashboard
 │   │       ├── users/page.tsx        # User management
 │   │       ├── contributions/page.tsx # Review contributions
-│   │       ├── achievements/page.tsx  # Manage achievements (v1.1)
-│   │       ├── fund/page.tsx          # Manage fund & scholarships (v1.1)
-│   │       └── charter/page.tsx       # Manage clan articles (v1.1)
+│   │       ├── achievements/page.tsx  # Manage achievements
+│   │       ├── fund/page.tsx          # Manage fund & scholarships
+│   │       ├── charter/page.tsx       # Manage clan articles
+│   │       ├── events/page.tsx        # Manage events
+│   │       ├── documents/page.tsx     # Manage documents
+│   │       ├── feed/page.tsx          # Moderate feed posts
+│   │       ├── cau-duong/page.tsx     # Manage cầu đương pools
+│   │       ├── spouses/page.tsx       # Manage spouse records
+│   │       ├── duplicates/page.tsx    # Duplicate detection review
+│   │       ├── registrations/page.tsx # Review member registrations
+│   │       ├── export/page.tsx        # Data export (GEDCOM/CSV/Markdown)
+│   │       ├── import/page.tsx        # GEDCOM import
+│   │       ├── backup/page.tsx        # Backup/restore + schedule reminder
+│   │       └── settings/page.tsx      # Clan settings
 │   │   # Each route also has error.tsx and loading.tsx files
-│   └── middleware.ts                 # Auth + role-based route protection
+├── proxy.ts                          # Auth + role-based route protection (Next.js 16 proxy)
 │
 ├── components/
 │   ├── ui/                           # shadcn/ui components (23 files)
@@ -1210,7 +1243,12 @@ export interface ChiConfig {
 **Setup:** `pnpm local:setup` → auto chạy migrations + seed data.
 **Chi tiết:** Xem [LOCAL-DEVELOPMENT.md](../04-build/LOCAL-DEVELOPMENT.md).
 
-### 10.3 Desktop Mode (Standalone App) (v2.0)
+### 10.3 Desktop Mode (Standalone App) (v2.0) — ⚠️ HISTORICAL, ĐÃ GỠ
+
+> **2026-09:** Toàn bộ Electron/sql.js desktop code đã bị xóa khỏi codebase
+> (CLAUDE.md v3.0.0: pure web). Không còn `desktop/`, `/api/desktop-*`,
+> `/api/media/[...path]`, hay `NEXT_PUBLIC_DESKTOP_MODE`. Phần dưới giữ lại
+> làm tài liệu thiết kế lịch sử.
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
@@ -1260,7 +1298,7 @@ export interface ChiConfig {
 - `ELECTRON_BUILD=true` → `next.config.ts` sets `output: 'standalone'` (ADR-004)
 - sql.js persistence: singleton `getDatabase()` + `flushToDisk()` atomic write after every mutation
 - Single-user admin mode — no RLS, no auth, no role checks
-- ADRs: [ADR-001](ADR/ADR-001-sqlite-adapter.md), [ADR-002](ADR/ADR-002-desktop-db-decomposition.md), [ADR-003](ADR/ADR-003-media-export-format.md), [ADR-004](ADR/ADR-004-standalone-output-conditional.md)
+- ADRs: ADR-001/ADR-002/ADR-004 đã bị xóa cùng desktop docs; còn lại [ADR-003](ADR/ADR-003-media-export-format.md) (media export format — vẫn áp dụng cho backup ZIP)
 
 ### 10.4 Landing Page — Public Route Group (v2.1)
 

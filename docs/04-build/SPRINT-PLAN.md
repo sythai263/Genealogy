@@ -2,13 +2,18 @@
 project: AncestorTree
 path: docs/04-build/SPRINT-PLAN.md
 type: build
-version: 3.3.0
-updated: 2026-03-09
+version: 3.3.1
+updated: 2026-09-16
 owner: "@pm"
 status: approved
 ---
 
 # Sprint Plan - Gia Phả Điện Tử
+
+> **2026-09 note:** Sprint 9 (Desktop/Electron) đã ship rồi sau đó **toàn bộ
+> desktop code bị gỡ** — dự án là pure web (CLAUDE.md v3.0.0). Mọi mục mô tả
+> Electron/sql.js/`desktop/`/`/api/desktop-*` trong tài liệu này là lịch sử.
+> Trạng thái docs↔code hiện tại: [CODEBASE-AUDIT.md](../CODEBASE-AUDIT.md).
 
 ## 📅 Sprint Overview
 
@@ -581,24 +586,31 @@ Milestones:
 - Vercel account
 - GitHub repository
 
-### Key Libraries (Actual)
+### Key Libraries (Actual — cập nhật 2026-09 theo package.json)
 
-| Library | Version | Sprint | Notes |
-|---------|---------|--------|-------|
-| Next.js | 16.1.6 | S1 | |
-| React | 19.2.3 | S1 | |
-| TypeScript | 5.x | S1 | |
-| Tailwind CSS | 4.x | S1 | |
-| shadcn/ui | 3.8.5 | S1 | |
-| @supabase/supabase-js | 2.97.0 | S1 | |
-| @supabase/ssr | 0.8.0 | S1 | Server-side auth |
-| React Query | 5.90.21 | S2 | |
-| Zod | 4.3.6 | S2 | |
-| react-hook-form | 7.71.2 | S2 | |
-| Framer Motion | 12.34.3 | S3 | |
-| Lucide React | 0.575.0 | S1 | Icons |
+| Library | Version | Notes |
+|---------|---------|-------|
+| Next.js | 16.3.0 | |
+| React | 19.2.8 | |
+| TypeScript | 6.x | |
+| Tailwind CSS | 4.x | |
+| @supabase/supabase-js | 2.112.2 | |
+| @supabase/ssr | 0.12.4 | Server-side auth |
+| React Query | 5.101.4 | |
+| Zod | 4.4.3 | |
+| react-hook-form | 7.85.0 | |
+| next-intl | 4.13.5 | i18n vi + en |
+| d3 | 7.9.0 | Tree render (lazy-loaded) |
+| recharts | 3.10.1 | Stats charts (lazy-loaded) |
+| fuse.js | 7.5.0 | Fuzzy search |
+| adm-zip | 0.6.0 | Backup ZIP |
+| jspdf + html2canvas | 4.2.1 / 1.4.1 | PDF export lib (chưa wire UI — dead code) |
+| Lucide React | 1.30.0 | Icons |
 
-> **Note:** Zustand 5.0.11 is installed but not actively used. State management is handled via React Context (AuthProvider) + React Query cache.
+> **Note:** Zustand không còn trong dependencies — state qua React Context
+> (AuthProvider, ElderlyProvider) + React Query cache.
+> ⚠️ `framer-motion` vẫn trong package.json nhưng **0 import trong src/** —
+> dead dependency (xem CODEBASE-AUDIT §2 P2.1).
 
 ---
 

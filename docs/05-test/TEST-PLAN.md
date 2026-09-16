@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/05-test/TEST-PLAN.md
 type: test
-version: 1.0.0
-updated: 2026-02-24
+version: 1.1.0
+updated: 2026-09-16
 owner: "@tester"
 status: draft
 ---
@@ -58,7 +58,11 @@ This document outlines the testing strategy for AncestorTree.
 - **E2E:** Playwright
 - **Coverage:** V8
 
-## 5. Desktop App Tests (Sprint 9)
+## 5. Desktop App Tests (Sprint 9) — ⚠️ OBSOLETE
+
+> Desktop/Electron đã bị gỡ khỏi codebase (pure web). Toàn bộ mục 5.x giữ lại
+> như tài liệu lịch sử — các route `/api/desktop-*`, `/api/media/[...path]`,
+> sql.js shim và 63 test đề cập không còn tồn tại.
 
 End-to-end tests for the Electron desktop application with offline SQLite backend.
 
@@ -187,16 +191,12 @@ End-to-end tests for the Electron desktop application with offline SQLite backen
 ## Running Tests
 
 ```bash
-cd frontend
-pnpm test          # Unit tests
-pnpm test:e2e      # E2E tests
+# Repo root (không còn frontend/ hay desktop/)
+pnpm test          # Unit tests (Vitest)
+pnpm test:e2e      # E2E tests (Playwright) — chưa cấu hình
 pnpm test:coverage # With coverage
 ```
 
-### Desktop App Tests
-
-```bash
-cd desktop
-pnpm test          # Unit + integration tests (Vitest)
-pnpm test:e2e      # Electron E2E tests (Playwright Electron)
-```
+> ⚠️ **2026-09:** `vitest.config.ts` tồn tại nhưng hiện **0 file test** trong
+> `src/`, và `package.json` chưa có script `test`. Cần thêm lại script + test
+> tối thiểu — xem CODEBASE-AUDIT §2 P2.3.

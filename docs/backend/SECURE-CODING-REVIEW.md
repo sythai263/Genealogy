@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/backend/SECURE-CODING-REVIEW.md
 type: security-report
-version: 1.0.0
-updated: 2026-02-27
+version: 1.1.0
+updated: 2026-09-16
 owner: team
 status: approved
 ---
@@ -12,6 +12,29 @@ status: approved
 
 > **Phương pháp:** OWASP Top 10 + OWASP ASVS Level 1
 > **Phạm vi:** Next.js API routes, Supabase data layer, SQLite desktop shim, middleware auth
+
+---
+
+## 🔄 Cập nhật trạng thái (2026-09 codebase audit)
+
+Đối chiếu lại với code hiện tại — nhiều findings đã **được vá** hoặc
+**obsolete** cùng desktop code:
+
+| Finding | Trạng thái 2026-09 |
+|---------|---------------------|
+| SC-GOOD-02 path traversal (`/api/media/[...path]`) | ⏹️ Obsolete — route đã xóa cùng desktop |
+| SC-GOOD-05/06 SQLite shim, desktop guards | ⏹️ Obsolete — desktop đã gỡ |
+| SEC-CRIT-01 file size limit | ✅ **Fixed** — `MEDIA_STORAGE_MAX_FILE_SIZE` (5MB) + `validateUpload()` trong `lib/api/files.ts`; backup import limit 500MB |
+| SEC-CRIT-02 MIME validation | ✅ **Fixed** — `MEDIA_STORAGE_ALLOWED_TYPES` check trong `supabase-storage.ts:32`; GEDCOM import limit 10MB |
+| SEC-CRIT-03 import manifest validation | ⚠️ Partial — manifest parse có, nhưng restore trả 501 nên column allowlist chưa cần thiết (file header vẫn ghi ý định) |
+| SEC-WARN-01 column injection (query-builder) | ⏹️ Obsolete — desktop query-builder đã xóa |
+| SEC-WARN-02 `deleteDocumentFile` path extraction | 🔍 Cần re-check `src/lib/supabase-data-documents.ts` |
+| SEC-WARN-03 rate limiting | ✅ **Fixed** — `src/proxy.ts` in-memory rate limit trên auth routes + `lib/login-lockout.ts` backoff |
+| SEC-WARN-04 import size limit | ✅ **Fixed** — `BACKUP_MAX_IMPORT_SIZE` = 500MB |
+
+**Findings vẫn mở** (từ `docs/security/AUDIT_PLAN.md` — audit mới hơn):
+`/api/backup` luôn 500 (P0), restore 501 (P0), thiếu CSP/HSTS, `.env.example`,
+health-check, CI pipeline.
 
 ---
 
@@ -34,7 +57,7 @@ status: approved
 
 ### SC-GOOD-02 — Path Traversal Protection trong Media API
 ```typescript
-// frontend/src/app/api/media/[...path]/route.ts:35-41
+// src/app/api/media/[...path]/route.ts:35-41
 function resolveSafePath(segments: string[]): string | null {
   const resolved = path.resolve(MEDIA_ROOT, ...segments);
   if (!resolved.startsWith(MEDIA_ROOT + path.sep) && resolved !== MEDIA_ROOT) {
@@ -47,14 +70,14 @@ function resolveSafePath(segments: string[]): string | null {
 
 ### SC-GOOD-03 — LIKE Injection Prevention
 ```typescript
-// frontend/src/lib/supabase-data.ts:105-106
+// src/lib/supabase-data.ts:105-106
 const escaped = query.replace(/[%_\\]/g, '\\$&');
 ```
 **Đánh giá:** Escape đúng 3 ký tự đặc biệt của LIKE pattern.
 
 ### SC-GOOD-04 — Mass Assignment Protection trong Contribution Review
 ```typescript
-// frontend/src/lib/supabase-data.ts:698-708
+// src/lib/supabase-data.ts:698-708
 const allowedFields = ['display_name', 'first_name', ...];
 const safeChanges: Record<string, unknown> = {};
 for (const [key, val] of Object.entries(contribution.changes)) {
@@ -87,7 +110,7 @@ function isDesktopMode(): boolean {
 
 ### SEC-CRIT-01 — Thiếu file size limit trên Upload (OWASP A05: Security Misconfiguration)
 
-**File:** [frontend/src/app/api/media/[...path]/route.ts:100-108](frontend/src/app/api/media/%5B...path%5D/route.ts#L100)
+**File:** [src/app/api/media/[...path]/route.ts:100-108](src/app/api/media/%5B...path%5D/route.ts#L100)
 
 **Vấn đề:**
 ```typescript
@@ -110,7 +133,7 @@ if (file.size > MAX_FILE_SIZE) {
 
 ### SEC-CRIT-02 — Thiếu MIME type validation trên Upload (OWASP A03: Injection)
 
-**File:** [frontend/src/app/api/media/[...path]/route.ts](frontend/src/app/api/media/%5B...path%5D/route.ts)
+**File:** [src/app/api/media/[...path]/route.ts](src/app/api/media/%5B...path%5D/route.ts)
 
 **Vấn đề:** Chỉ check extension khi GET (MIME map), nhưng POST không validate nội dung thực sự của file. Attacker có thể upload file PHP/EXE đổi tên thành `.jpg`.
 
@@ -130,7 +153,7 @@ if (!ALLOWED_MIME_TYPES.has(file.type)) {
 
 ### SEC-CRIT-03 — Import không validate schema manifest (OWASP A08: Software and Data Integrity)
 
-**File:** [frontend/src/app/api/desktop-import/route.ts:61-63](frontend/src/app/api/desktop-import/route.ts#L61)
+**File:** [src/app/api/desktop-import/route.ts:61-63](src/app/api/desktop-import/route.ts#L61)
 
 **Vấn đề:**
 ```typescript
@@ -157,7 +180,7 @@ const columns = Object.keys(row).filter(c => ALLOWED_COLUMNS[table]?.has(c));
 
 ### SEC-WARN-01 — Column name injection trong Desktop Query Builder
 
-**File:** [frontend/src/app/api/desktop-db/query-builder.ts:275](frontend/src/app/api/desktop-db/query-builder.ts#L275)
+**File:** [src/app/api/desktop-db/query-builder.ts:275](src/app/api/desktop-db/query-builder.ts#L275)
 
 **Vấn đề:**
 ```typescript
@@ -173,7 +196,7 @@ Column names từ client payload được nhúng vào SQL string. Mặc dù có 
 
 ### SEC-WARN-02 — deleteDocumentFile path extraction fragile
 
-**File:** [frontend/src/lib/supabase-data-documents.ts:123](frontend/src/lib/supabase-data-documents.ts#L123)
+**File:** [src/lib/supabase-data-documents.ts:123](src/lib/supabase-data-documents.ts#L123)
 
 **Vấn đề:**
 ```typescript
@@ -200,7 +223,7 @@ const path = mediaIdx !== -1 ? fileUrl.slice(mediaIdx + '/media/'.length) : null
 
 ### SEC-WARN-04 — Import không giới hạn file size
 
-**File:** [frontend/src/app/api/desktop-import/route.ts:52-53](frontend/src/app/api/desktop-import/route.ts#L52)
+**File:** [src/app/api/desktop-import/route.ts:52-53](src/app/api/desktop-import/route.ts#L52)
 
 **Vấn đề:** Không kiểm tra kích thước file ZIP trước khi parse.
 

@@ -2,13 +2,17 @@
 project: AncestorTree
 path: docs/05-test/TEST-PLAN-sprint9.md
 type: test-plan
-version: 1.0.0
-updated: 2026-02-26
+version: 1.0.1
+updated: 2026-09-16
 owner: tester
-status: approved
+status: historical
 ---
 
 # Test Plan: Sprint 9 — Standalone Desktop App
+
+> **⚠️ HISTORICAL (2026-09):** Desktop app (Electron + sql.js) đã bị gỡ khỏi
+> codebase — 63 automated test và các test case dưới đây không còn tồn tại.
+> Giữ lại làm tài liệu tham khảo lịch sử.
 
 ## Scope
 - **Sprint**: Sprint 9 (v2.0.0)

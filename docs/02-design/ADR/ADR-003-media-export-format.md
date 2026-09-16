@@ -35,7 +35,13 @@ ancestortree-export.zip
 - `"reference"` — paths only, user copy thủ mục media thủ công
 - `"skip"` — data only, no media
 
-Libraries: `archiver` (create) + `yauzl` (extract) — pure JS, zero native deps.
+Libraries: ~~`archiver` (create) + `yauzl` (extract)~~ → **thực tế dùng
+`adm-zip`** cho cả create và extract (`src/app/api/backup*/route.ts`) — pure
+JS, zero native deps.
+
+> **2026-09:** Ngữ cảnh "web ↔ desktop" không còn (desktop đã gỡ), nhưng quyết
+> định dùng ZIP + manifest.json vẫn áp dụng cho tính năng backup/restore web
+> — hiện đang hỏng, xem `docs/CODEBASE-AUDIT.md` §2 P0.
 
 ## Rationale
 

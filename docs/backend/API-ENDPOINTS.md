@@ -2,17 +2,21 @@
 project: AncestorTree
 path: docs/backend/API-ENDPOINTS.md
 type: api-reference
-version: 1.4.0
-updated: 2026-07-11
+version: 2.0.0
+updated: 2026-09-16
 owner: team
 status: approved
 ---
 
-# API Endpoints — AncestorTree v2.5.0
+# API Endpoints — AncestorTree v3.0.0
 
-> **Kiến trúc:** Next.js App Router + Supabase PostgREST
+> **Kiến trúc:** Next.js App Router + Supabase PostgREST (pure web)
 > **Auth:** Supabase JWT (cookie-based via `@supabase/ssr`)
-> **Desktop mode:** SQLite shim qua `/api/desktop-db`
+> **Middleware file:** `src/proxy.ts` (Next.js 16 proxy convention)
+>
+> **2026-09:** Desktop/Electron đã bị gỡ khỏi codebase. Các route
+> `/api/desktop-db`, `/api/media/[...path]`, `/api/desktop-export`,
+> `/api/desktop-import` không còn tồn tại — mô tả lịch sử xem git history.
 
 ---
 
@@ -76,257 +80,88 @@ Nút "Đăng nhập" hiển thị countdown `Thử lại sau Xs` khi đang bị 
 
 ## 1. Next.js Internal API Routes
 
-> Route nội bộ. Phần lớn chỉ ở **Desktop Mode** (`NEXT_PUBLIC_DESKTOP_MODE=true`).
-> `/api/backup` và `/api/backup/restore` hoạt động **cả Web và Desktop**.
+> Toàn bộ route nội bộ hiện có trong `src/app/api/`. Mọi handler đều bọc qua
+> `withApiHandler` (`src/lib/api/handler.ts`).
 
-### 1.1 Desktop DB (SQLite Gateway)
+| Method | Path | Mô tả | Trạng thái |
+|--------|------|--------|------------|
+| POST | `/api/backup` | Xuất DB ra file ZIP | ❌ **BUG: luôn 500** (xem §1.1) |
+| POST | `/api/backup/restore` | Khôi phục từ file ZIP | ❌ **501 Not Implemented** (xem §1.2) |
+| GET | `/api/cron` | Vercel Cron keep-alive ping (daily, `vercel.json`) — yêu cầu `CRON_SECRET` | ✅ |
+| GET | `/api/debug/auth` | Debug auth/env/Supabase connectivity — chỉ non-production + `DEBUG_AUTH=true` | ✅ |
+| GET | `/api/export/gedcom` | Export GEDCOM (.ged) toàn bộ cây | ✅ |
 
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/desktop-db` | Thực thi truy vấn SQLite (CRUD + RPC) |
+### 1.1 Backup Export — `POST /api/backup` ⚠️ ĐANG HỎNG
 
-**Request Headers:**
-```
-Content-Type: application/json
-```
+> **Known bug (P0):** `exportedData` được khởi tạo rỗng và không có vòng lặp
+> fetch dữ liệu → `exportedData[table].length` throw `TypeError` →
+> `withApiHandler` trả 500. Route cũng **chưa có `requireRole` check**.
+> Xem kế hoạch sửa: [CODEBASE-AUDIT.md](../CODEBASE-AUDIT.md) §2 P0.
 
-**Request Body — CRUD Query:**
-```json
-{
-  "table": "people",
-  "method": "select | insert | update | delete",
-  "columns": "* | col1, col2",
-  "body": { "field": "value" },
-  "filters": [
-    { "type": "eq", "column": "id", "value": "uuid" },
-    { "type": "in", "column": "id", "value": ["uuid1", "uuid2"] },
-    { "type": "is", "column": "field", "value": null },
-    { "type": "ilike", "column": "display_name", "value": "%search%" },
-    { "type": "not", "column": "field", "operator": "is", "value": null },
-    { "type": "or", "condition": "father_id.eq.uuid,mother_id.eq.uuid" }
-  ],
-  "order": [{ "column": "created_at", "ascending": false }],
-  "limit": 20,
-  "single": false,
-  "maybeSingle": false
-}
-```
+**Thiết kế dự kiến** (theo `src/app/api/backup/route.ts` + `constants/backup.ts`):
 
-**Request Body — RPC Call:**
-```json
-{
-  "method": "rpc",
-  "functionName": "is_person_in_subtree",
-  "params": {
-    "root_id": "uuid",
-    "target_id": "uuid"
-  }
-}
-```
-
-**Response:**
-```json
-{ "data": [...], "error": null }
-{ "data": null, "error": { "message": "...", "code": "..." } }
-```
-
----
-
-### 1.2 Media File Server
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| GET | `/api/media/[...path]` | Lấy file media từ `~/AncestorTree/media/` |
-| POST | `/api/media/[...path]` | Upload file lên thư mục media |
-| DELETE | `/api/media/[...path]` | Xóa file media |
-
-**Path examples:**
-- `/api/media/avatars/person-123.jpg`
-- `/api/media/documents/lich-su-dong-ho.pdf`
-
-**POST Request:**
-```
-Content-Type: multipart/form-data
-
-Form fields:
-  file: <binary file data>
-```
-
-**POST Response:**
-```json
-{ "ok": true, "path": "documents/filename.pdf" }
-```
-
-**GET Response:** Binary file with appropriate `Content-Type` header
-**DELETE Response:** `{ "ok": true }`
-
-**Supported MIME types (GET):**
-- `.jpg/.jpeg` → `image/jpeg`
-- `.png` → `image/png`
-- `.gif` → `image/gif`
-- `.webp` → `image/webp`
-- `.svg` → `image/svg+xml`
-- `.pdf` → `application/pdf`
-
----
-
-### 1.3 Desktop Export
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/desktop-export` | Xuất toàn bộ CSDL ra file ZIP |
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "include_media": "skip | reference | inline"
-}
-```
-
-| Tùy chọn | Mô tả |
-|-----------|--------|
-| `skip` | Không đưa media vào ZIP |
-| `reference` | Chỉ lưu URL tham chiếu (mặc định) |
-| `inline` | Nhúng toàn bộ file media vào ZIP |
-
-**Response:** `application/zip` binary với `Content-Disposition: attachment; filename="giapha-YYYY-MM-DD.zip"`
-
-**ZIP Structure:**
-```
-giapha-2026-02-27.zip
-├── manifest.json          # Schema + data + metadata
-└── media/                 # (chỉ khi include_media=inline)
-    ├── avatars/
-    └── documents/
-```
-
-**manifest.json schema:**
-```json
-{
-  "version": "1.0",
-  "app_version": "2.2.0",
-  "exported_at": "2026-02-27T10:00:00.000Z",
-  "include_media": "reference",
-  "row_counts": { "people": 18, "families": 8 },
-  "tables": {
-    "people": [...],
-    "families": [...],
-    "children": [...],
-    "contributions": [...],
-    "events": [...],
-    "media": [...],
-    "achievements": [...],
-    "fund_transactions": [...],
-    "scholarships": [...],
-    "clan_articles": [...],
-    "cau_duong_pools": [...],
-    "cau_duong_assignments": [...]
-  }
-}
-```
-
----
-
-### 1.4 Desktop Import
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/desktop-import` | Import dữ liệu từ file ZIP |
-
-**Request:**
-```
-Content-Type: multipart/form-data
-
-Form fields:
-  file: <ZIP binary>
-```
-
-**Response:**
-```json
-{
-  "ok": true,
-  "tables": { "people": 18, "families": 8 },
-  "total_inserted": 142,
-  "media_restored": 25,
-  "errors": ["table: error message"]
-}
-```
-
-**⚠️ CẢNH BÁO:** Import xóa toàn bộ dữ liệu hiện tại trước khi restore.
-
----
-
-### 1.5 Backup (Unified — Web + Desktop)
-
-> **Hoạt động ở cả hai chế độ.** Desktop: query SQLite trực tiếp. Web: dùng Supabase service-role.
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/backup` | Xuất toàn bộ 13 bảng ra file ZIP |
-| POST | `/api/backup/restore` | Khôi phục từ file ZIP (xóa dữ liệu cũ trước) |
-
-**POST `/api/backup`**
-```
-Content-Type: application/json
-
-{ "include_media": "skip | reference | inline" }
-```
-
-| Tùy chọn | Hỗ trợ | Mô tả |
-|-----------|---------|--------|
-| `skip` | Desktop + Web | Chỉ dữ liệu, không có ảnh |
-| `reference` | Desktop + Web | Lưu URL tham chiếu (mặc định) |
-| `inline` | Desktop only | Nhúng toàn bộ file media vào ZIP |
-
-**Response:** `application/zip` binary — `giapha-YYYY-MM-DD.zip`
+- Zip bằng `adm-zip`, tên file `giapha-YYYY-MM-DD.zip`.
+- `BACKUP_EXPORT_TABLES` hiện gồm 13 bảng (chưa gồm `posts`, `post_comments`,
+  `post_likes`, `notifications`, `member_registrations`, `clan_settings`,
+  `profiles` — cần mở rộng khi fix).
+- Nếu env `BACKUP_DIR` được set (Docker volume), ZIP được ghi thêm ra host.
 
 **manifest.json schema (v1.0):**
 ```json
 {
   "version": "1.0",
-  "app_version": "2.2.1",
-  "exported_at": "2026-02-28T10:00:00.000Z",
-  "mode": "web | desktop",
-  "include_media": "reference",
+  "app_version": "<APP_VERSION>",
+  "exported_at": "ISO-8601",
   "row_counts": { "people": 18, "clan_documents": 5 },
-  "tables": {
-    "people": [...], "families": [...], "children": [...],
-    "contributions": [...], "events": [...], "media": [...],
-    "achievements": [...], "fund_transactions": [...], "scholarships": [...],
-    "clan_articles": [...], "cau_duong_pools": [...],
-    "cau_duong_assignments": [...], "clan_documents": [...]
-  }
+  "tables": { "people": [...], "...": [...] }
 }
 ```
 
-**POST `/api/backup/restore`**
+**Response:** `application/zip` binary.
+
+### 1.2 Backup Restore — `POST /api/backup/restore` ⚠️ CHƯA IMPLEMENT
+
+> **Status:** Parse + validate đã xong (multipart file, `manifest.json` bắt
+> buộc, giới hạn 500 MB qua `validateUpload`), nhưng bước ghi DB trả
+> **501 Not Implemented**. Xem CODEBASE-AUDIT §2 P0.
+
+**Request:**
 ```
 Content-Type: multipart/form-data
 Form fields: file: <ZIP binary>
 ```
 
-**Response:**
-```json
-{
-  "ok": true,
-  "mode": "web | desktop",
-  "tables": { "people": 18, "clan_documents": 5 },
-  "total_inserted": 145,
-  "media_restored": 0,
-  "errors": ["optional error list"]
-}
-```
-
-**Giới hạn bảo mật:**
-- Max file size: 500 MB (SEC-WARN-04)
-- Column allowlist per table (SEC-CRIT-03)
+**Giới hạn bảo mật đã có:**
+- Max file size: 500 MB (`BACKUP_MAX_IMPORT_SIZE`)
 - Web mode: yêu cầu `SUPABASE_SERVICE_ROLE_KEY` server-side
-- Upsert theo batch 500 rows để tránh quá tải payload
+
+**Chưa có:** column allowlist per table (SEC-CRIT-03), delete-then-insert,
+batch upsert 500 rows.
+
+### 1.3 Cron — `GET /api/cron`
+
+Keep-alive ping để Supabase free-tier không bị pause. Cấu hình trong
+`vercel.json` (`"schedule": "0 0 * * *"`).
+
+- Header bắt buộc: `Authorization: Bearer <CRON_SECRET>` (qua `requireCronSecret`).
+- Hành vi: `SELECT user_id FROM profiles LIMIT 1` bằng service-role client.
+- Response: `{ "ok": true, "data": { "success": true, "timestamp": "..." } }`.
+
+### 1.4 Debug — `GET /api/debug/auth`
+
+- Chỉ phục vụ ngoài production **và** khi `DEBUG_AUTH=true`
+  (`guardDevelopmentOnly`).
+- Trả về auth state, env preview (secret bị cắt 20 ký tự), kết quả probe
+  Supabase. Không dùng cho monitoring công khai.
+
+### 1.5 GEDCOM Export — `GET /api/export/gedcom`
+
+- Yêu cầu đăng nhập (role theo RLS); load `people`/`families`/`children` rồi
+  serialize sang GEDCOM 5.5.1 bằng `src/lib/gedcom-export.ts`.
+- Response: `text/plain` (`.ged`), `Content-Disposition: attachment`.
+
+> ⚠️ Hiện `select('*')` không phân trang — đủ cho quy mô hiện tại, sẽ cần
+> stream khi dữ liệu lớn (xem AUDIT_PLAN).
 
 ---
 
@@ -749,13 +584,67 @@ Authorization: Bearer {JWT}
 
 ---
 
-### 2.15 RPC Functions
+### 2.15 Member Registrations (Đăng ký thành viên)
 
-| Function | Method | Path | Params |
-|----------|--------|------|--------|
-| is_person_in_subtree | POST | `/rest/v1/rpc/is_person_in_subtree` | `{ root_id, target_id }` |
+| Operation | Method | Path | Params / Body |
+|-----------|--------|------|---------------|
+| List all | GET | `/rest/v1/member_registrations` | `?order=created_at.desc` |
+| Filter by status | GET | `/rest/v1/member_registrations` | `?status=eq.pending` |
+| Create (public form) | POST | `/rest/v1/member_registrations` | JSON body |
+| Review | PATCH | `/rest/v1/member_registrations` | `?id=eq.{uuid}` + body |
 
-**Request:**
+> Public submit từ `/register-member` (rate-limited ở proxy: 3 lần/giờ/IP);
+> admin duyệt tại `/admin/registrations`.
+
+### 2.16 Notifications
+
+| Operation | Method | Path | Params / Body |
+|-----------|--------|------|---------------|
+| By user | GET | `/rest/v1/notifications` | `?user_id=eq.{uid}&order=created_at.desc` |
+| Mark read | PATCH | `/rest/v1/notifications` | `?id=eq.{uuid}` + `{ is_read: true }` |
+
+> Được tạo tự động bởi DB triggers `notify_post_like` / `notify_post_comment`
+> khi có tương tác trên feed.
+
+### 2.17 Feed (Posts / Comments / Likes)
+
+| Table | Operation | Method | Path |
+|-------|-----------|--------|------|
+| posts | List (published) | GET | `/rest/v1/posts?status=eq.published&order=created_at.desc` |
+| posts | Create/Update/Delete | POST/PATCH/DELETE | `/rest/v1/posts` |
+| post_comments | By post + create | GET/POST | `/rest/v1/post_comments` |
+| post_likes | Toggle like | POST/DELETE | `/rest/v1/post_likes` |
+
+> `posts.comments_count` / `posts.likes_count` được duy trì bởi triggers
+> `update_post_comments_count` / `update_post_likes_count`. Ảnh bài viết lưu
+> trong bucket `media` (path `posts/`). Admin kiểm duyệt tại `/admin/feed`.
+
+### 2.18 Clan Settings (Cấu hình dòng họ)
+
+| Operation | Method | Path | Params / Body |
+|-----------|--------|------|---------------|
+| Get settings | GET | `/rest/v1/clan_settings` | `?id=eq.1&limit=1` (singleton row) |
+| Update | PATCH | `/rest/v1/clan_settings` | `?id=eq.1` + body (admin only) |
+
+> Nguồn dữ liệu cho trang bìa PDF export, trang `/council`, `/ancestral-hall`.
+
+### 2.19 RPC Functions
+
+| Function | Dùng ở | Mô tả |
+|----------|--------|--------|
+| `is_person_in_subtree(root_id, target_id)` | editor scope check | `true/false` — target nằm trong nhánh của root |
+| `search_people_filtered(...)` | `/people` search | Tìm kiếm + lọc người (phân trang server-side) |
+| `search_people_advanced(...)` | `/people` advanced search | Tìm kiếm nâng cao nhiều tiêu chí |
+| `get_people_filter_options()` | `/people` filters | Danh sách generation/chi distinct cho dropdown |
+| `get_people_stats()` | `/stats`, dashboard | Số liệu tổng quan (tổng, sống/mất, giới tính) |
+| `get_fund_balance()` | `/fund` | Số dư quỹ khuyến học |
+| `is_admin()` / `is_admin_or_editor()` / `is_verified_user()` | RLS policies | Helper phân quyền dùng trong policy |
+| `owns_person_media_path(path)` | Storage RLS | Check quyền sở hữu file media |
+| `handle_new_user()` | Auth trigger | Tự tạo `profiles` row sau signup |
+| `notify_post_like()` / `notify_post_comment()` | DB triggers | Tạo notification khi có like/comment |
+| `update_post_likes_count()` / `update_post_comments_count()` | DB triggers | Duy trì counter trên `posts` |
+
+**`is_person_in_subtree` request:**
 ```json
 {
   "root_id": "uuid",
@@ -808,7 +697,8 @@ Authorization: Bearer {JWT}
 }
 ```
 
-**E2E test:** `src/app/api/__tests__/mfa-account.test.ts` — 35 tests, GoTrue v2.186.0
+> ⚠️ Lưu ý: test suite `mfa-account.test.ts` từng tồn tại nhưng đã bị xóa
+> cùng desktop code; hiện repo không còn file test nào (xem CODEBASE-AUDIT §2 P2.3).
 
 ### 3.2 User Management (Profiles)
 
@@ -862,6 +752,12 @@ verify_enabled = true
 
 ## 6. PDF Export — Client-side Library (`src/lib/pdf-export.ts`)
 
+> **⚠️ Status 2026-09: DEAD CODE.** Lib tồn tại (~600 dòng, deps
+> `jspdf@^4.2.1` + `html2canvas@^1.4.1` đã cài) nhưng **không component nào
+> gọi** — nút "Xuất Gia Phả" mô tả ở §6.4 hiện không có trong tree toolbar.
+> Cần wire lại vào `/admin/export` (qua `next/dynamic`, tách khỏi barrel
+> `@lib`) hoặc xóa — xem CODEBASE-AUDIT §2 P1.2.
+>
 > **Kiến trúc:** Toàn bộ xử lý PDF diễn ra **phía client** (browser), không có API route server-side.
 > **Dependencies:** `jspdf@^4.2.0`, `html2canvas@^1.4.1`
 
@@ -970,8 +866,12 @@ Người dùng click "Xuất Gia Phả"
 
 ## 7. Word Export — Client-side Library (`src/lib/word-export.ts`)
 
-> **Kiến trúc:** Xử lý hoàn toàn **phía client** (browser), không gọi API server.
-> **Dependencies:** `docx@^9.7.1`, `file-saver@^2.0.5`
+> **⚠️ Status 2026-09: CHƯA IMPLEMENT.** `src/lib/word-export.ts` không tồn
+> tại; `docx` và `file-saver` không có trong `package.json`. Phần dưới đây là
+> **spec thiết kế** — xem kế hoạch implement tại CODEBASE-AUDIT §2 P1.1.
+>
+> **Kiến trúc (dự kiến):** Xử lý hoàn toàn **phía client** (browser), không gọi API server.
+> **Dependencies (dự kiến):** `docx@^9.7.1`, `file-saver@^2.0.5`
 > **Định dạng đầu ra:** Microsoft Word `.docx` (Open XML), tương thích Word/LibreOffice/Google Docs.
 
 ### 7.1 Hàm `exportFullGiaPhaWord()` — Xuất Gia Phả đầy đủ ra Word

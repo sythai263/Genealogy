@@ -1,5 +1,10 @@
 # Audit tuân thủ Coding Standard — Gia phả Dòng họ
 
+> **Re-verify 2026-09:** Các findings chính đã được kiểm tra lại với code hiện
+> tại — `/api/backup` vẫn lỗi 500, `/api/backup/restore` vẫn 501,
+> `pdf-export.ts` vẫn dead code, `framer-motion` vẫn 0 import. Xem tổng hợp
+> docs↔code tại `docs/CODEBASE-AUDIT.md`.
+
 ## Bối cảnh
 
 Sau khi hoàn thành audit bảo mật/hiệu năng (`docs/security/AUDIT_PLAN.md`),

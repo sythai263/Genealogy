@@ -337,7 +337,7 @@ Cầu đương là phong tục phân công trách nhiệm lo việc cúng giỗ,
 | **Viewer** | Xem tất cả, không chỉnh sửa |
 | **Guest** | Xem thông tin công khai, không thấy liên lạc |
 
-> **Lưu ý cho bản Desktop:** Bạn tự động là Admin — toàn quyền quản lý dữ liệu trên máy.
+> **Lưu ý (2026-09):** Bản desktop đã ngừng phát hành — ứng dụng hiện chỉ chạy web.
 
 ### Xác nhận thành viên (v2.3)
 
@@ -354,35 +354,17 @@ Khi có người đăng ký tài khoản mới, Admin cần xác nhận trước
 
 ## 15. Sao lưu & Khôi phục
 
-### Sao lưu dữ liệu
-
-Toàn bộ dữ liệu nằm trong thư mục `~/AncestorTree/`:
-
-```
-~/AncestorTree/
-├── data/
-│   └── ancestortree.db      ← File database chính
-└── media/
-    └── people/               ← Ảnh thành viên
-```
-
-**Cách sao lưu:**
-1. Đóng ứng dụng
-2. Copy thư mục `~/AncestorTree/` ra USB, Google Drive, hoặc nơi an toàn
-3. Nên sao lưu định kỳ (ít nhất 1 lần/tháng)
-
-### Khôi phục dữ liệu
-
-1. Đóng ứng dụng
-2. Copy thư mục `AncestorTree/` từ bản backup vào `~/` (thư mục Home)
-3. Mở lại ứng dụng
-
-### Chuyển dữ liệu sang máy khác
-
-1. Sao lưu thư mục `~/AncestorTree/` từ máy cũ
-2. Cài ứng dụng trên máy mới
-3. Copy thư mục `AncestorTree/` vào `~/` trên máy mới
-4. Mở ứng dụng — dữ liệu sẽ hiển thị ngay
+> ⚠️ **2026-09:** Tính năng sao lưu/khôi phục (`/admin/backup`, chỉ Admin) đang
+> trong quá trình sửa — endpoint export hiện lỗi và restore chưa được
+> implement. Khi hoàn thiện, luồng dự kiến:
+>
+> 1. Vào **Quản trị** → **Sao lưu**
+> 2. Nhấn **Tạo bản sao lưu** → tải file `giapha-YYYY-MM-DD.zip`
+> 3. Khôi phục: chọn file ZIP → **Khôi phục** (xóa dữ liệu hiện tại trước)
+> 4. Trang này cũng có **nhắc lịch sao lưu** định kỳ (lưu trên trình duyệt)
+>
+> Trong thời gian chờ sửa, dữ liệu vẫn được Supabase tự sao lưu ở tầng
+> platform.
 
 ---
 
@@ -400,21 +382,19 @@ Toàn bộ dữ liệu nằm trong thư mục `~/AncestorTree/`:
 
 ### Bản Desktop khác gì bản Web?
 
-| | Desktop | Web |
-|--|---------|-----|
-| **Dữ liệu** | Lưu trên máy bạn (SQLite) | Lưu trên cloud (Supabase) |
-| **Internet** | Không cần | Cần |
-| **Người dùng** | 1 người (admin) | Nhiều người, phân quyền |
-| **Cài đặt** | Tải file, click cài | Cần Node.js, Docker |
-| **Chức năng** | Giống nhau 100% | Giống nhau 100% |
+> Bản desktop (Electron, offline) đã **ngừng phát hành** từ 2026-09 — ứng
+> dụng hiện chỉ có bản web: dữ liệu lưu trên cloud (Supabase), cần internet,
+> hỗ trợ nhiều người dùng với phân quyền.
 
 ### Dữ liệu có mất khi cập nhật ứng dụng không?
 
-Không. Dữ liệu được lưu riêng trong thư mục `~/AncestorTree/`, không bị ảnh hưởng khi cập nhật.
+Không. Dữ liệu lưu trên Supabase cloud, không liên quan đến phiên bản app.
 
 ### Có thể chuyển dữ liệu từ bản Desktop sang bản Web không?
 
-Có. Sử dụng tính năng Export/Import (sẽ có trong phiên bản tương lai).
+Bản desktop không còn tồn tại. Nếu còn file backup `.zip` từ bản desktop cũ,
+có thể dùng chức năng khôi phục ở **Quản trị → Sao lưu** (đang được hoàn
+thiện — xem mục 15).
 
 ### Ứng dụng hỗ trợ bao nhiêu thành viên?
 

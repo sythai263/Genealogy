@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/04-build/LOCAL-DEVELOPMENT.md
 type: build
-version: 1.6.0
-updated: 2026-02-26
+version: 1.7.0
+updated: 2026-09-16
 owner: "@fullstack"
 status: approved
 ---
@@ -31,8 +31,8 @@ Chạy **toàn bộ AncestorTree stack** offline — không cần tài khoản S
 
 ```bash
 # 1. Clone repo
-git clone https://github.com/Minh-Tam-Solution/AncestorTree.git
-cd AncestorTree/frontend
+git clone https://github.com/sythai263/Genealogy.git
+cd Genealogy
 
 # 2. Cài dependencies + khởi động local stack
 pnpm install
@@ -64,7 +64,7 @@ pnpm local:setup
        ├─ Kiểm tra Supabase CLI installed
        ├─ supabase start  (Docker pull images lần đầu ~2-3 phút)
        │     │
-       │     ├─ Chạy migrations/ (5 files, theo thứ tự timestamp)
+       │     ├─ Chạy migrations/ (24 files, theo thứ tự timestamp)
        │     └─ Chạy seed.sql (2 auth users + 18 members + families)
        │
        └─ Tự động ghi .env.local với local credentials
@@ -202,8 +202,8 @@ cp .env.local .env.local.local.bak
 
 # Khôi phục cloud config
 cp .env.local.cloud.bak .env.local   # nếu có từ pnpm local:setup
-# hoặc
-cp .env.local.example .env.local     # điền lại cloud credentials
+# hoặc tự tạo .env.local và điền lại cloud credentials
+# (repo hiện CHƯA có .env.example — xem CODEBASE-AUDIT §2 P2.2)
 ```
 
 ---
@@ -211,7 +211,7 @@ cp .env.local.example .env.local     # điền lại cloud credentials
 ## File Structure
 
 ```
-frontend/
+AncestorTree/                  # repo root = app root (không còn frontend/)
 ├── supabase/
 │   ├── config.toml           # Supabase CLI config (ports, auth, storage)
 │   ├── seed.sql              # Demo data (auth users + family tree)
@@ -219,11 +219,10 @@ frontend/
 │       ├── 20260224000000_database_setup.sql
 │       ├── 20260224000001_sprint6_migration.sql
 │       ├── 20260224000002_cau_duong_migration.sql
-│       ├── 20260224000003_sprint75_migration.sql
-│       └── 20260224000004_storage_setup.sql
+│       ├── ...               # (24 files — đến 20260809000029)
+│       └── 20260809000029_drop_media_select_anyone.sql
 ├── scripts/
 │   └── local-setup.mjs       # Cross-platform Node.js setup script
-├── .env.local.example         # Template (both cloud + local options)
 └── .env.local                 # ⚠️ NOT committed (auto-generated)
 ```
 

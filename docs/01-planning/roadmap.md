@@ -23,7 +23,7 @@ status: approved
 | **Sprint 7.5** | Sáng 25/02/2026 | Family Relations UX + Tree hierarchical + Tree-scoped editor |
 | **Test + Ship** | Chiều–tối 25/02 | QA, code review, hotfix, deploy Vercel, ship to community |
 | **Sprint 8 — Local Dev + Security** | 26/02/2026 | Supabase CLI + Docker local mode + RLS hardening |
-| **Sprint 9 — Desktop** | 26/02/2026 | Electron + sql.js standalone app (Phase 1-3 complete) |
+| **Sprint 9 — Desktop** | 26/02/2026 | Electron + sql.js standalone app (Phase 1-3 complete) — **đã gỡ khỏi codebase 2026-09, pure web** |
 | **Sprint 10 — Landing Page** | 26–27/02/2026 | Public landing page + community funnel + download links |
 | **Sprint 11 — Kho tài liệu + Help** | 27/02/2026 | In-App Help page + Document repository (library + admin CRUD) |
 
@@ -383,7 +383,7 @@ status: approved
 
 | Epic | Stories | Priority |
 |------|---------|----------|
-| **Đa ngôn ngữ** | English UI cho Việt kiều (i18n next-intl) | P2 |
+| ~~**Đa ngôn ngữ**~~ | ~~English UI cho Việt kiều (i18n next-intl)~~ — ✅ **đã implement** (next-intl, vi+en, LocaleSwitcher) | ~~P2~~ Done |
 | **AI Search / Hỏi đáp** | NLP tìm kiếm + hỏi đáp về gia phả | P2 |
 | **Radial Tree** | Cây tròn polar transform (không D3.js) | P2 |
 | **Email Notifications** | Nhắc ngày giỗ qua email (Edge Functions + Resend) | P2 |

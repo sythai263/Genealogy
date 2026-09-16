@@ -2,17 +2,21 @@
 project: AncestorTree
 path: docs/04-build/INSTALLATION-GUIDE.md
 type: installation-guide
-version: 1.8.0
-updated: 2026-02-26
+version: 1.8.1
+updated: 2026-09-16
 owner: dev-team
-status: approved
+status: deprecated
 ---
 
 # Hướng dẫn Cài đặt — Gia Phả Điện Tử
 
-Hướng dẫn cài đặt ứng dụng desktop cho **macOS** và **Windows**.
+> **⚠️ DEPRECATED / HISTORICAL (2026-09):** Tài liệu này mô tả ứng dụng
+> **desktop Electron** đã bị gỡ khỏi codebase. Dự án hiện là pure web app —
+> cài đặt = truy cập URL deploy (Vercel) hoặc self-host qua Docker
+> ([DOCKER-GUIDE](./DOCKER-GUIDE.md)) / chạy local
+> ([LOCAL-DEVELOPMENT](./LOCAL-DEVELOPMENT.md)). Giữ lại để tham khảo lịch sử.
 
-> Ứng dụng hoạt động hoàn toàn offline — không cần internet, không cần tài khoản cloud.
+Hướng dẫn cài đặt ứng dụng desktop cho **macOS** và **Windows**.
 
 ---
 
@@ -32,7 +36,7 @@ Hướng dẫn cài đặt ứng dụng desktop cho **macOS** và **Windows**.
 
 ### Bước 1: Tải file cài đặt
 
-Tải file **AncestorTree-x.x.x.dmg** từ trang [GitHub Releases](https://github.com/Minh-Tam-Solution/AncestorTree/releases).
+Tải file **AncestorTree-x.x.x.dmg** từ trang [GitHub Releases](https://github.com/sythai263/Genealogy/releases).
 
 - Máy Intel: chọn file `AncestorTree-x.x.x.dmg`
 - Máy Apple Silicon (M1/M2/M3/M4): chọn file `AncestorTree-x.x.x-arm64.dmg`
@@ -84,7 +88,7 @@ Lần đầu mở ứng dụng:
 
 ### Bước 1: Tải file cài đặt
 
-Tải file **AncestorTree-Setup-x.x.x.exe** từ trang [GitHub Releases](https://github.com/Minh-Tam-Solution/AncestorTree/releases).
+Tải file **AncestorTree-Setup-x.x.x.exe** từ trang [GitHub Releases](https://github.com/sythai263/Genealogy/releases).
 
 ### Bước 2: Cài đặt
 
@@ -184,5 +188,5 @@ Nếu ứng dụng hiện "Đang khởi động..." quá 30 giây:
 
 ## Hỗ trợ
 
-- **GitHub Issues:** [github.com/Minh-Tam-Solution/AncestorTree/issues](https://github.com/Minh-Tam-Solution/AncestorTree/issues)
+- **GitHub Issues:** [github.com/sythai263/Genealogy/issues](https://github.com/sythai263/Genealogy/issues)
 - **Cộng đồng:** Theo dõi kênh hỗ trợ tại trang chủ dự án

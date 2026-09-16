@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/04-build/DOCKER-GUIDE.md
 type: build-guide
-version: 1.0.0
-updated: 2026-02-28
+version: 1.1.0
+updated: 2026-09-16
 owner: dev-team
 status: approved
 ---
@@ -24,13 +24,17 @@ status: approved
 
 ## Cấu trúc files Docker
 
+> ⚠️ **2026-09:** Hiện repo chỉ có `Dockerfile` ở root. `docker-compose.yml`
+> và `.env.docker.example` được mô tả ở đây nhưng **chưa tồn tại trong repo**
+> — cần tạo lại nếu muốn dùng compose, hoặc chạy `docker build` + `docker run`
+> trực tiếp với `Dockerfile` (xem CODEBASE-AUDIT §2 P2.2).
+
 ```
-AncestorTree/
-├── docker-compose.yml          # Compose config + volume mapping
-├── .env.docker.example         # Template env vars (copy → .env)
-└── frontend/
-    ├── Dockerfile              # Multi-stage build (deps → builder → runner)
-    └── .dockerignore           # Exclude node_modules, .next, secrets
+AncestorTree/                   # repo root = app root
+├── Dockerfile                  # Multi-stage build (deps → builder → runner)
+├── docker-compose.yml          # ⚠️ chưa tồn tại — cần tạo
+├── .env.docker.example         # ⚠️ chưa tồn tại — cần tạo
+└── .dockerignore               # Exclude node_modules, .next, secrets
 ```
 
 ---
@@ -45,17 +49,20 @@ AncestorTree/
 ## Quick Start
 
 ```bash
-# 1. Copy và điền credentials
-cp .env.docker.example .env
-# Chỉnh sửa .env: điền NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY
+# 1. Tạo file env (⚠️ .env.docker.example chưa có — tự tạo .env)
+#    điền NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY
 
-# 2. Build và khởi động
+# 2a. Nếu đã tạo docker-compose.yml:
 docker compose up -d --build
 
-# 3. Kiểm tra logs
-docker compose logs -f app
+# 2b. Hoặc build/run trực tiếp bằng Dockerfile:
+DOCKER_BUILD=true docker build -t ancestortree-web .
+docker run -d --env-file .env -p 4000:4000 \
+  -v "$(pwd)/docker-data/backups:/data/backups" \
+  -e BACKUP_DIR=/data/backups \
+  --name ancestortree ancestortree-web
 
-# 4. Truy cập
+# 3. Truy cập
 open http://localhost:4000
 ```
 

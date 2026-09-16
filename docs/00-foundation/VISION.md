@@ -2,8 +2,8 @@
 project: AncestorTree
 path: docs/00-foundation/VISION.md
 type: foundation
-version: 3.0.0
-updated: 2026-02-27
+version: 3.1.0
+updated: 2026-09-16
 owner: "@pm, @cto"
 status: approved
 ---
@@ -73,18 +73,23 @@ Họ Đặng làng Kỷ Các — dòng họ đầu tiên sử dụng hệ thốn
 | **v1.5.0 Relations** | Family Relations UX, Tree hierarchical layout | Sprint 7.5 |
 | **v1.6.0 Local Dev** | Supabase CLI + Docker, zero-config local mode | Sprint 8 |
 | **v1.7.0 Security** | RLS hardening, privacy defaults, contact protection | Sprint 8B |
-| **v2.0.0 Desktop** | Electron + sql.js standalone app (Win + macOS) | Sprint 9 |
+| ~~**v2.0.0 Desktop**~~ | ~~Electron + sql.js standalone app~~ — **đã gỡ 2026-09** (pure web per CLAUDE.md v3) | Sprint 9 |
 | **v2.1.0 Landing** | Public landing page, SEO, community funnel | Sprint 10 |
+| **v2.2.0 Kho tài liệu** | Document library, `/documents/library` | Sprint 11 |
+| **v2.3.0 Privacy & Users** | User management, roles, verification | Sprint 12 |
+| **v2.4.0 Góc giao lưu** | Feed posts/comments/likes + admin moderation | Sprint 15 |
+| **v2.5.0 Thông báo** | In-app notifications (`/notifications`, bell) | Sprint 16 |
+| **v3.0.0 Cộng đồng** | `/ancestral-hall`, `/council`, `/register-member`, `/family-tree` public, i18n vi+en | Sprint 18 |
 
-### 3.2 Planned (v2.2.0 – v3.0.0) 📋
+### 3.2 Planned / Known Gaps 📋
 
-| Version | Features | Sprint | Nguồn |
-| --------- | ---------- | -------- | ------- |
-| **v2.2.0 Kho tài liệu** | Lưu trữ ảnh cũ, giấy tờ, video, bản đồ gia đình | Sprint 11 | PM đề xuất |
-| **v2.3.0 Góc giao lưu** | Feed chia sẻ ảnh quê, tin nhắn cho người trẻ + Việt kiều | Sprint 12 | Phản hồi người dùng |
-| **v2.4.0 Thông báo** | Email nhắc ngày giỗ, sự kiện mới | Sprint 13 | PM đề xuất |
-| **v2.5.0 Export/Import** | Desktop ↔ Web data migration, GEDCOM import, CSV export | Sprint 14 | PM đề xuất |
-| **v3.0.0 Cộng đồng** | Nhà thờ họ, đa ngôn ngữ, cross-clan, PWA | Sprint 15+ | Tầm nhìn dài hạn |
+| Item | Trạng thái | Nguồn |
+|------|------------|-------|
+| Backup export/restore (`/api/backup`, `/api/backup/restore`) | ❌ Đang hỏng (500 / 501) — xem [CODEBASE-AUDIT](../CODEBASE-AUDIT.md) §2 P0 | Audit 2026-09 |
+| Word export (.docx) | ❌ Spec only — chưa implement | API-ENDPOINTS §7 |
+| PDF export | ⚠️ Lib có sẵn nhưng chưa wire UI (dead code) | Audit 2026-09 |
+| Email nhắc ngày giỗ | ❌ Chưa có (chỉ in-app notifications) | Sprint 16 spec |
+| PWA, cross-clan | 📋 Chưa làm | Tầm nhìn dài hạn |
 
 ### 3.3 Out of Scope
 
