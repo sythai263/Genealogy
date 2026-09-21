@@ -1,9 +1,10 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { supabase, getProfile } from '@lib';
-import type { User, Session } from '@supabase/supabase-js';
+import { FEATURES } from '@constants';
+import { getProfile, supabase } from '@lib';
+import type { Session, User } from '@supabase/supabase-js';
 import type { Profile } from '@types';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface AuthContextValue {
   user: User | null;
@@ -112,6 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    if (!FEATURES.passwordLogin) {
+      throw new Error('Password login is disabled');
+    }
     authLog('signIn:start', { email });
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {

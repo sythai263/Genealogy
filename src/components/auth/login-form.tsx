@@ -8,30 +8,31 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import { KeyRound, Mail } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@components/ui';
-import { OtpEmailForm } from './otp-email-form';
-import { PasswordLoginForm } from './password-login-form';
-import { TotpStep } from './totp-step';
 import { useAuth } from '@components/auth';
 import {
-  useClanSettings,
-  useSignOutAuth,
-  useVerifiedTotpFactor,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@components/ui';
+import { FEATURES } from '@constants';
+import {
+    useClanSettings,
+    useSignOutAuth,
+    useVerifiedTotpFactor,
 } from '@hooks';
 import { CLAN_NAME, cn, getLoginLockoutSec } from '@lib';
 import type { LoginPasswordFormData } from '@schemas';
 import type { LoginMethod } from '@types';
+import { KeyRound, Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { OtpEmailForm } from './otp-email-form';
+import { PasswordLoginForm } from './password-login-form';
+import { TotpStep } from './totp-step';
 
 export function LoginForm() {
   const t = useTranslations('Auth');
@@ -46,10 +47,11 @@ export function LoginForm() {
       ? (parts[parts.length - 1][0] ?? '?')
       : (parts[0][0] ?? '?');
 
-  const enabledMethods: LoginMethod[] = cs?.login_config?.methods ?? [
-    'email_password',
-    'email_otp',
-  ];
+  const enabledMethods: LoginMethod[] = (
+    cs?.login_config?.methods ?? ['email_password', 'email_otp']
+  ).filter(
+    (method) => method !== 'email_password' || FEATURES.passwordLogin
+  );
   const hasPassword = enabledMethods.includes('email_password');
   const hasOtp = enabledMethods.includes('email_otp');
 
@@ -199,8 +201,14 @@ export function LoginForm() {
                 />
               )}
 
-              {activeTab === 'otp' && hasOtp && (
-                <OtpEmailForm onBack={() => setActiveTab('password')} />
+              {activeTab === 'otp' && (hasOtp || !hasPassword) && (
+                <OtpEmailForm
+                  onBack={
+                    hasPassword
+                      ? () => setActiveTab('password')
+                      : undefined
+                  }
+                />
               )}
             </>
           )}

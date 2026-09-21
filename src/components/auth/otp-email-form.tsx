@@ -8,33 +8,34 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
-import { ArrowLeft, Loader2, Mail } from 'lucide-react';
 import {
-  Button,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
+    Button,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    Input,
 } from '@components/ui';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useSendLoginOtp, useVerifyLoginOtp } from '@hooks';
-import { isAuthServiceError } from '@services';
 import {
-  createLoginOtpCodeSchema,
-  createLoginOtpEmailSchema,
-  type LoginOtpCodeFormData,
-  type LoginOtpEmailFormData,
+    createLoginOtpCodeSchema,
+    createLoginOtpEmailSchema,
+    type LoginOtpCodeFormData,
+    type LoginOtpEmailFormData,
 } from '@schemas';
+import { isAuthServiceError } from '@services';
+import { ArrowLeft, Loader2, Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface OtpEmailFormProps {
-  onBack: () => void;
+  /** Hidden when password login is disabled via FEATURES.passwordLogin */
+  onBack?: () => void;
 }
 
 export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
@@ -210,10 +211,17 @@ export function OtpEmailForm({ onBack }: OtpEmailFormProps) {
             t('otp.sendCode')
           )}
         </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('otp.passwordLogin')}
-        </Button>
+        {onBack && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            onClick={onBack}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('otp.passwordLogin')}
+          </Button>
+        )}
       </form>
     </Form>
   );

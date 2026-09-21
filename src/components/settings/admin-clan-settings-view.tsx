@@ -23,7 +23,7 @@ import {
     Skeleton,
     Textarea,
 } from '@components/ui';
-import { APP_VERSION_DISPLAY } from '@constants';
+import { APP_VERSION_DISPLAY, FEATURES } from '@constants';
 import { useClanSettings, useUpdateClanSettings } from '@hooks';
 import {
     CLAN_FULL_NAME as ENV_CLAN_FULL_NAME,
@@ -79,10 +79,9 @@ export function AdminClanSettingsView() {
   const [hallAddress, setHallAddress] = useState('');
   const [hallHistory, setHallHistory] = useState('');
   const [ceremonies, setCeremonies] = useState<CeremonyScheduleItem[]>([]);
-  const [loginMethods, setLoginMethods] = useState<LoginMethod[]>([
-    'email_password',
-    'email_otp',
-  ]);
+  const [loginMethods, setLoginMethods] = useState<LoginMethod[]>(
+    FEATURES.passwordLogin ? ['email_password', 'email_otp'] : ['email_otp']
+  );
   const [isSavingLogin, setIsSavingLogin] = useState(false);
   const [formSyncKey, setFormSyncKey] = useState<string | null>(null);
 
@@ -109,7 +108,10 @@ export function AdminClanSettingsView() {
         (clanSettings.ceremony_schedule as CeremonyScheduleItem[]) ?? []
       );
       setLoginMethods(
-        clanSettings.login_config?.methods ?? ['email_password', 'email_otp']
+        (clanSettings.login_config?.methods ?? [
+          'email_password',
+          'email_otp',
+        ]).filter((m) => m !== 'email_password' || FEATURES.passwordLogin)
       );
     }
   }
@@ -175,7 +177,9 @@ export function AdminClanSettingsView() {
         id: clanSettings.id,
         input: {
           login_config: {
-            methods: loginMethods,
+            methods: loginMethods.filter(
+              (m) => m !== 'email_password' || FEATURES.passwordLogin
+            ),
             otp_expiry_minutes:
               clanSettings.login_config?.otp_expiry_minutes ?? 15,
           },
@@ -588,30 +592,32 @@ export function AdminClanSettingsView() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-              <input
-                type="checkbox"
-                checked={loginMethods.includes('email_password')}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setLoginMethods((prev) => [...prev, 'email_password']);
-                  } else {
-                    setLoginMethods((prev) =>
-                      prev.filter((m) => m !== 'email_password')
-                    );
-                  }
-                }}
-                className="mt-0.5"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-sm">
-                  {t('settings.login.emailPassword.title')}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {t('settings.login.emailPassword.description')}
-                </p>
-              </div>
-            </label>
+            {FEATURES.passwordLogin && (
+              <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={loginMethods.includes('email_password')}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setLoginMethods((prev) => [...prev, 'email_password']);
+                    } else {
+                      setLoginMethods((prev) =>
+                        prev.filter((m) => m !== 'email_password')
+                      );
+                    }
+                  }}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {t('settings.login.emailPassword.title')}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {t('settings.login.emailPassword.description')}
+                  </p>
+                </div>
+              </label>
+            )}
 
             <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
               <input

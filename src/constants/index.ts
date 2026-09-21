@@ -1,6 +1,5 @@
 export * from './achievements';
 export * from './api';
-export * from './tree';
 export * from './backup';
 export * from './cau-duong';
 export * from './charter';
@@ -8,6 +7,7 @@ export * from './contributions';
 export * from './directory';
 export * from './documents';
 export * from './events';
+export * from './features';
 export * from './feed';
 export * from './fund';
 export * from './help';
@@ -22,5 +22,7 @@ export * from './route-boundaries';
 export * from './settings';
 export * from './spouses';
 export * from './stats';
+export * from './tree';
 export * from './ui-states';
 export * from './users';
+
