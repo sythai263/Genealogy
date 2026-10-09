@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xác nhận thay đổi email</title>
+</head>
+
+<body
+  style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+    Mã xác nhận thay đổi email Gia phả Dòng họ Lê Sỹ: {{ .Token }}
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+    style="background-color:#f3f4f6;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+          style="max-width:520px;background-color:#ffffff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding:36px 40px 0 40px;">
+              <span style="font-size:24px;line-height:32px;">🌳</span>
+              <span style="font-size:20px;font-weight:700;color:#111827;vertical-align:middle;">Gia phả Dòng họ Lê
+                Sỹ</span>
+            </td>
+          </tr>
+          <!-- Eyebrow -->
+          <tr>
+            <td align="center" style="padding:32px 40px 0 40px;">
+              <span style="font-size:12px;font-weight:700;letter-spacing:2px;color:#b45309;text-transform:uppercase;">
+                Bảo mật tài khoản
+              </span>
+            </td>
+          </tr>
+          <!-- Heading -->
+          <tr>
+            <td align="center" style="padding:8px 40px 0 40px;">
+              <h1 style="margin:0;font-size:28px;line-height:38px;font-weight:700;color:#111827;">
+                Xác nhận thay đổi<br />
+                <span
+                  style="font-style:italic;font-family:Georgia,'Times New Roman',serif;font-weight:600;color:#b45309;">địa
+                  chỉ email</span>
+              </h1>
+            </td>
+          </tr>
+          <!-- Description -->
+          <tr>
+            <td align="center" style="padding:16px 40px 0 40px;">
+              <p style="margin:0;font-size:15px;line-height:26px;color:#6b7280;">
+                Bạn đã yêu cầu đổi email đăng nhập tài khoản Gia phả Dòng họ Lê
+                Sỹ từ <strong>{{ .Email }}</strong> sang
+                <strong>{{ .NewEmail }}</strong>. Nhập mã xác minh bên dưới
+                hoặc bấm vào nút xác nhận để hoàn tất.
+              </p>
+            </td>
+          </tr>
+          <!-- OTP Code -->
+          <tr>
+            <td align="center" style="padding:28px 40px 0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center"
+                    style="background-color:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:22px 16px;">
+                    <span
+                      style="font-size:28px;font-weight:800;letter-spacing:10px;color:#78350f;font-family:'Courier New',Courier,monospace;text-indent:10px;">
+                      {{ .Token }}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- CTA Button -->
+          <tr>
+            <td align="center" style="padding:20px 40px 0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="border-radius:8px;background-color:#b45309;">
+                    <a href="{{ .ConfirmationURL }}"
+                      style="display:block;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#ffffff;text-decoration:none;text-transform:uppercase;">
+                      Xác nhận email mới
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Note -->
+          <tr>
+            <td align="center" style="padding:32px 40px 40px 40px;">
+              <p style="margin:0;font-size:14px;line-height:24px;color:#9ca3af;">
+                Nếu bạn không yêu cầu thay đổi này, tài khoản của bạn<br />
+                có thể đang bị truy cập trái phép — hãy bỏ qua email này<br />
+                và đổi mật khẩu ngay lập tức.
+              </p>
+            </td>
+          </tr>
+        </table>
+        <!-- Footer -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding:24px 16px;">
+              <p style="margin:0;font-size:12px;line-height:20px;color:#9ca3af;">
+                Email này được gửi tự động từ hệ thống Gia phả điện tử<br />
+                Dòng họ Lê Sỹ, xã Thường Xuân, Thanh Hóa.<br />
+                Vui lòng không trả lời email này.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
