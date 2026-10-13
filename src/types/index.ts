@@ -17,6 +17,7 @@ export * from './family';
 export * from './feed';
 export * from './fund';
 export * from './json';
+export * from './keep-alive';
 export * from './lunar';
 export * from './media';
 export * from './mfa';
