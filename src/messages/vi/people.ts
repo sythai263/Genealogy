@@ -88,9 +88,9 @@ export const People = {
     placeholders: {
       displayName: 'Nguyễn Văn A',
       handle: 'nguyen-van-a',
-      surname: 'Đặng',
-      middleName: 'Đình',
-      firstName: 'Tài',
+      surname: 'Lê',
+      middleName: 'Sỹ',
+      firstName: 'A',
       penName: 'Tên tự (courtesy name)',
       tabooName: 'Tên húy (taboo name)',
       birthPlace: 'Thanh Hóa',

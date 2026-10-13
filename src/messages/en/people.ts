@@ -90,9 +90,9 @@ export const People = {
     placeholders: {
       displayName: 'Nguyen Van A',
       handle: 'nguyen-van-a',
-      surname: 'Dang',
-      middleName: 'Dinh',
-      firstName: 'Tai',
+      surname: 'Le',
+      middleName: 'Sy',
+      firstName: 'A',
       penName: 'Courtesy name',
       tabooName: 'Taboo name',
       birthPlace: 'Thanh Hoa',

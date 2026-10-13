@@ -592,7 +592,7 @@ export const Admin = {
       lastUpdated: 'Cài đặt cập nhật lần cuối',
     },
     placeholders: {
-      shortName: 'Họ Đặng',
+      shortName: 'Họ Lê Sỹ',
       fullName: 'Họ Lê Sỹ, xã Thường Xuân, Thanh Hóa',
       ancestor: 'Cụ Lê Sỹ...',
       hometown: 'xã Thường Xuân, tỉnh Thanh Hóa',
@@ -631,7 +631,7 @@ export const Admin = {
       nominate: 'Đề cử',
       nominateTitle: 'Đề cử học bổng / khen thưởng',
       personRequired: 'Thành viên *',
-      placeholderPerson: 'Ông Đặng Văn A',
+      placeholderPerson: 'Ông Lê Sỹ A',
       placeholderClass: 'Lớp 10',
       placeholderSchool: 'THPT Cầm Bá Thước',
       saving: 'Đang lưu...',

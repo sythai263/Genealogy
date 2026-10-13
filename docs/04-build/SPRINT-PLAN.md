@@ -1121,28 +1121,26 @@ Add `(landing)` route group to existing Next.js app — reuse Tailwind 4, shadcn
 | **Phase 1: Middleware + Route** | | | | |
 | 1 | Update middleware — add `/welcome` to publicPaths, fix path matching | 0.5h | @fullstack | ✅ |
 | 2 | Create `(landing)/layout.tsx` — standalone layout (no sidebar) | 0.5h | @fullstack | ⏳ |
-| 3 | Create `(landing)/welcome/page.tsx` — 7 sections (hero, features, screenshots, download, community, developers, footer) | 2h | @fullstack | ⏳ |
+| 3 | Create `(landing)/welcome/page.tsx` — 6 sections (hero, features, download, community, developers, footer) | 2h | @fullstack | ⏳ |
 | 4 | Add canonical URL metadata + `public/robots.txt` (CTO #4) | 0.5h | @fullstack | ⏳ |
 | **Phase 2: Assets** | | | | |
-| 5 | App screenshots (tree, people, admin, mobile) → `public/screenshots/` | 1h | @fullstack | ⏳ |
-| 6 | OG social preview image → `public/og-landing.png` | 0.5h | @fullstack | ⏳ |
+| 5 | OG social preview image → `public/og-landing.png` | 0.5h | @fullstack | ⏳ |
 | **Phase 3: GitHub Templates** | | | | |
-| 7 | Bug report template → `.github/ISSUE_TEMPLATE/bug_report.md` | 0.25h | @pm | ⏳ |
-| 8 | Feature request template → `.github/ISSUE_TEMPLATE/feature_request.md` | 0.25h | @pm | ⏳ |
+| 6 | Bug report template → `.github/ISSUE_TEMPLATE/bug_report.md` | 0.25h | @pm | ⏳ |
+| 7 | Feature request template → `.github/ISSUE_TEMPLATE/feature_request.md` | 0.25h | @pm | ⏳ |
 | **Phase 4: Community Docs** | | | | |
-| 9 | Update 8 community docs v1.5.0 → v2.1.0 (desktop info, landing URL, offline fix) | 1.5h | @pm | ⏳ |
+| 8 | Update 8 community docs v1.5.0 → v2.1.0 (desktop info, landing URL, offline fix) | 1.5h | @pm | ⏳ |
 | **Phase 5: Domain** | | | | |
-| 10 | Configure Vercel custom domain `ancestortree.info` + DNS CNAME | 0.5h | @pm | ⏳ |
+| 9 | Configure Vercel custom domain `ancestortree.info` + DNS CNAME | 0.5h | @pm | ⏳ |
 
 ### Page Sections
 
 1. **Hero** — "Gia Phả Điện Tử" + tagline + CTAs: "Tải về máy tính" + "Mã nguồn GitHub"
 2. **Features** — 8 cards (tree, lunar calendar, chi/nhánh, vinh danh, hương ước, cầu đương, relations, security)
-3. **Screenshots** — 3-4 app screenshots (placeholder boxes if captures not ready)
-4. **Download** — Windows (.exe) + macOS (.dmg) cards → GitHub Releases (State B: "Sắp có" until artifacts exist)
-5. **Community** — Báo lỗi + Đề xuất tính năng + Thảo luận (→ GitHub Issues/Discussions)
-6. **For Developers** — MIT license, fork & deploy 30 min, tech stack
-7. **Footer** — GitHub, MTS, TinySDLC links, version
+3. **Download** — Windows (.exe) + macOS (.dmg) cards → GitHub Releases (State B: "Sắp có" until artifacts exist)
+4. **Community** — Báo lỗi + Đề xuất tính năng + Thảo luận (→ GitHub Issues/Discussions)
+5. **For Developers** — MIT license, fork & deploy 30 min, tech stack
+6. **Footer** — GitHub, MTS, TinySDLC links, version
 
 ### File Structure
 
@@ -1150,12 +1148,7 @@ Add `(landing)` route group to existing Next.js app — reuse Tailwind 4, shadcn
 frontend/
 ├── public/
 │   ├── robots.txt                              NEW (S10)
-│   ├── og-landing.png                          NEW (S10)
-│   └── screenshots/                            NEW (S10)
-│       ├── tree-view.png
-│       ├── people-list.png
-│       ├── admin-panel.png
-│       └── mobile-view.png
+│   └── og-landing.png                          NEW (S10)
 ├── src/app/
 │   └── (landing)/
 │       ├── layout.tsx                          NEW (S10)

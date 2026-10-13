@@ -590,7 +590,7 @@ export const Admin = {
       lastUpdated: 'Settings last updated',
     },
     placeholders: {
-      shortName: 'Đặng clan',
+      shortName: 'Lê Sỹ clan',
       fullName: 'Lê Sỹ clan, Thường Xuân, Thanh Hóa',
       ancestor: 'Ancestor Lê Sỹ...',
       hometown: 'Thường Xuân, Thanh Hóa',
@@ -629,7 +629,7 @@ export const Admin = {
       nominate: 'Nominate',
       nominateTitle: 'Nominate scholarship / award',
       personRequired: 'Person *',
-      placeholderPerson: 'Mr. Đặng Văn A',
+      placeholderPerson: 'Mr. Lê Sỹ A',
       placeholderClass: 'Grade 10',
       placeholderSchool: 'Cầm Bá Thước High School',
       saving: 'Saving...',
