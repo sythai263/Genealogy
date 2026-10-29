@@ -1,37 +1,39 @@
 /**
  * @project AncestorTree
  * @file src/components/tree/family-tree.tsx
- * @description Interactive family tree orchestrator (horizontal / vertical)
- * @version 5.4.0
- * @updated 2026-08-09
+ * @description Interactive family tree orchestrator (horizontal / vertical) —
+ *              composes toolbar, canvas and selected-person card; search,
+ *              zoom and PDF-export machinery live in tree hooks
+ * @version 6.0.0
+ * @updated 2026-10-29
  */
 
 'use client';
 
-import { Skeleton } from '@components/ui';
-import {
-    TREE_ROOT_QUERY_PARAM,
-    TREE_SEARCH_DEBOUNCE_MS,
-    TREE_ZOOM_IN_FACTOR,
-    TREE_ZOOM_OUT_FACTOR,
-} from '@constants';
-import { useIsMobile, useSearchPeopleAdvanced, useTreeData } from '@hooks';
-import {
-    buildPersonHierarchy,
-    cn,
-    expandAllNodes,
-} from '@lib';
-import type {
-    Person,
-    TreeOrientation,
-    TreeSvgDatum,
-} from '@types';
-import { select, type ZoomBehavior } from 'd3';
-import { AlertCircle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import type { ZoomBehavior } from 'd3';
+import { AlertCircle } from 'lucide-react';
+import { Skeleton } from '@components/ui';
+import { TREE_ROOT_QUERY_PARAM } from '@constants';
+import {
+  useIsMobile,
+  useTreeData,
+  useTreePdfExport,
+  useTreePersonSearch,
+  useTreeZoom,
+} from '@hooks';
+import {
+  buildPersonHierarchy,
+  cn,
+  expandAllNodes,
+} from '@lib';
+import type {
+  Person,
+  TreeOrientation,
+  TreeSvgDatum,
+} from '@types';
 import { FamilyTreeCanvas } from './family-tree-canvas';
 import { FamilyTreeSelectedCard } from './family-tree-selected-card';
 import { FamilyTreeToolbar } from './family-tree-toolbar';
@@ -54,7 +56,6 @@ export function FamilyTree({
   className,
 }: FamilyTreeProps) {
   const tCommon = useTranslations('Common');
-  const tTree = useTranslations('Tree');
   const isPublic = variant === 'public';
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -70,13 +71,6 @@ export function FamilyTree({
   const [orientationOverride, setOrientationOverride] =
     useState<TreeOrientation>('vertical');
 
-  const [filterSearch, setFilterSearch] = useState('');
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-
-  const searchContainerRef = useRef<HTMLDivElement>(null);
   const defaultChiApplied = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -128,44 +122,6 @@ export function FamilyTree({
     }
   }, [data, focusRootId, setFocusRootId]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
-      ) {
-        setFilterDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(filterSearch);
-      setFocusedIndex(-1);
-    }, TREE_SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [filterSearch]);
-
-  // Hook already debounces; pass raw input so we do not wait 600ms total.
-  const { data: remoteSearchResults, isFetching: isRemoteSearching } =
-    useSearchPeopleAdvanced(isPublic ? '' : filterSearch);
-
-  const searchResults = useMemo(() => {
-    if (!isPublic) return remoteSearchResults;
-    const query = debouncedSearch.trim().toLowerCase();
-    if (query.length < 2 || !data?.people) return [];
-    return data.people
-      .filter((person) =>
-        person.display_name.toLowerCase().includes(query)
-      )
-      .slice(0, 20);
-  }, [isPublic, remoteSearchResults, debouncedSearch, data]);
-
-  const isSearching = isPublic ? false : isRemoteSearching;
-
   const filterChi =
     chiFilter == null || chiFilter === 'all' ? null : Number(chiFilter);
 
@@ -198,15 +154,27 @@ export function FamilyTree({
     bumpLayout();
   }, [hierarchyRoot, bumpLayout]);
 
-  const handleFocusPerson = useCallback(
-    (person: Person) => {
-      setFocusRootId(person.id);
-      setSelectedPerson(person);
-      setFilterDropdownOpen(false);
-      setFilterSearch('');
-    },
-    [setFocusRootId]
-  );
+  function handleFocusPerson(person: Person) {
+    setFocusRootId(person.id);
+    setSelectedPerson(person);
+    search.resetSearch();
+  }
+
+  const search = useTreePersonSearch({
+    isPublic,
+    people: data?.people,
+    onFocusPerson: handleFocusPerson,
+  });
+
+  const { handleZoomIn, handleZoomOut, handleResetZoom } = useTreeZoom({
+    svgRef,
+    zoomBehaviorRef,
+  });
+
+  const { isExportingPdf, handleExportPdf } = useTreePdfExport({
+    svgRef,
+    wrapperRef,
+  });
 
   const handleResetFocusRoot = useCallback(() => {
     setFocusRootId(null);
@@ -216,89 +184,10 @@ export function FamilyTree({
     setOrientationOverride(next);
   }, []);
 
-  function handleSearchKeyDown(
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) {
-    if (!filterDropdownOpen || !searchResults || searchResults.length === 0) {
-      return;
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      setFocusedIndex((prev) =>
-        prev < searchResults.length - 1 ? prev + 1 : prev
-      );
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      setFocusedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      if (focusedIndex >= 0 && focusedIndex < searchResults.length) {
-        handleFocusPerson(searchResults[focusedIndex]);
-      }
-    } else if (event.key === 'Escape') {
-      setFilterDropdownOpen(false);
-    }
-  }
-
-  function handleZoomIn() {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
-      .transition()
-      .call(zoomBehaviorRef.current.scaleBy, TREE_ZOOM_IN_FACTOR);
-  }
-
-  function handleZoomOut() {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
-      .transition()
-      .call(zoomBehaviorRef.current.scaleBy, TREE_ZOOM_OUT_FACTOR);
-  }
-
-  function handleResetZoom() {
-    if (!svgRef.current || !zoomBehaviorRef.current) return;
-    select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
-      .transition()
-      .call(zoomBehaviorRef.current.scaleTo, 1);
-  }
-
   function handleChiFilterChange(value: string) {
     setChiFilter(value);
     setFocusRootId(null);
     setSelectedPerson(null);
-  }
-
-  /**
-   * Exports the rendered tree SVG to PDF. The content bounding box is measured
-   * off `g.main-container` (zoom transform lives on that <g>, so getBBox()
-   * returns pre-zoom local coordinates) and passed as offsets so the export
-   * captures the full tree regardless of the current pan/zoom.
-   */
-  async function handleExportPdf() {
-    const container = wrapperRef.current;
-    const mainG = svgRef.current?.querySelector('g.main-container');
-    if (!container || !mainG || !(mainG instanceof SVGGElement)) {
-      toast.error(tTree('export.error'));
-      return;
-    }
-
-    setIsExportingPdf(true);
-    try {
-      const bbox = mainG.getBBox();
-      const { exportTreeToPdf } = await import('@lib/pdf-export');
-      await exportTreeToPdf(
-        container,
-        Math.max(bbox.width, 1),
-        Math.max(bbox.height, 1),
-        -bbox.x,
-        -bbox.y
-      );
-      toast.success(tTree('export.success'));
-    } catch {
-      toast.error(tTree('export.error'));
-    } finally {
-      setIsExportingPdf(false);
-    }
   }
 
   if (error) {
@@ -338,18 +227,18 @@ export function FamilyTree({
       )}
     >
       <FamilyTreeToolbar
-        filterSearch={filterSearch}
-        onFilterSearchChange={setFilterSearch}
-        filterDropdownOpen={filterDropdownOpen}
-        onFilterDropdownOpenChange={setFilterDropdownOpen}
-        debouncedSearch={debouncedSearch}
-        searchResults={searchResults}
-        isSearching={isSearching}
-        focusedIndex={focusedIndex}
-        onFocusedIndexChange={setFocusedIndex}
-        onSearchKeyDown={handleSearchKeyDown}
+        filterSearch={search.filterSearch}
+        onFilterSearchChange={search.setFilterSearch}
+        filterDropdownOpen={search.filterDropdownOpen}
+        onFilterDropdownOpenChange={search.setFilterDropdownOpen}
+        debouncedSearch={search.debouncedSearch}
+        searchResults={search.searchResults}
+        isSearching={search.isSearching}
+        focusedIndex={search.focusedIndex}
+        onFocusedIndexChange={search.setFocusedIndex}
+        onSearchKeyDown={search.handleSearchKeyDown}
         onFocusPerson={handleFocusPerson}
-        searchContainerRef={searchContainerRef}
+        searchContainerRef={search.searchContainerRef}
         chiValues={chiValues}
         chiFilter={chiFilter}
         onChiFilterChange={handleChiFilterChange}
