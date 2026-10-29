@@ -6,7 +6,6 @@
  * @updated 2026-03-09
  */
 
-import type { Family, Person } from '@types';
 import {
   GEDCOM_MONTHS,
   buildFamilyRecord,
