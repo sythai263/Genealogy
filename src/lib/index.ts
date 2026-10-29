@@ -43,6 +43,7 @@ export * from './supabase-data-feed';
 export * from './supabase-data-fund';
 export * from './supabase-data-notifications';
 export * from './supabase-data-registrations';
+export * from './supabase-data-relations';
 export * from './supabase-storage';
 export * from './tree-hierarchy';
 export * from './utils';
