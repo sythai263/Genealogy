@@ -7,3 +7,5 @@
  */
 
 export * from './admin-registrations-view';
+export * from './registration-card';
+export * from './registration-dialogs';
