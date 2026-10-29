@@ -39,15 +39,13 @@ import {
 } from '@hooks';
 import type { Profile, UserRole } from '@types';
 import { BulkActionBar } from './bulk-action-bar';
+import { BulkDeleteDialog } from './bulk-delete-dialog';
+import { BulkSuspendDialog } from './bulk-suspend-dialog';
+import { DeleteUserDialog } from './delete-user-dialog';
+import { RoleChangeDialog } from './role-change-dialog';
 import { RoleLegendCard } from './role-legend-card';
+import { SuspendUserDialog } from './suspend-user-dialog';
 import { TreeMappingDialog } from './tree-mapping-dialog';
-import {
-  BulkDeleteDialog,
-  BulkSuspendDialog,
-  DeleteUserDialog,
-  RoleChangeDialog,
-  SuspendUserDialog,
-} from './user-dialogs';
 import { UsersTable } from './users-table';
 
 export function AdminUsersView() {
