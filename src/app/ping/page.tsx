@@ -3,9 +3,9 @@
  * @file src/app/ping/page.tsx
  * @description Keep-alive page — upserts the singleton keep_alive row so the
  *              Supabase free-tier project registers activity and is not paused,
- *              then shows the ping timestamp. Hit by Vercel Cron every 3 days;
- *              also safe for external monitors (200 on success, error page on
- *              failure).
+ *              then shows the ping timestamp. Safe for external monitors
+ *              (200 on success, error page on failure); machine crons should
+ *              use /api/ping instead (tiny JSON body).
  * @version 1.0.0
  * @updated 2026-10-13
  */
