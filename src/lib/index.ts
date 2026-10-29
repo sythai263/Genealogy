@@ -9,7 +9,6 @@ export * from './format';
 export * from './format-utils';
 export * from './gedcom-export';
 export * from './gedcom-import';
-export * from './helper';
 export * from './image-compression';
 export * from './login-lockout';
 export * from './lunar-calendar';

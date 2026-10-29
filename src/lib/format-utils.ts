@@ -6,7 +6,14 @@
  * @updated 2026-08-09
  */
 
-import { removeVietnameseTones } from './helper';
+export function removeVietnameseTones(str: string): string {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD') // Phân tách chữ cái và dấu (VD: 'á' -> 'a' + '´')
+    .replace(/[\u0300-\u036f]/g, '') // Xóa các dấu đi
+    .replace(/đ/g, 'd'); // Xử lý riêng chữ đ vì NFD không tách được chữ đ
+}
 
 export function getRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();

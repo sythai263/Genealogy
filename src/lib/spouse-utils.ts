@@ -7,7 +7,7 @@
  */
 
 import type { CreatePersonInput, Person } from '@types';
-import { removeVietnameseTones } from './helper';
+import { removeVietnameseTones } from './format-utils';
 
 /** Vietnamese naming order: first token = họ, last token = tên, rest = đệm. */
 export function splitVietnameseName(fullName: string): {
