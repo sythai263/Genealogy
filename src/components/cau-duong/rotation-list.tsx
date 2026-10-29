@@ -1,15 +1,17 @@
 /**
  * @project AncestorTree
  * @file src/components/cau-duong/rotation-list.tsx
- * @description Danh sách xoay vòng Cầu đương với sắp xếp thứ tự
- * @version 1.1.0
- * @updated 2026-08-09
+ * @description Danh sách xoay vòng Cầu đương với sắp xếp thứ tự — owns the
+ *              custom-order update mutation + toasts
+ * @version 2.0.0
+ * @updated 2026-10-29
  */
 
 'use client';
 
 import { ArrowDown, ArrowUp, ListRestart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import {
   Button,
   Card,
@@ -18,24 +20,48 @@ import {
   CardHeader,
   CardTitle,
 } from '@components/ui';
+import { useUpdateCauDuongPool } from '@hooks';
 import type { CauDuongEligibleMember, CauDuongPool } from '@types';
 
 interface RotationListProps {
   pool: CauDuongPool;
   eligibleMembers: CauDuongEligibleMember[] | undefined;
-  isPending: boolean;
-  onReorder: (orderedIds: string[]) => void;
-  onResetOrder: () => void;
 }
 
-export function RotationList({
-  pool,
-  eligibleMembers,
-  isPending,
-  onReorder,
-  onResetOrder,
-}: RotationListProps) {
+export function RotationList({ pool, eligibleMembers }: RotationListProps) {
   const t = useTranslations('CauDuong');
+  const updatePoolMutation = useUpdateCauDuongPool();
+
+  function handleReorder(orderedIds: string[]) {
+    updatePoolMutation.mutate(
+      {
+        id: pool.id,
+        input: { custom_order: orderedIds },
+      },
+      {
+        onError: () => {
+          toast.error(t('toasts.reorderError'));
+        },
+      }
+    );
+  }
+
+  function handleResetOrder() {
+    updatePoolMutation.mutate(
+      {
+        id: pool.id,
+        input: { custom_order: undefined },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('toasts.restoreSuccess'));
+        },
+        onError: () => {
+          toast.error(t('toasts.restoreError'));
+        },
+      }
+    );
+  }
 
   function moveMember(index: number, direction: -1 | 1) {
     if (!eligibleMembers) return;
@@ -47,8 +73,10 @@ export function RotationList({
     if (!currentId || !targetId) return;
     ids[index] = targetId;
     ids[targetIndex] = currentId;
-    onReorder(ids);
+    handleReorder(ids);
   }
+
+  const isPending = updatePoolMutation.isPending;
 
   return (
     <Card>
@@ -66,7 +94,7 @@ export function RotationList({
             <Button
               variant='ghost'
               size='sm'
-              onClick={onResetOrder}
+              onClick={handleResetOrder}
               disabled={isPending}>
               <ListRestart className='mr-1 h-3.5 w-3.5' />
               {t('defaultOrder')}

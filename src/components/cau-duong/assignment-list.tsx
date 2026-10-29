@@ -1,15 +1,18 @@
 /**
  * @project AncestorTree
  * @file src/components/cau-duong/assignment-list.tsx
- * @description Danh sách phân công lễ Cầu đương theo năm
- * @version 1.1.0
- * @updated 2026-08-09
+ * @description Danh sách phân công lễ Cầu đương theo năm — owns the assign,
+ *              edit, delegate, reschedule and complete mutations + toasts
+ * @version 2.0.0
+ * @updated 2026-10-29
  */
 
 'use client';
 
 import { CheckCircle2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { useAuth } from '@components/auth';
 import {
   Badge,
   Button,
@@ -20,6 +23,10 @@ import {
   CardTitle,
 } from '@components/ui';
 import { CAU_DUONG_CEREMONY_ORDER } from '@constants';
+import {
+  useCreateCauDuongAssignment,
+  useUpdateCauDuongAssignment,
+} from '@hooks';
 import type {
   CauDuongAssignmentWithPeople,
   CauDuongCeremonyType,
@@ -31,40 +38,40 @@ import { DelegateDialog } from './delegate-dialog';
 import { EditAssignmentDialog } from './edit-assignment-dialog';
 import { RescheduleDialog } from './reschedule-dialog';
 
+function isCauDuongCeremonyType(
+  value: string
+): value is CauDuongCeremonyType {
+  return (
+    value === 'tet' ||
+    value === 'ram_thang_gieng' ||
+    value === 'gio_to' ||
+    value === 'ram_thang_bay'
+  );
+}
+
 interface AssignmentListProps {
+  poolId: string;
   selectedYear: number;
   assignments: CauDuongAssignmentWithPeople[] | undefined;
   isLoading: boolean;
   eligibleMembers: CauDuongEligibleMember[] | undefined;
   nextHostPersonId?: string;
-  isAssignPending: boolean;
-  isUpdatePending: boolean;
-  onAssign: (ceremonyType: CauDuongCeremonyType, personId: string) => void;
-  onEdit: (assignmentId: string, hostPersonId: string) => void;
-  onDelegate: (
-    assignmentId: string,
-    actualHostId: string,
-    reason: string
-  ) => void;
-  onReschedule: (assignmentId: string, date: string, reason: string) => void;
-  onComplete: (assignmentId: string) => void;
 }
 
 export function AssignmentList({
+  poolId,
   selectedYear,
   assignments,
   isLoading,
   eligibleMembers,
   nextHostPersonId,
-  isAssignPending,
-  isUpdatePending,
-  onAssign,
-  onEdit,
-  onDelegate,
-  onReschedule,
-  onComplete,
 }: AssignmentListProps) {
   const t = useTranslations('CauDuong');
+  const tAdmin = useTranslations('Admin');
+  const tCommon = useTranslations('Common');
+  const { profile } = useAuth();
+  const createAssignmentMutation = useCreateCauDuongAssignment();
+  const updateAssignmentMutation = useUpdateCauDuongAssignment();
 
   function ceremonyLabel(ceremonyType: CauDuongCeremonyType) {
     return t(`ceremonies.${ceremonyType}`);
@@ -73,6 +80,149 @@ export function AssignmentList({
   function statusLabel(status: CauDuongStatus) {
     return t(`statuses.${status}`);
   }
+
+  function getCeremonyLabel(ceremonyType: CauDuongCeremonyType): string {
+    if (isCauDuongCeremonyType(ceremonyType)) {
+      return t(`ceremonies.${ceremonyType}`);
+    }
+    return ceremonyType;
+  }
+
+  function handleAssign(
+    ceremonyType: CauDuongCeremonyType,
+    hostPersonId: string
+  ) {
+    const rotationIndex =
+      eligibleMembers?.findIndex(
+        (member) => member.person.id === hostPersonId
+      ) ?? 0;
+    createAssignmentMutation.mutate(
+      {
+        pool_id: poolId,
+        year: selectedYear,
+        ceremony_type: ceremonyType,
+        host_person_id: hostPersonId,
+        status: 'scheduled',
+        rotation_index: rotationIndex,
+        created_by: profile?.id ?? '',
+      },
+      {
+        onSuccess: () => {
+          const hostName = eligibleMembers?.find(
+            (member) => member.person.id === hostPersonId
+          )?.person.display_name;
+          toast.success(
+            tAdmin('features.cauDuong.assignSuccess', {
+              ceremony: getCeremonyLabel(ceremonyType),
+              host: hostName ?? tCommon('unknown'),
+            })
+          );
+        },
+        onError: (error) => {
+          toast.error(
+            error.message || tAdmin('features.cauDuong.assignError')
+          );
+        },
+      }
+    );
+  }
+
+  function handleEdit(assignmentId: string, hostPersonId: string) {
+    updateAssignmentMutation.mutate(
+      {
+        id: assignmentId,
+        poolId,
+        input: { host_person_id: hostPersonId },
+      },
+      {
+        onSuccess: () => {
+          const hostName = eligibleMembers?.find(
+            (member) => member.person.id === hostPersonId
+          )?.person.display_name;
+          toast.success(
+            hostName
+              ? tAdmin('features.cauDuong.reassignSuccess', { host: hostName })
+              : tAdmin('features.cauDuong.reassignSuccessGeneric')
+          );
+        },
+        onError: () => {
+          toast.error(t('toasts.assignErrorGeneric'));
+        },
+      }
+    );
+  }
+
+  function handleDelegate(
+    assignmentId: string,
+    actualHostPersonId: string,
+    reason: string
+  ) {
+    updateAssignmentMutation.mutate(
+      {
+        id: assignmentId,
+        poolId,
+        input: {
+          actual_host_person_id: actualHostPersonId,
+          reason,
+          status: 'delegated',
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('toasts.delegateSuccess'));
+        },
+        onError: () => {
+          toast.error(t('toasts.delegateError'));
+        },
+      }
+    );
+  }
+
+  function handleReschedule(
+    assignmentId: string,
+    actualDate: string,
+    reason: string
+  ) {
+    updateAssignmentMutation.mutate(
+      {
+        id: assignmentId,
+        poolId,
+        input: { actual_date: actualDate, reason, status: 'rescheduled' },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('toasts.rescheduleSuccess'));
+        },
+        onError: () => {
+          toast.error(t('toasts.rescheduleError'));
+        },
+      }
+    );
+  }
+
+  function handleComplete(assignmentId: string) {
+    updateAssignmentMutation.mutate(
+      {
+        id: assignmentId,
+        poolId,
+        input: {
+          status: 'completed',
+          actual_date: new Date().toISOString().split('T')[0],
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('toasts.completeSuccess'));
+        },
+        onError: () => {
+          toast.error(t('toasts.completeError'));
+        },
+      }
+    );
+  }
+
+  const isAssignPending = createAssignmentMutation.isPending;
+  const isUpdatePending = updateAssignmentMutation.isPending;
 
   return (
     <Card>
@@ -166,7 +316,7 @@ export function AssignmentList({
                         assignment={assignment}
                         eligibleMembers={eligibleMembers ?? []}
                         onConfirm={hostPersonId =>
-                          onEdit(assignment.id, hostPersonId)
+                          handleEdit(assignment.id, hostPersonId)
                         }
                         isPending={isUpdatePending}
                       />
@@ -181,7 +331,7 @@ export function AssignmentList({
                         eligibleMembers={eligibleMembers}
                         defaultPersonId={nextHostPersonId}
                         onConfirm={personId =>
-                          onAssign(ceremonyType, personId)
+                          handleAssign(ceremonyType, personId)
                         }
                         isPending={isAssignPending}
                       />
@@ -192,20 +342,20 @@ export function AssignmentList({
                       <DelegateDialog
                         eligibleMembers={eligibleMembers ?? []}
                         onConfirm={(actualHostId, reason) =>
-                          onDelegate(assignment.id, actualHostId, reason)
+                          handleDelegate(assignment.id, actualHostId, reason)
                         }
                         isPending={isUpdatePending}
                       />
                       <RescheduleDialog
                         onConfirm={(date, reason) =>
-                          onReschedule(assignment.id, date, reason)
+                          handleReschedule(assignment.id, date, reason)
                         }
                         isPending={isUpdatePending}
                       />
                       <Button
                         variant='outline'
                         size='sm'
-                        onClick={() => onComplete(assignment.id)}
+                        onClick={() => handleComplete(assignment.id)}
                         disabled={isUpdatePending}>
                         <CheckCircle2 className='mr-1 h-3.5 w-3.5' />
                         {t('actions.complete')}
