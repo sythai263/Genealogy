@@ -8,12 +8,12 @@
 
 'use client';
 
-import { Search, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
 import { EVENT_TYPE_ORDER } from '@constants';
+import { PersonCombobox } from '@components/people';
 import {
   Button,
   Checkbox,
@@ -27,7 +27,7 @@ import {
   SelectValue,
   Textarea,
 } from '@components/ui';
-import { useCreateEvent, useSearchPeople } from '@hooks';
+import { useCreateEvent } from '@hooks';
 import { parseLunarString, cn } from '@lib';
 import type { EventType, Person } from '@types';
 
@@ -42,19 +42,12 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
   const [title, setTitle] = useState('');
   const [eventType, setEventType] = useState<EventType>('gio');
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [personQuery, setPersonQuery] = useState('');
-  const [personDropOpen, setPersonDropOpen] = useState(false);
   const [eventLunar, setEventLunar] = useState('');
   const [lunarError, setLunarError] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [recurring, setRecurring] = useState(true);
-
-  const { data: searchResults, isFetching } = useSearchPeople(personQuery);
-  const filteredResults = (searchResults ?? []).filter(
-    person => !person.is_living
-  );
 
   function validateLunar(value: string) {
     setEventLunar(value);
@@ -68,23 +61,16 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
     );
   }
 
-  function handleSelectPerson(person: Person) {
+  function handlePersonChange(person: Person | null) {
     setSelectedPerson(person);
-    setPersonQuery('');
-    setPersonDropOpen(false);
 
-    if (eventType === 'gio') {
+    if (person && eventType === 'gio') {
       setTitle(t('autoGioTitle', { name: person.display_name }));
       if (person.death_lunar) {
         setEventLunar(person.death_lunar);
         setLunarError('');
       }
     }
-  }
-
-  function handleClearPerson() {
-    setSelectedPerson(null);
-    setPersonQuery('');
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -139,115 +125,14 @@ export function AddEventDialog({ onClose }: AddEventDialogProps) {
       </div>
 
       {eventType === 'gio' && (
-        <div className='space-y-2'>
-          <Label>{t('form.memorialPerson')}</Label>
-          {selectedPerson ? (
-            <div className='flex items-center gap-2 rounded-md border border-border bg-muted/50 p-2'>
-              <div
-                className={cn(
-                  'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium',
-                  selectedPerson.gender === 1
-                    ? 'bg-primary/10 text-primary'
-                    : 'bg-secondary text-secondary-foreground'
-                )}>
-                {selectedPerson.display_name.slice(-1)}
-              </div>
-              <div className='min-w-0 flex-1'>
-                <p className='truncate text-sm font-medium'>
-                  {selectedPerson.display_name}
-                </p>
-                <p className='text-xs text-muted-foreground'>
-                  {selectedPerson.death_lunar
-                    ? t('form.memorialLunar', {
-                        date: selectedPerson.death_lunar,
-                      })
-                    : t('form.generation', {
-                        generation: selectedPerson.generation,
-                      })}
-                </p>
-              </div>
-              <Button
-                variant='ghost'
-                size='icon-sm'
-                type='button'
-                className='shrink-0'
-                onClick={handleClearPerson}
-                aria-label={t('form.clearMemorialPerson')}>
-                <X className='size-3' />
-              </Button>
-            </div>
-          ) : (
-            <div className='relative'>
-              <Search className='absolute top-2.5 left-3 size-4 text-muted-foreground' />
-              <Input
-                placeholder={t('form.searchPerson')}
-                value={personQuery}
-                onChange={e => {
-                  setPersonQuery(e.target.value);
-                  setPersonDropOpen(e.target.value.length >= 2);
-                }}
-                onFocus={() => {
-                  if (personQuery.length >= 2) {
-                    setPersonDropOpen(true);
-                  }
-                }}
-                onBlur={() => setTimeout(() => setPersonDropOpen(false), 150)}
-                className='pl-9'
-              />
-              {personDropOpen && (
-                <div className='absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md'>
-                  {isFetching ? (
-                    <p className='p-3 text-sm text-muted-foreground'>
-                      {t('form.searching')}
-                    </p>
-                  ) : filteredResults.length === 0 ? (
-                    <p className='p-3 text-sm text-muted-foreground'>
-                      {personQuery.length >= 2
-                        ? t('form.noDeceasedFound')
-                        : t('form.minChars')}
-                    </p>
-                  ) : (
-                    filteredResults.map(person => (
-                      <button
-                        key={person.id}
-                        type='button'
-                        className='flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground'
-                        onMouseDown={e => {
-                          e.preventDefault();
-                          handleSelectPerson(person);
-                        }}>
-                        <div
-                          className={cn(
-                            'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
-                            person.gender === 1
-                              ? 'bg-primary/10 text-primary'
-                              : 'bg-secondary text-secondary-foreground'
-                          )}>
-                          {person.display_name.slice(-1)}
-                        </div>
-                        <div className='min-w-0'>
-                          <p className='truncate text-sm font-medium'>
-                            {person.display_name}
-                          </p>
-                          <p className='text-xs text-muted-foreground'>
-                            {t('form.generation', {
-                              generation: person.generation,
-                            })}
-                            {person.death_lunar
-                              ? ` · ${t('form.memorialLunar', {
-                                  date: person.death_lunar,
-                                })}`
-                              : ''}
-                          </p>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <PersonCombobox
+          label={t('form.memorialPerson')}
+          placeholder={t('form.searchPerson')}
+          emptyMessage={t('form.noDeceasedFound')}
+          deceasedOnly
+          selected={selectedPerson}
+          onSelect={handlePersonChange}
+        />
       )}
 
       <div className='space-y-2'>

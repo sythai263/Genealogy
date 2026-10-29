@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Button,
@@ -25,8 +24,9 @@ import {
   Textarea,
 } from '@components/ui';
 import { EVENT_TYPE_ORDER } from '@constants';
-import { usePerson, useSearchPeople } from '@hooks';
+import { usePerson } from '@hooks';
 import { parseLunarString } from '@lib';
+import { PersonCombobox } from '@components/people';
 import type { CreateEventInput, Event, EventType, Person } from '@types';
 
 interface EventFormProps {
@@ -48,16 +48,14 @@ export function EventForm({ event, onSubmit, isPending }: EventFormProps) {
   const [location, setLocation] = useState(event?.location || '');
   const [description, setDescription] = useState(event?.description || '');
   const [recurring, setRecurring] = useState(event?.recurring ?? true);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [personQuery, setPersonQuery] = useState('');
-  const [personDropOpen, setPersonDropOpen] = useState(false);
+  // undefined = fall back to the event's linked person; null = user cleared it
+  const [personOverride, setPersonOverride] = useState<Person | null>();
 
   // Resolve initial person if editing
   const { data: initialPerson } = usePerson(event?.person_id);
 
-  const resolvedPerson = selectedPerson ?? initialPerson ?? null;
-
-  const { data: searchResults, isFetching } = useSearchPeople(personQuery);
+  const resolvedPerson =
+    personOverride !== undefined ? personOverride : (initialPerson ?? null);
 
   function validateLunar(value: string) {
     setEventLunar(value);
@@ -70,22 +68,15 @@ export function EventForm({ event, onSubmit, isPending }: EventFormProps) {
     );
   }
 
-  function handleSelectPerson(person: Person) {
-    setSelectedPerson(person);
-    setPersonQuery('');
-    setPersonDropOpen(false);
-    if (eventType === 'gio' && !title) {
+  function handlePersonChange(person: Person | null) {
+    setPersonOverride(person);
+    if (person && eventType === 'gio' && !title) {
       setTitle(t('autoGioTitle', { name: person.display_name }));
       if (person.death_lunar) {
         setEventLunar(person.death_lunar);
         setLunarError('');
       }
     }
-  }
-
-  function handleClearPerson() {
-    setSelectedPerson(null);
-    setPersonQuery('');
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -162,97 +153,12 @@ export function EventForm({ event, onSubmit, isPending }: EventFormProps) {
         </div>
       </div>
 
-      <div>
-        <Label>{t('form.relatedPersonOptional')}</Label>
-        {resolvedPerson ? (
-          <div className='flex items-center gap-2 p-2 rounded-md border bg-muted/50 mt-1'>
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-                resolvedPerson.gender === 1
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-pink-100 text-pink-700'
-              }`}>
-              {resolvedPerson.display_name.slice(-1)}
-            </div>
-            <div className='flex-1 min-w-0'>
-              <p className='text-sm font-medium truncate'>
-                {resolvedPerson.display_name}
-              </p>
-              <p className='text-xs text-muted-foreground'>
-                {t('form.generation', {
-                  generation: resolvedPerson.generation,
-                })}
-              </p>
-            </div>
-            <Button
-              variant='ghost'
-              size='sm'
-              type='button'
-              className='h-7 w-7 p-0 shrink-0'
-              onClick={handleClearPerson}>
-              <X className='h-3 w-3' />
-            </Button>
-          </div>
-        ) : (
-          <div className='relative mt-1'>
-            <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-            <Input
-              placeholder={t('form.searchPerson')}
-              value={personQuery}
-              onChange={e => {
-                setPersonQuery(e.target.value);
-                setPersonDropOpen(e.target.value.length >= 2);
-              }}
-              onFocus={() => personQuery.length >= 2 && setPersonDropOpen(true)}
-              onBlur={() => setTimeout(() => setPersonDropOpen(false), 150)}
-              className='pl-9'
-            />
-            {personDropOpen && (
-              <div className='absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md max-h-52 overflow-y-auto'>
-                {isFetching ? (
-                  <p className='p-3 text-sm text-muted-foreground'>
-                    {t('form.searching')}
-                  </p>
-                ) : !searchResults?.length ? (
-                  <p className='p-3 text-sm text-muted-foreground'>
-                    {t('form.noPersonFound')}
-                  </p>
-                ) : (
-                  searchResults.map(person => (
-                    <button
-                      key={person.id}
-                      type='button'
-                      className='w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent transition-colors'
-                      onMouseDown={e => {
-                        e.preventDefault();
-                        handleSelectPerson(person);
-                      }}>
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-                          person.gender === 1
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-pink-100 text-pink-700'
-                        }`}>
-                        {person.display_name.slice(-1)}
-                      </div>
-                      <div className='min-w-0'>
-                        <p className='text-sm font-medium truncate'>
-                          {person.display_name}
-                        </p>
-                        <p className='text-xs text-muted-foreground'>
-                          {t('form.generation', {
-                            generation: person.generation,
-                          })}
-                        </p>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <PersonCombobox
+        label={t('form.relatedPersonOptional')}
+        placeholder={t('form.searchPerson')}
+        selected={resolvedPerson}
+        onSelect={handlePersonChange}
+      />
 
       <div>
         <Label>{t('form.location')}</Label>

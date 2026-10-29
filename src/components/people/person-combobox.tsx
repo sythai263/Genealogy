@@ -17,11 +17,16 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useId, useRef, useState } from 'react';
 
 interface PersonComboboxProps {
-  label: string;
+  label?: string;
   hint?: string;
   selected: Person | null;
   onSelect: (person: Person | null) => void;
   excludeId?: string;
+  excludeIds?: string[];
+  deceasedOnly?: boolean;
+  emptyMessage?: string;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 export function PersonCombobox({
@@ -30,6 +35,11 @@ export function PersonCombobox({
   selected,
   onSelect,
   excludeId,
+  excludeIds,
+  deceasedOnly = false,
+  emptyMessage,
+  placeholder,
+  disabled = false,
 }: PersonComboboxProps) {
   const t = useTranslations('People');
   const listboxId = useId();
@@ -39,7 +49,12 @@ export function PersonCombobox({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const { data: results, isFetching } = useSearchPeopleAdvanced(query);
 
-  const filtered = (results || []).filter((person) => person.id !== excludeId);
+  const filtered = (results || []).filter(
+    (person) =>
+      person.id !== excludeId &&
+      !excludeIds?.includes(person.id) &&
+      (!deceasedOnly || !person.is_living)
+  );
 
   const filterKey = `${query}:${filtered.length}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
@@ -138,7 +153,9 @@ export function PersonCombobox({
 
   return (
     <div className="space-y-1.5">
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      {label ? (
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      ) : null}
       {hint ? (
         <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
@@ -182,9 +199,14 @@ export function PersonCombobox({
               aria-controls={listboxId}
               aria-autocomplete="list"
               aria-activedescendant={activeOptionId}
-              placeholder={t('searchPlaceholderLabel', {
-                label: label.toLowerCase(),
-              })}
+              placeholder={
+                placeholder ??
+                (label
+                  ? t('searchPlaceholderLabel', {
+                      label: label.toLowerCase(),
+                    })
+                  : t('searchPlaceholder'))
+              }
               value={query}
               onChange={(event) => handleQueryChange(event.target.value)}
               onKeyDown={handleKeyDown}
@@ -195,6 +217,7 @@ export function PersonCombobox({
                   setHighlightedIndex(-1);
                 }, 200)
               }
+              disabled={disabled}
               className="pl-9"
             />
           </div>
@@ -212,7 +235,7 @@ export function PersonCombobox({
               )}
               {!isFetching && filtered.length === 0 && query.length >= 2 && (
                 <p className="px-3 py-2 text-sm text-muted-foreground">
-                  {t('searchNotFound')}
+                  {emptyMessage ?? t('searchNotFound')}
                 </p>
               )}
               {filtered.map((person, index) => (
