@@ -19,6 +19,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '@components/ui';
 import { OtpEmailForm } from './otp-email-form';
 import { PasswordLoginForm } from './password-login-form';
@@ -29,7 +32,7 @@ import {
   useSignOutAuth,
   useVerifiedTotpFactor,
 } from '@hooks';
-import { CLAN_NAME, cn, getLoginLockoutSec } from '@lib';
+import { CLAN_NAME, getLoginLockoutSec } from '@lib';
 import type { LoginPasswordFormData } from '@schemas';
 import type { LoginMethod } from '@types';
 
@@ -160,34 +163,24 @@ export function LoginForm() {
           ) : (
             <>
               {hasPassword && hasOtp && (
-                <div className="mb-5 flex gap-1 rounded-lg border bg-muted/40 p-1">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('password')}
-                    className={cn(
-                      'flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                      activeTab === 'password'
-                        ? 'bg-white text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <KeyRound className="h-3.5 w-3.5" />
-                    {t('login.tabPassword')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('otp')}
-                    className={cn(
-                      'flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                      activeTab === 'otp'
-                        ? 'bg-white text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    <Mail className="h-3.5 w-3.5" />
-                    {t('login.tabOtp')}
-                  </button>
-                </div>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) =>
+                    setActiveTab(value as 'password' | 'otp')
+                  }
+                  className="mb-5"
+                >
+                  <TabsList className="w-full">
+                    <TabsTrigger value="password" className="flex-1 gap-1.5">
+                      <KeyRound className="h-3.5 w-3.5" />
+                      {t('login.tabPassword')}
+                    </TabsTrigger>
+                    <TabsTrigger value="otp" className="flex-1 gap-1.5">
+                      <Mail className="h-3.5 w-3.5" />
+                      {t('login.tabOtp')}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               )}
 
               {activeTab === 'password' && hasPassword && (

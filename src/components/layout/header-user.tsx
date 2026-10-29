@@ -16,6 +16,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -48,8 +49,9 @@ export function HeaderUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <Button
+          variant="ghost"
+          className="h-auto items-center gap-2 rounded-full px-2 py-1"
           aria-label={t('auth.account')}
         >
           <Avatar className="h-7 w-7">
@@ -64,7 +66,7 @@ export function HeaderUser() {
           <span className="hidden md:block text-xs text-muted-foreground">
             {roleLabel}
           </span>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-52">

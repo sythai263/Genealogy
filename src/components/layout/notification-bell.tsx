@@ -63,8 +63,10 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          className="relative rounded-full p-2 transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative rounded-full"
           aria-label={ariaLabel}
         >
           <Bell className="h-5 w-5" />
@@ -73,7 +75,7 @@ export function NotificationBell() {
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
-        </button>
+        </Button>
       </PopoverTrigger>
 
       <PopoverContent align="end" className="w-80 p-0">

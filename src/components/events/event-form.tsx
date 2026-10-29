@@ -14,6 +14,7 @@ import { Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Button,
+  Checkbox,
   Input,
   Label,
   Select,
@@ -273,12 +274,10 @@ export function EventForm({ event, onSubmit, isPending }: EventFormProps) {
       </div>
 
       <div className='flex items-center gap-2'>
-        <input
-          type='checkbox'
+        <Checkbox
           id='recurring'
           checked={recurring}
-          onChange={e => setRecurring(e.target.checked)}
-          className='rounded border-gray-300'
+          onCheckedChange={checked => setRecurring(checked === true)}
         />
         <Label htmlFor='recurring' className='font-normal'>
           {t('form.recurring')}

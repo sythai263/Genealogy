@@ -134,13 +134,15 @@ export function ComposeBox({ onPostCreated }: ComposeBoxProps) {
                   className="object-cover"
                   sizes="80px"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="icon-xs"
                   onClick={() => removeImage(i)}
-                  className="absolute top-0.5 right-0.5 rounded-full bg-black/60 p-0.5 text-white"
+                  className="absolute top-0.5 right-0.5 rounded-full bg-black/60 text-white hover:bg-black/80 hover:text-white"
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>

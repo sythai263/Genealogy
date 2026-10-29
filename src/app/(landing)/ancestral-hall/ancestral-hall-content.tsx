@@ -9,6 +9,7 @@
 'use client';
 
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -65,10 +66,11 @@ export function AncestralHallContent() {
           </h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {images.map((url, i) => (
-              <button
+              <Button
                 key={i}
+                variant="ghost"
                 onClick={() => setSelectedImage(url)}
-                className="relative aspect-4/3 overflow-hidden rounded-lg border transition-opacity hover:opacity-90"
+                className="relative aspect-4/3 h-auto w-full overflow-hidden rounded-lg border p-0 transition-opacity hover:opacity-90"
               >
                 <Image
                   src={url}
@@ -77,7 +79,7 @@ export function AncestralHallContent() {
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
-              </button>
+              </Button>
             ))}
           </div>
         </section>

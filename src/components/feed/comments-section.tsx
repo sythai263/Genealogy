@@ -62,16 +62,18 @@ export function CommentsSection({
 
   if (!isExpanded) {
     return (
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="xs"
         onClick={() => setIsExpanded(true)}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        className="gap-1.5 px-1 text-muted-foreground hover:text-foreground"
       >
         <MessageSquare className="h-3.5 w-3.5" />
         {commentsCount > 0
           ? t('actions.commentCount', { count: commentsCount })
           : t('actions.comment')}
-      </button>
+      </Button>
     );
   }
 
@@ -107,13 +109,15 @@ export function CommentsSection({
                       {getRelativeTime(comment.created_at)}
                     </span>
                     {canDelete && (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => handleDeleteComment(comment.id)}
-                        className="text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                        className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                       >
                         <Trash2 className="h-3 w-3" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>

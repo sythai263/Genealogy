@@ -13,6 +13,7 @@ import {
     AvatarFallback,
     AvatarImage,
     Button,
+    Input,
     Select,
     SelectContent,
     SelectItem,
@@ -113,7 +114,7 @@ export function FamilyTreeToolbar({
         ref={searchContainerRef}
       >
         <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
+        <Input
           type="search"
           inputMode="search"
           enterKeyHint="search"
@@ -132,7 +133,7 @@ export function FamilyTreeToolbar({
             }
           }}
           onKeyDown={onSearchKeyDown}
-          className="h-10 w-full rounded-md border bg-background py-2 pr-3 pl-8 text-base shadow-sm focus:ring-2 focus:ring-primary focus:outline-none sm:h-9 sm:py-1.5 sm:text-sm"
+          className="h-10 bg-background pr-3 pl-8 sm:h-9"
         />
 
         {filterDropdownOpen &&

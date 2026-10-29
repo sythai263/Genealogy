@@ -134,28 +134,32 @@ function QuickPersonForm({
         <div className="space-y-1">
           <Label>{t('form.gender')}</Label>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setGender(1)}
-              className={`flex-1 rounded border py-1.5 text-sm ${
+              className={`flex-1 ${
                 gender === 1
-                  ? 'border-blue-400 bg-blue-50 font-medium text-blue-700'
+                  ? 'border-blue-400 bg-blue-50 font-medium text-blue-700 hover:bg-blue-100 hover:text-blue-700'
                   : 'border-muted-foreground/30'
               }`}
             >
               {tCommon('male')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setGender(2)}
-              className={`flex-1 rounded border py-1.5 text-sm ${
+              className={`flex-1 ${
                 gender === 2
-                  ? 'border-pink-400 bg-pink-50 font-medium text-pink-700'
+                  ? 'border-pink-400 bg-pink-50 font-medium text-pink-700 hover:bg-pink-100 hover:text-pink-700'
                   : 'border-muted-foreground/30'
               }`}
             >
               {tCommon('female')}
-            </button>
+            </Button>
           </div>
         </div>
         <div className="space-y-1">

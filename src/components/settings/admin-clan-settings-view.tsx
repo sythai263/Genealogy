@@ -18,6 +18,7 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    Checkbox,
     Input,
     Label,
     Skeleton,
@@ -589,11 +590,10 @@ export function AdminClanSettingsView() {
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={loginMethods.includes('email_password')}
-                onChange={(e) => {
-                  if (e.target.checked) {
+                onCheckedChange={(checked) => {
+                  if (checked === true) {
                     setLoginMethods((prev) => [...prev, 'email_password']);
                   } else {
                     setLoginMethods((prev) =>
@@ -614,11 +614,10 @@ export function AdminClanSettingsView() {
             </label>
 
             <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={loginMethods.includes('email_otp')}
-                onChange={(e) => {
-                  if (e.target.checked) {
+                onCheckedChange={(checked) => {
+                  if (checked === true) {
                     setLoginMethods((prev) => [...prev, 'email_otp']);
                   } else {
                     setLoginMethods((prev) =>

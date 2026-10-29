@@ -7,7 +7,15 @@
  */
 
 import { getTranslations } from 'next-intl/server';
-import { Badge } from '@components/ui';
+import {
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@components/ui';
 import { HELP_ROLE_KEYS } from '@constants';
 
 export async function HelpRolesSection() {
@@ -19,32 +27,26 @@ export async function HelpRolesSection() {
         {t('roles.title')}
       </h2>
       <div className="mx-auto max-w-3xl">
-        <div className="overflow-x-auto">
-          <table className="w-full overflow-hidden rounded-lg border border-collapse bg-background shadow-sm">
-            <thead>
-              <tr className="bg-emerald-50">
-                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">
-                  {t('roles.roleHeader')}
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">
-                  {t('roles.permissionsHeader')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {HELP_ROLE_KEYS.map((key) => (
-                <tr key={key}>
-                  <td className="px-4 py-3 text-sm font-medium text-foreground">
-                    <Badge variant="outline">{t(`roles.${key}.role`)}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {t(`roles.${key}.permissions`)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table className="rounded-lg border bg-background shadow-sm">
+          <TableHeader>
+            <TableRow className="bg-emerald-50 hover:bg-emerald-50">
+              <TableHead>{t('roles.roleHeader')}</TableHead>
+              <TableHead>{t('roles.permissionsHeader')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {HELP_ROLE_KEYS.map((key) => (
+              <TableRow key={key}>
+                <TableCell className="font-medium">
+                  <Badge variant="outline">{t(`roles.${key}.role`)}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {t(`roles.${key}.permissions`)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </section>
   );

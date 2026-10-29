@@ -12,7 +12,7 @@ import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Camera, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@components/ui';
+import { Avatar, AvatarFallback, AvatarImage, Button } from '@components/ui';
 import { useUpdatePerson } from '@hooks';
 import { uploadFile } from '@lib';
 import type { Person } from '@types';
@@ -87,17 +87,18 @@ export function AvatarUpload({
             className="hidden"
             onChange={handleUpload}
           />
-          <button
+          <Button
+            variant="ghost"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute inset-0 h-full w-full rounded-full bg-black/40 p-0 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/50"
           >
             {isUploading ? (
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             ) : (
               <Camera className="h-6 w-6 text-white" />
             )}
-          </button>
+          </Button>
         </>
       )}
     </div>

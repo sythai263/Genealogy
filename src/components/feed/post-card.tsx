@@ -225,19 +225,21 @@ export function PostCard({
           {renderImages()}
 
           <div className="flex items-center gap-4 pt-1">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="xs"
               onClick={handleLike}
-              className={`flex items-center gap-1.5 text-xs transition-colors ${
+              className={`gap-1.5 px-1 ${
                 isLiked
-                  ? 'text-red-500'
+                  ? 'text-red-500 hover:text-red-500'
                   : 'text-muted-foreground hover:text-red-500'
               }`}
               disabled={toggleLike.isPending}
             >
               <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
               {post.likes_count > 0 && <span>{post.likes_count}</span>}
-            </button>
+            </Button>
 
             <CommentsSection
               postId={post.id}

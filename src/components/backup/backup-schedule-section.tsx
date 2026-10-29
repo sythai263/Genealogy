@@ -2,7 +2,7 @@
 
 import { Clock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Badge } from '@components/ui';
+import { Badge, Button, Switch } from '@components/ui';
 import { BACKUP_INTERVALS } from '@constants';
 import { cn, formatBackupDate } from '@lib';
 import type { BackupSchedule } from '@types';
@@ -38,37 +38,32 @@ export function BackupScheduleSection({
         <p className="text-sm font-medium">{t('backup.scheduleFrequency')}</p>
         <div className="grid grid-cols-4 gap-2">
           {BACKUP_INTERVALS.map((value) => (
-            <button
+            <Button
               key={value}
               type="button"
+              variant="outline"
               onClick={() => onScheduleChange({ interval: value })}
               className={cn(
-                'rounded-lg border-2 p-2.5 text-sm font-medium transition-all',
+                'h-auto rounded-lg border-2 p-2.5',
                 schedule.interval === value
-                  ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300'
+                  ? 'border-violet-500 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-700 dark:bg-violet-900/20 dark:text-violet-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300'
                   : 'border-muted hover:border-muted-foreground/40'
               )}
             >
               {t(`backup.intervals.${value}`)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       {schedule.interval !== 'off' && (
         <label className="flex cursor-pointer items-center gap-3 select-none">
-          <div className="relative">
-            <input
-              type="checkbox"
-              className="peer sr-only"
-              checked={schedule.autoDownload}
-              onChange={(event) =>
-                onScheduleChange({ autoDownload: event.target.checked })
-              }
-            />
-            <div className="h-6 w-10 rounded-full bg-muted transition-colors peer-checked:bg-violet-500" />
-            <div className="absolute top-1 left-1 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
-          </div>
+          <Switch
+            checked={schedule.autoDownload}
+            onCheckedChange={(checked) =>
+              onScheduleChange({ autoDownload: checked })
+            }
+          />
           <div>
             <p className="text-sm font-medium">{t('backup.scheduleAutoDownload')}</p>
             <p className="text-xs text-muted-foreground">
