@@ -9,4 +9,5 @@
 export * from './admin-contributions-view';
 export * from './contribution-form';
 export * from './contribution-list-item';
+export * from './contribution-review-card';
 export * from './contributions-view';
