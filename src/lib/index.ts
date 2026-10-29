@@ -14,6 +14,9 @@ export * from './login-lockout';
 export * from './lunar-calendar';
 export * from './markdown-export';
 export * from './pathfinding';
+export * from './pathfinding-graph';
+export * from './pathfinding-inlaw';
+export * from './pathfinding-kinship';
 // pdf-export is intentionally NOT in this barrel — jspdf + html2canvas are
 // heavy; callers lazy-import `@lib/pdf-export` on demand.
 export * from './spouse-utils';
