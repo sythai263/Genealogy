@@ -103,8 +103,24 @@ export function Avatar({ url, alt = '' }: AvatarProps) {}
 
 ```
 
-## 4. Development Workflow
+## 4. Component Architecture Patterns (MANDATORY)
+
+- **Views orchestrate, leaf components act.** `*-view.tsx` files keep only
+  fetching, filtering and pagination. Row/card/dialog components own their
+  own mutations, `isPending` state and toasts — do NOT wire mutation plumbing
+  through callback props.
+- **Coupled state + effects → hooks.** Clusters of related state/effects
+  (search dropdowns, D3 zoom, export flows, computed lists) move into
+  `src/hooks/use-*.ts`, not inline in components.
+- **Shared primitives over clones.** Person search → `PersonCombobox`.
+  Gendered initial avatar → `PersonGenderAvatar`. Check `components/ui`
+  and feature barrels before building local variants.
+- **Constants → `@constants`.** Config objects (nav items, option lists)
+  live in `src/constants/`, never inside `components/` files.
+
+## 5. Development Workflow
 
 - `pnpm dev` - Start development server.
 - `pnpm build` - Build for production.
 - `pnpm lint` - ESLint check (Ensure no `any` or unused vars).
+- `pnpm typecheck` - TypeScript check (`tsc --noEmit`).
