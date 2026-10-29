@@ -31,3 +31,4 @@ export * from './use-resettable-page';
 export * from './use-tree-pdf-export';
 export * from './use-tree-person-search';
 export * from './use-tree-zoom';
+export * from './use-tree-render';
