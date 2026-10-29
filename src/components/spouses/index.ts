@@ -8,3 +8,4 @@
 
 export * from './admin-spouses-view';
 export * from './spouse-row';
+export * from './spouse-search-combobox';

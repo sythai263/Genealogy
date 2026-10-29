@@ -15,6 +15,7 @@ import type { Person } from '@types';
 import { Search, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useId, useRef, useState } from 'react';
+import { PersonGenderAvatar } from './person-gender-avatar';
 
 interface PersonComboboxProps {
   label?: string;
@@ -161,16 +162,10 @@ export function PersonCombobox({
       ) : null}
       {selected ? (
         <div className="flex items-center gap-2 rounded-md border bg-muted/50 p-2">
-          <div
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium',
-              selected.gender === 1
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-pink-100 text-pink-700'
-            )}
-          >
-            {selected.display_name.slice(-1)}
-          </div>
+          <PersonGenderAvatar
+            gender={selected.gender}
+            name={selected.display_name}
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">
               {selected.display_name}
@@ -255,16 +250,10 @@ export function PersonCombobox({
                       : 'hover:bg-muted'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium',
-                      person.gender === 1
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-pink-100 text-pink-700'
-                    )}
-                  >
-                    {person.display_name.slice(-1)}
-                  </div>
+                  <PersonGenderAvatar
+                    gender={person.gender}
+                    name={person.display_name}
+                  />
                   <div>
                     <p className="text-sm font-medium">{person.display_name}</p>
                     <p className="text-xs text-muted-foreground">

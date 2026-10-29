@@ -8,6 +8,7 @@
 
 import Link from 'next/link';
 import type { Person } from '@types';
+import { PersonGenderAvatar } from './person-gender-avatar';
 
 interface PersonLinkProps {
   person: Person;
@@ -19,15 +20,10 @@ export function PersonLink({ person }: PersonLinkProps) {
       href={`/people/${person.id}`}
       className="group flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-muted"
     >
-      <div
-        className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${
-          person.gender === 1
-            ? 'bg-blue-100 text-blue-700'
-            : 'bg-pink-100 text-pink-700'
-        }`}
-      >
-        {person.display_name.slice(-1)}
-      </div>
+      <PersonGenderAvatar
+        gender={person.gender}
+        name={person.display_name}
+      />
       <span className="text-sm transition-colors group-hover:text-primary">
         {person.display_name}
       </span>

@@ -27,6 +27,7 @@ export * from './person-form-bio-section';
 export * from './person-form-birth-death-section';
 export * from './person-form-contact-section';
 export * from './person-form-fields';
+export * from './person-gender-avatar';
 export * from './person-link';
 export * from './photo-gallery';
 export * from './quick-person-form';
