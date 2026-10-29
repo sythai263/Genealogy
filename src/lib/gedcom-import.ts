@@ -6,7 +6,7 @@
  * @updated 2026-03-09
  */
 
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 import { findDuplicates } from './duplicate-detection';
 import type { Person, Family, DuplicatePair } from '@types';
 

@@ -6,7 +6,7 @@ import {
   NODE_WIDTH,
   SIBLING_GAP,
 } from '@constants';
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 import type {
   TreeLayoutConnection,
   TreeLayoutNode,

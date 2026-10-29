@@ -7,7 +7,7 @@
  */
 
 import type { Person, DuplicateScore, DuplicatePair } from '@types';
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 
 // ─── Vietnamese Name Utilities ───────────────────────────────────────────────
 

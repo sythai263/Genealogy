@@ -7,7 +7,7 @@
  */
 
 import type { Person } from '@types';
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { generateCsv } from '../csv-export';
 import { generateGedcom, validateGedcom } from '../gedcom-export';
 import { generateMarkdown } from '../markdown-export';
-import type { TreeData } from '../supabase-data';
+import type { TreeData } from '../supabase-data-stats';
 
 function makePerson(overrides: Partial<Person> & Pick<Person, 'id' | 'display_name'>): Person {
   return {

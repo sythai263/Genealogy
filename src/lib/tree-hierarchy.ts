@@ -11,7 +11,7 @@ import {
   TREE_VIRTUAL_ROOT_ID,
 } from '@constants';
 import type { HierarchyPersonNode, Person } from '@types';
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 
 interface BuildHierarchyOptions {
   filterChi?: number | null;

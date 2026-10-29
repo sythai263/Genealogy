@@ -6,7 +6,7 @@
  * @updated 2026-03-09
  */
 
-import type { TreeData } from './supabase-data';
+import type { TreeData } from './supabase-data-stats';
 
 const CSV_HEADERS = [
   'Họ tên', 'Giới tính', 'Đời', 'Chi', 'Năm sinh', 'Nơi sinh',
