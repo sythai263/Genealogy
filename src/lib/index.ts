@@ -36,6 +36,7 @@ export * from './supabase-data-utils';
 export * from './supabase-data-achievements';
 export * from './supabase-data-activity';
 export * from './supabase-data-cau-duong';
+export * from './supabase-data-cau-duong-rotation';
 export * from './supabase-data-charter';
 export * from './supabase-data-clan-settings';
 export * from './supabase-data-documents';
