@@ -8,6 +8,7 @@ export * from './duplicate-dismiss';
 export * from './format';
 export * from './format-utils';
 export * from './gedcom-export';
+export * from './gedcom-export-builder';
 export * from './gedcom-import';
 export * from './gedcom-import-mapper';
 export * from './gedcom-import-validator';
