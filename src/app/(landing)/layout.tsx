@@ -8,7 +8,7 @@
 
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { LandingAuthCta, LandingMobileNav, LocaleSwitcher, ThemeToggle } from '@components/layout';
+import { ClanLogo, LandingAuthCta, LandingMobileNav, LocaleSwitcher, ThemeToggle } from '@components/layout';
 import { CLAN_NAME } from '@lib';
 
 export default async function LandingLayout({
@@ -24,7 +24,7 @@ export default async function LandingLayout({
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl">🌳</span>
+              <ClanLogo size={28} className="text-foreground" />
               <span className="font-semibold text-foreground">{CLAN_NAME}</span>
             </Link>
           </div>

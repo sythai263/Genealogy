@@ -3,6 +3,7 @@ export * from './app-sidebar';
 export * from './elderly-toggle';
 export * from './header-user';
 export * from './landing-auth-cta';
+export * from './clan-logo';
 export * from './landing-mobile-nav';
 export * from './locale-switcher';
 export * from './notification-bell';

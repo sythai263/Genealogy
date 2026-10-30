@@ -32,6 +32,7 @@ export function SidebarNavMenu({ items, pathname }: SidebarNavMenuProps) {
         <SidebarMenuItem key={item.url}>
           <SidebarMenuButton
             asChild
+            tooltip={t(`nav.${item.titleKey}`)}
             isActive={
               item.url === '/admin'
                 ? pathname === '/admin'
