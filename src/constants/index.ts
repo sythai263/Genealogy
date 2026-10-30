@@ -1,5 +1,6 @@
 export * from './achievements';
 export * from './api';
+export * from './auth-paths';
 export * from './tree';
 export * from './backup';
 export * from './cau-duong';

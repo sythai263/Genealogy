@@ -24,74 +24,15 @@
 import { createServerClient } from '@supabase/ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-
-// ─── Rate Limiting ────────────────────────────────────────────────────────────
-
-interface RateEntry { count: number; windowStart: number; }
-
-// Module-level store — persists across requests in self-hosted Next.js (next start / Docker).
-// In true Edge workers (Vercel), each isolate is fresh — that's fine; GoTrue handles it there.
-const _rateLimitStore = new Map<string, RateEntry>();
-
-// Limits: deliberately lenient (operational priority) — stops bots, not impatient humans.
-const RATE_LIMITS: Record<string, { max: number; windowMs: number }> = {
-  '/login':           { max: 20, windowMs: 60_000 },   // 20 page loads/min
-  '/register':        { max: 10, windowMs: 60_000 },   // 10 page loads/min
-  '/forgot-password': { max:  6, windowMs: 300_000 },  // 6 loads/5 min
-  '/reset-password':  { max: 10, windowMs: 60_000 },   // 10 page loads/min
-  '/register-member': { max:  3, windowMs: 3_600_000 }, // 3 submissions/hour (anti-spam)
-};
-
-function _getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    '0.0.0.0'
-  );
-}
-
-function _checkRateLimit(ip: string, pathname: string): { allowed: boolean; retryAfterSec: number } {
-  const cfg = RATE_LIMITS[pathname];
-  if (!cfg) return { allowed: true, retryAfterSec: 0 };
-
-  const key = `${ip}:${pathname}`;
-  const now = Date.now();
-  const entry = _rateLimitStore.get(key);
-
-  // Passive cleanup: reset if window has expired
-  if (!entry || now - entry.windowStart > cfg.windowMs) {
-    _rateLimitStore.set(key, { count: 1, windowStart: now });
-    return { allowed: true, retryAfterSec: 0 };
-  }
-
-  if (entry.count >= cfg.max) {
-    const retryAfterSec = Math.ceil((cfg.windowMs - (now - entry.windowStart)) / 1000);
-    return { allowed: false, retryAfterSec };
-  }
-
-  entry.count++;
-  return { allowed: true, retryAfterSec: 0 };
-}
-
-// Public paths: accessible without authentication (auth pages + landing + debug)
-const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/welcome', '/council', '/ancestral-hall', '/family-tree', '/register-member', '/api/debug', '/api/cron', '/api/ping'];
-// Auth pages only: authenticated users are redirected away from these (not from landing or /api/*)
-const authPagePaths = ['/login', '/register', '/forgot-password', '/reset-password'];
-// Accessible when authenticated but NOT yet verified by admin
-const pendingVerificationPath = '/pending-verification';
-// All main app routes require authentication to protect personal data.
-// Note: `/` is public (welcome landing). Do NOT list `/` here — startsWith('/') matches every path.
-const authRequiredPaths = [
-  '/people', '/tree', '/directory', '/events',
-  '/achievements', '/charter', '/cau-duong', '/contributions',
-  '/documents', '/fund', '/admin', '/help', '/settings',
-  '/relationship', '/stats', '/feed', '/notifications', '/setup',
-];
-
-/** Post-login / app home for authenticated users */
-const APP_HOME_PATH = '/admin';
-/** Fallback when user cannot access admin */
-const APP_FALLBACK_PATH = '/tree';
+import {
+  APP_FALLBACK_PATH,
+  APP_HOME_PATH,
+  authPagePaths,
+  authRequiredPaths,
+  pendingVerificationPath,
+  publicPaths,
+} from '@constants';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@lib';
 
 // Structured logger — writes to stdout (visible in `docker compose logs -f app`)
 const LOG_ENABLED = process.env.MIDDLEWARE_LOG === 'true' || process.env.NODE_ENV === 'development';
@@ -137,8 +78,8 @@ export async function proxy(request: NextRequest) {
   // Rate limiting — secondary layer for auth page enumeration protection.
   // Primary defense: GoTrue rate limits in supabase/config.toml [auth.rate_limit].
   if (pathname in RATE_LIMITS) {
-    const ip = _getClientIp(request);
-    const { allowed, retryAfterSec } = _checkRateLimit(ip, pathname);
+    const ip = getClientIp(request);
+    const { allowed, retryAfterSec } = checkRateLimit(ip, pathname);
     if (!allowed) {
       mwLog('WARN', 'rate_limit_exceeded', { pathname, ip, retryAfterSec });
       const locale = request.cookies.get('NEXT_LOCALE')?.value;

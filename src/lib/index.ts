@@ -23,6 +23,7 @@ export * from './pathfinding-inlaw';
 export * from './pathfinding-kinship';
 // pdf-export is intentionally NOT in this barrel — jspdf + html2canvas are
 // heavy; callers lazy-import `@lib/pdf-export` on demand.
+export * from './rate-limit';
 export * from './spouse-utils';
 export * from './stats-calculator';
 export * from './supabase';
