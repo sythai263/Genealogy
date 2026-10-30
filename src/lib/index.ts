@@ -48,6 +48,7 @@ export * from './supabase-data-registrations';
 export * from './supabase-data-relations';
 export * from './supabase-storage';
 export * from './tree-hierarchy';
+export * from './tree-hierarchy-collapse';
 export * from './utils';
 export * from './validations';
 
