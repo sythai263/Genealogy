@@ -8,12 +8,14 @@
 
 'use client';
 
+import { Globe } from 'lucide-react';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    Button,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuTrigger,
 } from '@components/ui';
 import { localeCookieName, locales, type AppLocale } from '@i18n/config';
 import { cn } from '@lib';
@@ -22,14 +24,9 @@ import { useRouter } from 'next/navigation';
 
 interface LocaleSwitcherProps {
   className?: string;
-  /** Compact trigger for nav bars */
-  size?: 'sm' | 'default';
 }
 
-export function LocaleSwitcher({
-  className,
-  size = 'sm',
-}: LocaleSwitcherProps) {
+export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const t = useTranslations('Common');
@@ -40,27 +37,34 @@ export function LocaleSwitcher({
   }
 
   return (
-    <Select
-      value={locale}
-      onValueChange={(value) => {
-        if (locales.includes(value as AppLocale)) {
-          setLocale(value as AppLocale);
-        }
-      }}
-    >
-      <SelectTrigger
-        aria-label={t('locale.label')}
-        className={cn(
-          size === 'sm' && 'h-8 w-[7.5rem] text-xs',
-          className
-        )}
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="vi">{t('locale.vi')}</SelectItem>
-        <SelectItem value="en">{t('locale.en')}</SelectItem>
-      </SelectContent>
-    </Select>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t('locale.label')}
+          className={cn('h-8 w-8', className)}
+        >
+          <Globe className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={locale}
+          onValueChange={(value) => {
+            if (locales.includes(value as AppLocale)) {
+              setLocale(value as AppLocale);
+            }
+          }}
+        >
+          <DropdownMenuRadioItem value="vi">
+            {t('locale.vi')}
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="en">
+            {t('locale.en')}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

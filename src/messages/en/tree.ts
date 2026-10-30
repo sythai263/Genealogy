@@ -24,6 +24,8 @@ export const Tree = {
     zoomOut: 'Zoom out',
     resetView: 'Reset view',
     resetZoom: 'Reset zoom',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
     expandAll: 'Expand all',
     expandShort: 'Expand',
     collapseAll: 'Collapse all',
@@ -37,6 +39,17 @@ export const Tree = {
   export: {
     success: 'Family tree exported to PDF',
     error: 'PDF export failed',
+  },
+  legend: {
+    title: 'Tree legend',
+    maleBg: 'Blue background — Male',
+    femaleBg: 'Pink background — Female',
+    inLawBorder: 'Dashed border — In-law (dâu/rể)',
+    spouseLine: 'Pink line — Spouse',
+    deceasedRibbon: 'Corner ribbon — Deceased',
+    deceasedAvatar: 'Gray avatar — Deceased',
+    collapseBtn: '− / + button — Collapse / expand branch',
+    generationAxis: 'Horizontal rule — Generation divider',
   },
   guide: {
     title: 'Guide',

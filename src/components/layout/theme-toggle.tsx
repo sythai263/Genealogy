@@ -41,15 +41,13 @@ export function ThemeToggle() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           title={t('theme.modeTitle')}
-          className="gap-1.5"
+          className="h-8 w-8"
           disabled={!mounted}
+          aria-label={t(`theme.${current.labelKey}`)}
         >
           <CurrentIcon className="h-4 w-4" />
-          <span className="hidden sm:inline text-xs">
-            {t(`theme.${current.labelKey}`)}
-          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

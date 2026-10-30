@@ -16,5 +16,6 @@ export * from './interactive-tree-section';
 export * from './tree-camera';
 export * from './tree-d3-helpers';
 export * from './tree-node-html';
+export * from './tree-legend-dialog';
 export * from './tree-view';
 

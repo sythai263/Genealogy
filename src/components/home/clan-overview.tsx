@@ -13,6 +13,7 @@ import { useTranslations } from 'next-intl';
 import { BookOpen, Info, Mail, Phone, Target } from 'lucide-react';
 import { useClanSettings } from '@hooks';
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@components/ui';
+import { cn } from '@lib';
 
 interface InfoRowProps {
   label: string;
@@ -105,7 +106,14 @@ export function ClanOverview() {
       )}
 
       {(hasGeneralInfo || hasContact) && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div
+          className={cn(
+            'grid grid-cols-1 gap-6',
+            hasGeneralInfo && hasContact
+              ? 'md:grid-cols-2'
+              : 'md:mx-auto md:max-w-xl'
+          )}
+        >
           {hasGeneralInfo && (
             <Card>
               <CardHeader className="pb-3">

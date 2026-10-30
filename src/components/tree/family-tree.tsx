@@ -74,6 +74,24 @@ export function FamilyTree({
   const defaultChiApplied = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(document.fullscreenElement === wrapperRef.current);
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () =>
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  function handleToggleFullscreen() {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void wrapperRef.current?.requestFullscreen();
+    }
+  }
   const zoomBehaviorRef = useRef<ZoomBehavior<
     SVGSVGElement,
     TreeSvgDatum
@@ -251,6 +269,8 @@ export function FamilyTree({
         orientation={orientation}
         onOrientationChange={handleOrientationChange}
         onExportPdf={isPublic ? undefined : handleExportPdf}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={handleToggleFullscreen}
         exportingPdf={isExportingPdf}
         compact={isPublic}
       />

@@ -8,7 +8,6 @@
 
 'use client';
 
-import { LandingAuthCta } from '@components/layout';
 import { Skeleton } from '@components/ui';
 import { useClanSettings } from '@hooks';
 import { CLAN_FULL_NAME } from '@lib';
@@ -40,8 +39,8 @@ export function FamilyTreeContent() {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden bg-muted/20">
-      <header className="shrink-0 border-b bg-background px-3 py-2.5 sm:px-4 sm:py-3">
-        <div className="mx-auto flex max-w-6xl items-start justify-between gap-3">
+      <header className="shrink-0 border-b bg-background">
+        <div className="mx-auto flex max-w-7xl items-start justify-between gap-3 px-4 py-2.5 sm:px-6 sm:py-3 lg:px-8">
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-base font-semibold sm:text-lg">
               <GitBranchPlus className="h-5 w-5 shrink-0 text-emerald-600" />
@@ -50,25 +49,11 @@ export function FamilyTreeContent() {
             <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">
               {clanName}
             </p>
-            <p className="mt-1 hidden text-xs text-muted-foreground sm:block">
-              {t.rich('pages.familyTree.legendDesktop', {
-                male: (chunks) => (
-                  <span className="text-sky-500">{chunks}</span>
-                ),
-                female: (chunks) => (
-                  <span className="text-rose-500">{chunks}</span>
-                ),
-              })}
-            </p>
-            <p className="mt-1 text-[11px] leading-snug text-muted-foreground sm:hidden">
-              {t('pages.familyTree.legendMobile')}
-            </p>
           </div>
-          <LandingAuthCta variant="header" />
         </div>
       </header>
 
-      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col sm:px-4 sm:pt-3 sm:pb-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 sm:px-6 sm:pt-3 sm:pb-4 lg:px-8">
         <Suspense
           fallback={
             <div className="flex h-full min-h-[50vh] items-center justify-center p-4">

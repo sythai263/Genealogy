@@ -24,6 +24,7 @@ import {
     FileDown,
     Loader2,
     Maximize2,
+    Minimize2,
     RotateCcw,
     Undo2,
     ZoomIn,
@@ -31,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { FamilyTreeSearch } from './family-tree-search';
+import { TreeLegendDialog } from './tree-legend-dialog';
 
 interface FamilyTreeToolbarProps {
   filterSearch: string;
@@ -53,6 +55,9 @@ interface FamilyTreeToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetZoom: () => void;
+  /** Fullscreen toggle for the canvas wrapper. */
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
   onExpandAll: () => void;
   orientation: TreeOrientation;
   onOrientationChange: (orientation: TreeOrientation) => void;
@@ -84,6 +89,8 @@ export function FamilyTreeToolbar({
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  isFullscreen = false,
+  onToggleFullscreen,
   onExpandAll,
   orientation,
   onOrientationChange,
@@ -117,10 +124,10 @@ export function FamilyTreeToolbar({
         compact={compact}
       />
 
-      <div className="flex flex-1 flex-wrap items-center gap-2 sm:flex-none">
+      <div className="flex flex-1 flex-wrap items-center gap-1.5 sm:flex-none sm:gap-2">
         {chiValues.length > 0 && chiFilter != null && (
           <Select value={chiFilter} onValueChange={onChiFilterChange}>
-            <SelectTrigger className="h-10 w-[7.5rem] bg-background shadow-sm sm:h-9 sm:w-32">
+            <SelectTrigger className="h-8 w-20 bg-background shadow-sm text-xs sm:h-9 sm:w-32">
               <SelectValue placeholder={t('toolbar.selectChi')} />
             </SelectTrigger>
             <SelectContent>
@@ -135,14 +142,14 @@ export function FamilyTreeToolbar({
         )}
 
         <div
-          className="flex items-center gap-0.5 rounded-lg border p-1"
+          className="flex items-center gap-0.5 rounded-lg border p-0.5 sm:p-1"
           role="group"
           aria-label={t('toolbar.orientation')}
         >
           <Button
             variant={orientation === 'horizontal' ? 'outline' : 'ghost'}
             size="icon"
-            className="h-9 w-9 sm:h-7 sm:w-7"
+            className="h-7 w-7"
             onClick={() => onOrientationChange('horizontal')}
             aria-label={t('toolbar.horizontal')}
             aria-pressed={orientation === 'horizontal'}
@@ -153,7 +160,7 @@ export function FamilyTreeToolbar({
           <Button
             variant={orientation === 'vertical' ? 'outline' : 'ghost'}
             size="icon"
-            className="h-9 w-9 sm:h-7 sm:w-7"
+            className="h-7 w-7"
             onClick={() => onOrientationChange('vertical')}
             aria-label={t('toolbar.vertical')}
             aria-pressed={orientation === 'vertical'}
@@ -167,7 +174,7 @@ export function FamilyTreeToolbar({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 sm:h-7 sm:w-7"
+            className="h-7 w-7"
             onClick={onZoomOut}
             aria-label={t('actions.zoomOut')}
           >
@@ -176,7 +183,7 @@ export function FamilyTreeToolbar({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 sm:h-7 sm:w-7"
+            className="h-7 w-7"
             onClick={onZoomIn}
             aria-label={t('actions.zoomIn')}
           >
@@ -185,32 +192,54 @@ export function FamilyTreeToolbar({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 sm:h-7 sm:w-7"
+            className="h-7 w-7"
             onClick={onResetZoom}
             aria-label={t('actions.resetZoom')}
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
+          {onToggleFullscreen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={onToggleFullscreen}
+              aria-label={
+                isFullscreen
+                  ? t('actions.exitFullscreen')
+                  : t('actions.fullscreen')
+              }
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          className="h-10 gap-1.5 shadow-sm sm:h-9"
+          className="h-8 w-8 px-0 shadow-sm sm:h-9 sm:w-auto sm:gap-1.5 sm:px-3"
           onClick={onExpandAll}
+          aria-label={t('actions.expandAll')}
         >
-          <Maximize2 className="h-3.5 w-3.5 sm:hidden" />
-          <span className="sm:hidden">{t('actions.expandShort')}</span>
+          <Maximize2 className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">{t('actions.expandAll')}</span>
         </Button>
+
+        <TreeLegendDialog />
 
         {onExportPdf && (
           <Button
             variant="outline"
             size="sm"
-            className="h-10 gap-1.5 shadow-sm sm:h-9"
+            className="h-8 w-8 px-0 shadow-sm sm:h-9 sm:w-auto sm:gap-1.5 sm:px-3"
             onClick={onExportPdf}
             disabled={exportingPdf}
+            aria-label={t('actions.exportPdf')}
           >
             {exportingPdf ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

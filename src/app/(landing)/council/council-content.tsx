@@ -24,7 +24,7 @@ export function CouncilContent() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-8 px-4 py-12">
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
         <Skeleton className="mx-auto h-10 w-64" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
@@ -36,12 +36,12 @@ export function CouncilContent() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-12 px-4 py-12">
+    <div className="mx-auto max-w-7xl space-y-12 px-4 py-12 sm:px-6 lg:px-8">
       <div className="space-y-3 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+        <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
           {t('pages.council.title')}
         </h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-muted-foreground">
           {cs?.clan_full_name ?? CLAN_FULL_NAME}
         </p>
       </div>
@@ -61,7 +61,7 @@ export function CouncilContent() {
                   </div>
                   <div>
                     <p className="font-semibold">{m.name}</p>
-                    <p className="text-sm text-gray-500">{m.title}</p>
+                    <p className="text-sm text-muted-foreground">{m.title}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -109,7 +109,7 @@ export function CouncilContent() {
             <CardContent className="space-y-2">
               {cs.clan_patriarch && (
                 <div className="flex justify-between border-b py-1.5">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {t('pages.council.patriarch')}
                   </span>
                   <span className="text-sm font-medium">{cs.clan_patriarch}</span>
@@ -117,7 +117,7 @@ export function CouncilContent() {
               )}
               {cs.clan_founding_year && (
                 <div className="flex justify-between border-b py-1.5">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {t('pages.council.foundingYear')}
                   </span>
                   <span className="text-sm font-medium">
@@ -127,7 +127,7 @@ export function CouncilContent() {
               )}
               {cs.clan_origin && (
                 <div className="flex justify-between py-1.5">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {t('pages.council.origin')}
                   </span>
                   <span className="text-sm font-medium">{cs.clan_origin}</span>
@@ -140,7 +140,7 @@ export function CouncilContent() {
 
       {councilMembers.length === 0 && !cs?.clan_history && !cs?.clan_mission && (
         <Card>
-          <CardContent className="py-12 text-center text-gray-500">
+          <CardContent className="py-12 text-center text-muted-foreground">
             <p>{t('pages.council.empty')}</p>
             <p className="mt-1 text-sm">{t('pages.council.emptyHint')}</p>
           </CardContent>
@@ -151,18 +151,18 @@ export function CouncilContent() {
         <Link href="/" className="text-sm text-primary hover:underline">
           {t('pageNav.home')}
         </Link>
-        <span className="text-gray-300">|</span>
+        <span className="text-border">|</span>
         <Link href="/family-tree" className="text-sm text-primary hover:underline">
           {t('pageNav.tree')}
         </Link>
-        <span className="text-gray-300">|</span>
+        <span className="text-border">|</span>
         <Link
           href="/ancestral-hall"
           className="text-sm text-primary hover:underline"
         >
           {t('pageNav.hall')}
         </Link>
-        <span className="text-gray-300">|</span>
+        <span className="text-border">|</span>
         <Link
           href="/register-member"
           className="text-sm text-primary hover:underline"

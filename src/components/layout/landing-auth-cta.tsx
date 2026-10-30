@@ -48,7 +48,7 @@ export function LandingAuthCta({
           asChild
           size="sm"
           variant="outline"
-          className={cn('h-9 shrink-0 gap-1.5', className)}
+          className={cn('h-9 w-9 shrink-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3', className)}
         >
           <Link href="/login" aria-label={t('auth.login')}>
             <LogIn className="h-3.5 w-3.5" />
@@ -82,7 +82,11 @@ export function LandingAuthCta({
       <Button
         asChild
         size="sm"
-        className={cn('h-9 shrink-0 gap-1.5', className)}
+        variant="outline"
+        className={cn(
+          'h-9 w-9 shrink-0 px-0 text-sky-600 sm:w-auto sm:gap-1.5 sm:px-3 dark:text-sky-400',
+          className
+        )}
       >
         <Link href={href} aria-label={label}>
           <Icon className="h-3.5 w-3.5" />
@@ -95,13 +99,14 @@ export function LandingAuthCta({
   return (
     <Link
       href={href}
+      aria-label={label}
+      title={label}
       className={cn(
-        'inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300',
+        'inline-flex items-center rounded-md p-1 text-sky-600 transition-colors hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300',
         className
       )}
     >
-      <Icon className="h-3.5 w-3.5" />
-      <span>{label}</span>
+      <Icon className="h-4 w-4" />
     </Link>
   );
 }

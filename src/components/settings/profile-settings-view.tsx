@@ -52,7 +52,7 @@ export async function ProfileSettingsView() {
           <CardDescription>{t('profile.languageDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocaleSwitcher size="default" />
+          <LocaleSwitcher />
         </CardContent>
       </Card>
 

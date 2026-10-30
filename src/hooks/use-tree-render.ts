@@ -431,6 +431,29 @@ export function useTreeRender({
       wrapperRef,
       svgRef,
     });
+
+    // Refit when the canvas resizes (fullscreen toggle, window resize) —
+    // otherwise the stale transform leaves the tree shifted off-center.
+    const resizeObserver = new ResizeObserver(() => {
+      didInitialZoomRef.current = false;
+      applyTreeCamera({
+        svg,
+        descendants,
+        orientation,
+        px,
+        py,
+        orientationRef,
+        pendingFocusNodeIdRef,
+        didInitialZoomRef,
+        zoomBehaviorRef,
+        wrapperRef,
+        svgRef,
+      });
+    });
+    if (wrapperRef.current) {
+      resizeObserver.observe(wrapperRef.current);
+    }
+    return () => resizeObserver.disconnect();
   }, [
     hierarchyRoot,
     isPublic,

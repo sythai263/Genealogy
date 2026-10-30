@@ -22,6 +22,8 @@ export const Tree = {
     zoomOut: 'Thu nhỏ',
     resetView: 'Đặt lại khung nhìn',
     resetZoom: 'Đặt lại zoom',
+    fullscreen: 'Toàn màn hình',
+    exitFullscreen: 'Thoát toàn màn hình',
     expandAll: 'Mở rộng tất cả',
     expandShort: 'Mở rộng',
     collapseAll: 'Thu gọn tất cả',
@@ -35,6 +37,17 @@ export const Tree = {
   export: {
     success: 'Đã xuất cây gia phả ra PDF',
     error: 'Xuất PDF thất bại',
+  },
+  legend: {
+    title: 'Chú thích gia phả',
+    maleBg: 'Nền xanh — Nam',
+    femaleBg: 'Nền hồng — Nữ',
+    inLawBorder: 'Viền đứt — Con dâu / con rể',
+    spouseLine: 'Đường hồng — Vợ / chồng',
+    deceasedRibbon: 'Dải chéo ở góc — Đã mất',
+    deceasedAvatar: 'Avatar xám — Đã mất',
+    collapseBtn: 'Nút − / + — Thu / mở nhánh con',
+    generationAxis: 'Vạch kẻ ngang — Ranh giới từng đời',
   },
   guide: {
     title: 'Hướng dẫn',

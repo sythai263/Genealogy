@@ -82,7 +82,7 @@ export function FamilyTreeSearch({
           }
         }}
         onKeyDown={onSearchKeyDown}
-        className="h-10 bg-background pr-3 pl-8 sm:h-9"
+        className="h-8 bg-background pr-3 pl-8 text-sm sm:h-9"
       />
 
       {filterDropdownOpen &&

@@ -70,7 +70,7 @@ export default async function WelcomePage() {
           <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-emerald-400 blur-3xl" />
           <div className="absolute right-20 bottom-10 h-96 w-96 rounded-full bg-emerald-300 blur-3xl" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 md:py-32 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 md:py-32 lg:px-8">
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             {CLAN_FULL_NAME}
           </h1>
@@ -116,7 +116,7 @@ export default async function WelcomePage() {
       </section>
 
       <section id="about" className="py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold text-foreground">
               {t('about.title')}
@@ -127,7 +127,7 @@ export default async function WelcomePage() {
       </section>
 
       <section className="bg-muted/50 py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-14 text-center">
             <h2 className="mb-3 text-3xl font-bold text-foreground">
               {t('explore.title')}
@@ -163,7 +163,7 @@ export default async function WelcomePage() {
       </section>
 
       <section className="py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-3 text-3xl font-bold text-foreground">
               {t('members.title', { clanName: CLAN_NAME })}
@@ -190,7 +190,7 @@ export default async function WelcomePage() {
       </section>
 
       <footer className="border-t bg-card py-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
             <div className="flex items-center gap-2">
               <span className="text-lg">🌳</span>
