@@ -12,6 +12,7 @@ export * from './family-tree-canvas';
 export * from './family-tree-selected-card';
 export * from './family-tree-toolbar';
 export * from './interactive-tree-section';
+export * from './tree-camera';
 export * from './tree-d3-helpers';
 export * from './tree-node-html';
 export * from './tree-view';

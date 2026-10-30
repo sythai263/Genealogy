@@ -16,8 +16,6 @@ import {
   select,
   tree,
   zoom,
-  zoomIdentity,
-  zoomTransform,
   type HierarchyPointLink,
   type ZoomBehavior,
 } from 'd3';
@@ -26,18 +24,14 @@ import {
   NODE_WIDTH,
   TREE_DEPTH_GAP,
   TREE_EXIT_TRANSITION_MS,
-  TREE_FOCUS_TRANSITION_MS,
-  TREE_MOBILE_BREAKPOINT,
   TREE_NODE_SIZE_X,
   TREE_NODE_SIZE_Y,
   TREE_TRANSITION_MS,
   TREE_VERTICAL_NODE_SIZE_X,
   TREE_VERTICAL_NODE_SIZE_Y,
   TREE_VIRTUAL_ROOT_ID,
-  TREE_ZOOM_INITIAL_SCALE,
   TREE_ZOOM_MAX,
   TREE_ZOOM_MIN,
-  TREE_ZOOM_MOBILE_SCALE,
 } from '@constants';
 import {
   hierarchyHasKids,
@@ -53,6 +47,7 @@ import {
 } from '@types';
 import {
   appendCollapseButton,
+  applyTreeCamera,
   buildNodeHtml,
   cardWidth,
   collapseBtnTransform,
@@ -317,80 +312,19 @@ export function useTreeRender({
       .style('opacity', 0)
       .remove();
 
-    const orientationChanged = orientationRef.current !== orientation;
-    orientationRef.current = orientation;
-
-    const focusNodeId = pendingFocusNodeIdRef.current;
-    if (
-      focusNodeId &&
-      zoomBehaviorRef.current &&
-      wrapperRef.current &&
-      svgRef.current
-    ) {
-      pendingFocusNodeIdRef.current = null;
-      const target = descendants.find((d) => d.data.id === focusNodeId);
-      if (target) {
-        const { clientWidth, clientHeight } = wrapperRef.current;
-        const current = zoomTransform(svgRef.current);
-        const scale = current.k;
-
-        // Prefer a point between the opened node and its children so the
-        // newly revealed branch stays in view.
-        let focusX = px(target);
-        let focusY = py(target);
-        if (target.children && target.children.length > 0) {
-          const childXs = target.children.map((c) => px(c));
-          const childYs = target.children.map((c) => py(c));
-          const childMidX =
-            (Math.min(...childXs) + Math.max(...childXs)) / 2;
-          const childMidY =
-            (Math.min(...childYs) + Math.max(...childYs)) / 2;
-          focusX = (focusX + childMidX) / 2;
-          focusY = (focusY + childMidY) / 2;
-        }
-
-        svg
-          .transition()
-          .duration(TREE_FOCUS_TRANSITION_MS)
-          .call(
-            zoomBehaviorRef.current.transform,
-            zoomIdentity
-              .translate(clientWidth / 2, clientHeight / 2)
-              .scale(scale)
-              .translate(-focusX, -focusY)
-          );
-        didInitialZoomRef.current = true;
-        return;
-      }
-    }
-
-    if (
-      (!didInitialZoomRef.current || orientationChanged) &&
-      zoomBehaviorRef.current &&
-      wrapperRef.current &&
-      descendants.length > 0
-    ) {
-      didInitialZoomRef.current = true;
-      const xs = descendants.map((d) => px(d));
-      const ys = descendants.map((d) => py(d));
-      const midX = (Math.min(...xs) + Math.max(...xs)) / 2;
-      const midY = (Math.min(...ys) + Math.max(...ys)) / 2;
-      const { clientWidth, clientHeight } = wrapperRef.current;
-      const scale =
-        clientWidth < TREE_MOBILE_BREAKPOINT
-          ? TREE_ZOOM_MOBILE_SCALE
-          : TREE_ZOOM_INITIAL_SCALE;
-      svg
-        .transition()
-        .duration(TREE_TRANSITION_MS)
-        .call(
-          zoomBehaviorRef.current.transform,
-          zoomIdentity
-            .translate(clientWidth / 2, clientHeight / 2)
-            .scale(scale)
-            .translate(-midX, -midY)
-        );
-    }
+    applyTreeCamera({
+      svg,
+      descendants,
+      orientation,
+      px,
+      py,
+      orientationRef,
+      pendingFocusNodeIdRef,
+      didInitialZoomRef,
+      zoomBehaviorRef,
+      wrapperRef,
+      svgRef,
+    });
   }, [
     hierarchyRoot,
     layoutVersion,
