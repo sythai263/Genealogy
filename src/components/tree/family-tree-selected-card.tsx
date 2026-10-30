@@ -41,7 +41,11 @@ export function FamilyTreeSelectedCard({
   const { givenName, familyLine } = getPersonTreeNameParts(person);
   const showYears = !person.is_living || showDetailLink;
   const yearsLine = showYears
-    ? [person.birth_year, person.death_year].filter(Boolean).join(' – ')
+    ? person.is_living
+      ? person.birth_year != null
+        ? `(${person.birth_year})`
+        : ''
+      : `(${person.birth_year ?? '..'} - ${person.death_year ?? '...'})`
     : '';
 
   return (
@@ -77,9 +81,9 @@ export function FamilyTreeSelectedCard({
             <h3 className="line-clamp-1 text-sm font-semibold sm:text-base">
               {givenName}
               {yearsLine ? (
-                <span className="font-normal text-muted-foreground">
+                <span className="text-xs font-normal text-muted-foreground">
                   {' '}
-                  ({yearsLine})
+                  {yearsLine}
                 </span>
               ) : null}
             </h3>

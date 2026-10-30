@@ -51,10 +51,14 @@ function buildPersonCardHtml(
       : `<div class="h-7 w-7 shrink-0 rounded-full bg-muted-foreground/25 text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
   const showYears = !person.is_living || !isPublic;
   const yearsText = showYears
-    ? [person.birth_year, person.death_year].filter(Boolean).join(' - ')
+    ? person.is_living
+      ? person.birth_year != null
+        ? `(${person.birth_year})`
+        : ''
+      : `(${person.birth_year ?? '..'} - ${person.death_year ?? '...'})`
     : '';
   const yearsHtml = yearsText
-    ? `<p class="text-[10px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(yearsText)}</p>`
+    ? ` <span class="text-[9px] font-normal text-muted-foreground">${escapeHtml(yearsText)}</span>`
     : '';
   const familyHtml = familyLine
     ? `<p class="text-[10px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(familyLine)}</p>`
@@ -64,9 +68,8 @@ function buildPersonCardHtml(
     <div data-person-id="${escapeHtml(person.id)}" class="${buildNodeCardClass(person.gender, isSelected, isInLaw)}">
       ${avatarHtml}
       <div class="min-w-0 flex-1">
-        <p class="text-[11px] font-semibold line-clamp-1 leading-tight pointer-events-none">${escapeHtml(givenName)}</p>
+        <p class="text-[11px] font-semibold line-clamp-1 leading-tight pointer-events-none">${escapeHtml(givenName)}${yearsHtml}</p>
         ${familyHtml}
-        ${yearsHtml}
       </div>
       ${person.is_living ? '' : DECEASED_RIBBON_HTML}
     </div>
