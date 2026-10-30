@@ -36,3 +36,5 @@ export const THEME_OPTIONS: ThemeOption[] = [
   { value: 'dark', labelKey: 'dark', icon: Moon },
   { value: 'system', labelKey: 'system', icon: Monitor },
 ];
+
+export const FALLBACK_THEME = THEME_OPTIONS[2];

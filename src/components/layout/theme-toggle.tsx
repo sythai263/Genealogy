@@ -11,7 +11,6 @@
 import { useSyncExternalStore } from 'react';
 import { useTheme } from 'next-themes';
 import { useTranslations } from 'next-intl';
-import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react';
 import {
   Button,
   DropdownMenu,
@@ -21,20 +20,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@components/ui';
-
-interface ThemeOption {
-  value: 'light' | 'dark' | 'system';
-  labelKey: 'light' | 'dark' | 'system';
-  icon: LucideIcon;
-}
-
-const THEME_OPTIONS: ThemeOption[] = [
-  { value: 'light', labelKey: 'light', icon: Sun },
-  { value: 'dark', labelKey: 'dark', icon: Moon },
-  { value: 'system', labelKey: 'system', icon: Monitor },
-];
-
-const FALLBACK_THEME = THEME_OPTIONS[2];
+import { FALLBACK_THEME, THEME_OPTIONS } from '@constants';
 
 export function ThemeToggle() {
   const t = useTranslations('Layout');
