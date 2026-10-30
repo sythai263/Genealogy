@@ -19,43 +19,56 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function buildNodeCardClass(gender: number, isSelected: boolean): string {
-  const genderAccent =
-    gender === 1 ? 'border-l-blue-400' : 'border-l-pink-400';
+function buildNodeCardClass(
+  gender: number,
+  isSelected: boolean,
+  isInLaw: boolean
+): string {
+  const genderStyle =
+    gender === 1
+      ? 'bg-blue-100 dark:bg-blue-950/50 rounded'
+      : 'bg-pink-100 dark:bg-pink-950/50 rounded-3xl';
+  const inLawStyle = isInLaw ? 'border-dashed opacity-90' : '';
   const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
-  return `h-full flex-1 min-w-0 bg-card border border-border/70 border-l-2 ${genderAccent} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex items-center gap-1.5 relative select-none`;
+  return `h-full flex-1 min-w-0 border border-border/70 ${genderStyle} ${inLawStyle} ${selectedRing} shadow-sm hover:shadow-md transition-all p-1.5 flex items-center gap-1.5 relative select-none overflow-hidden`;
 }
+
+/** Diagonal black ribbon in the top-right corner marks deceased members. */
+const DECEASED_RIBBON_HTML =
+  '<div class="pointer-events-none absolute right-0 top-0 h-4 w-4 bg-neutral-800" style="clip-path: polygon(100% 0, 0 0, 100% 100%);"></div>';
 
 function buildPersonCardHtml(
   person: Person,
   isSelected: boolean,
-  isPublic: boolean
+  isPublic: boolean,
+  isInLaw: boolean
 ): string {
   const { givenName, familyLine } = getPersonTreeNameParts(person);
-  const livingRing = person.is_living ? 'ring-2 ring-emerald-500/70' : '';
   const avatarHtml = person.avatar_url
-    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-7 w-7 shrink-0 rounded-full object-cover pointer-events-none ${livingRing || 'grayscale'}" loading="lazy" />`
+    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-7 w-7 shrink-0 rounded-full object-cover pointer-events-none ${person.is_living ? 'ring-2 ring-emerald-500/70' : 'grayscale'}" loading="lazy" />`
     : person.is_living
-      ? `<div class="h-7 w-7 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none ${livingRing}">${escapeHtml(getInitials(givenName))}</div>`
+      ? `<div class="h-7 w-7 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none ring-2 ring-emerald-500/70">${escapeHtml(getInitials(givenName))}</div>`
       : `<div class="h-7 w-7 shrink-0 rounded-full bg-muted-foreground/25 text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
   const showYears = !person.is_living || !isPublic;
   const yearsText = showYears
-    ? [person.birth_year, person.death_year].filter(Boolean).join('–')
+    ? [person.birth_year, person.death_year].filter(Boolean).join(' - ')
     : '';
   const yearsHtml = yearsText
-    ? ` <span class="text-muted-foreground font-normal">(${escapeHtml(yearsText)})</span>`
+    ? `<p class="text-[10px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(yearsText)}</p>`
     : '';
   const familyHtml = familyLine
-    ? `<span class="text-[10px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(familyLine)}</span>`
+    ? `<p class="text-[10px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(familyLine)}</p>`
     : '';
 
   return `
-    <div data-person-id="${escapeHtml(person.id)}" class="${buildNodeCardClass(person.gender, isSelected)}">
+    <div data-person-id="${escapeHtml(person.id)}" class="${buildNodeCardClass(person.gender, isSelected, isInLaw)}">
       ${avatarHtml}
       <div class="min-w-0 flex-1">
-        <p class="text-[11px] font-semibold line-clamp-1 leading-tight pointer-events-none">${escapeHtml(givenName)}${yearsHtml}</p>
+        <p class="text-[11px] font-semibold line-clamp-1 leading-tight pointer-events-none">${escapeHtml(givenName)}</p>
         ${familyHtml}
+        ${yearsHtml}
       </div>
+      ${person.is_living ? '' : DECEASED_RIBBON_HTML}
     </div>
   `;
 }
@@ -70,12 +83,22 @@ export function buildNodeHtml(
   isPublic = false
 ): string {
   const cards = [
-    buildPersonCardHtml(data.person, selectedPersonId === data.person.id, isPublic),
+    buildPersonCardHtml(
+      data.person,
+      selectedPersonId === data.person.id,
+      isPublic,
+      false
+    ),
   ];
   for (const spouse of data.spouses) {
     cards.push(COUPLE_CONNECTOR_HTML);
     cards.push(
-      buildPersonCardHtml(spouse, selectedPersonId === spouse.id, isPublic)
+      buildPersonCardHtml(
+        spouse,
+        selectedPersonId === spouse.id,
+        isPublic,
+        true
+      )
     );
   }
   return `<div class="flex h-full w-full items-stretch">${cards.join('')}</div>`;
