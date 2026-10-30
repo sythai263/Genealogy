@@ -75,6 +75,11 @@ export function FamilyTreeSelectedCard({
           </Avatar>
           <div className="min-w-0">
             <h3 className="line-clamp-1 text-sm font-semibold sm:text-base">
+              {familyLine ? (
+                <span className="font-normal text-muted-foreground">
+                  {familyLine}{' '}
+                </span>
+              ) : null}
               {givenName}
               {yearsLine ? (
                 <span className="text-xs font-normal text-muted-foreground">
@@ -83,11 +88,6 @@ export function FamilyTreeSelectedCard({
                 </span>
               ) : null}
             </h3>
-            {familyLine ? (
-              <p className="truncate text-xs text-muted-foreground sm:text-sm">
-                {familyLine}
-              </p>
-            ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
               <span>
                 {t('selected.chi', {

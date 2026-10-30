@@ -69,7 +69,7 @@ export const Tree = {
   node: {
     living: 'Còn sống',
     deceased: 'Đã mất',
-    generation: 'Đời {n}',
+    generation: 'Đời thứ {n}',
     spouse: 'Vợ/Chồng',
   },
   toasts: {

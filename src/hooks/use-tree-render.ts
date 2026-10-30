@@ -11,13 +11,16 @@
 'use client';
 
 import { useEffect, useRef, type RefObject } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   hierarchy,
   select,
   tree,
   zoom,
+  zoomIdentity,
   type HierarchyPointLink,
   type ZoomBehavior,
+  type ZoomTransform,
 } from 'd3';
 import {
   NODE_HEIGHT,
@@ -88,7 +91,14 @@ export function useTreeRender({
   svgRef,
   isPublic = false,
 }: UseTreeRenderParams) {
+  const t = useTranslations('Tree');
   const onSelectPersonRef = useRef(onSelectPerson);
+  /** Shared axis state — zoom handlers registered once must see fresh data. */
+  const axisRowsRef = useRef<
+    { depth: number; generation: number; coord: number }[]
+  >([]);
+  const currentTransformRef = useRef<ZoomTransform>(zoomIdentity);
+  const renderAxisRef = useRef<() => void>(() => {});
   const onHierarchyMutatedRef = useRef(onHierarchyMutated);
   const hierarchyRootRef = useRef(hierarchyRoot);
   const didInitialZoomRef = useRef(false);
@@ -121,6 +131,8 @@ export function useTreeRender({
     const svg = select<SVGSVGElement, TreeSvgDatum>(svgRef.current)
       .datum(TREE_SVG_DATUM);
 
+    const AXIS_GUTTER = 64;
+
     let mainContainer = svg.select<SVGGElement>('g.main-container');
     if (mainContainer.empty()) {
       svg
@@ -137,11 +149,78 @@ export function useTreeRender({
         .scaleExtent([TREE_ZOOM_MIN, TREE_ZOOM_MAX])
         .on('zoom', (event) => {
           mainContainer.attr('transform', event.transform.toString());
+          currentTransformRef.current = event.transform;
+          renderAxisRef.current();
         });
 
       svg.call(zoomBehavior);
       svg.on('dblclick.zoom', null);
       zoomBehaviorRef.current = zoomBehavior;
+    }
+
+    let axisRulesLayer = svg.select<SVGGElement>('g.axis-rules-layer');
+    if (axisRulesLayer.empty()) {
+      // Rules render beneath node cards; labels stay on top in axis-layer.
+      axisRulesLayer = svg
+        .insert('g', 'g.main-container')
+        .attr('class', 'axis-rules-layer');
+    }
+    let axisLayer = svg.select<SVGGElement>('g.axis-layer');
+    if (axisLayer.empty()) {
+      axisLayer = svg.append('g').attr('class', 'axis-layer');
+    }
+
+    /** Đời rules pinned to the viewport edge — they pan/zoom with the tree. */
+    function renderAxis() {
+      const axisRows = axisRowsRef.current;
+      const currentTransform = currentTransformRef.current;
+      const width = svgRef.current?.clientWidth ?? 0;
+      const height = svgRef.current?.clientHeight ?? 0;
+      const isHoriz = orientation === 'horizontal';
+
+      const lineSel = axisRulesLayer
+        .selectAll<SVGLineElement, (typeof axisRows)[number]>('line.gen-rule')
+        .data(axisRows, (d) => d.depth);
+      lineSel
+        .enter()
+        .append('line')
+        .attr('class', 'gen-rule')
+        .attr('stroke', 'var(--border)')
+        .attr('stroke-width', 1)
+        .merge(lineSel)
+        .attr('x1', (d) =>
+          isHoriz ? currentTransform.applyX(d.coord) : AXIS_GUTTER
+        )
+        .attr('x2', (d) =>
+          isHoriz ? currentTransform.applyX(d.coord) : width
+        )
+        .attr('y1', (d) =>
+          isHoriz ? AXIS_GUTTER : currentTransform.applyY(d.coord)
+        )
+        .attr('y2', (d) =>
+          isHoriz ? height : currentTransform.applyY(d.coord)
+        );
+      lineSel.exit().remove();
+
+      const textSel = axisLayer
+        .selectAll<SVGTextElement, (typeof axisRows)[number]>('text.gen-label')
+        .data(axisRows, (d) => d.depth);
+      textSel
+        .enter()
+        .append('text')
+        .attr('class', 'gen-label fill-muted-foreground')
+        .attr('font-size', 10)
+        .merge(textSel)
+        .attr('text-anchor', isHoriz ? 'middle' : 'end')
+        .attr('x', (d) =>
+          isHoriz ? currentTransform.applyX(d.coord) : AXIS_GUTTER - 8
+        )
+        .attr('y', (d) =>
+          isHoriz ? AXIS_GUTTER - 8 : currentTransform.applyY(d.coord)
+        )
+        .attr('dominant-baseline', 'middle')
+        .text((d) => t('node.generation', { n: d.generation }));
+      textSel.exit().remove();
     }
 
     const nodeSize: [number, number] =
@@ -220,6 +299,31 @@ export function useTreeRender({
       .duration(TREE_EXIT_TRANSITION_MS)
       .style('opacity', 0)
       .remove();
+
+    // Collect each generation's world-space axis coordinate — rendered later
+    // in screen space by renderAxis() so Đời labels pin to the viewport edge.
+    const axisRowByDepth = new Map<
+      number,
+      (typeof axisRowsRef.current)[number]
+    >();
+    for (const node of descendants) {
+      if (node.data.id === TREE_VIRTUAL_ROOT_ID) continue;
+      if (!axisRowByDepth.has(node.depth)) {
+        axisRowByDepth.set(node.depth, {
+          depth: node.depth,
+          generation: node.data.person.generation,
+          coord:
+            orientation === 'horizontal'
+              ? px(node) + cardWidth(node.data) / 2
+              : py(node) + NODE_HEIGHT / 2,
+        });
+      }
+    }
+    axisRowsRef.current = [...axisRowByDepth.values()].sort(
+      (a, b) => a.depth - b.depth
+    );
+    renderAxisRef.current = renderAxis;
+    renderAxis();
 
     const nodeBinding = nodesLayer
       .selectAll<SVGGElement, HierarchyPoint>('g.node')
@@ -331,6 +435,7 @@ export function useTreeRender({
     hierarchyRoot,
     isPublic,
     layoutVersion,
+    t,
     orientation,
     selectedPersonId,
     svgRef,
