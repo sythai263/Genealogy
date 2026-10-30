@@ -25,10 +25,8 @@ import type { Person } from '@types';
 interface FamilyTreeSelectedCardProps {
   person: Person;
   onClose: () => void;
-  /** When false, hide the authenticated detail link (public landing). */
+  /** When false (public landing), hide the detail link and living-person years. */
   showDetailLink?: boolean;
-  /** Optional login CTA when detail link is hidden. */
-  loginHref?: string;
   className?: string;
 }
 
@@ -36,13 +34,15 @@ export function FamilyTreeSelectedCard({
   person,
   onClose,
   showDetailLink = true,
-  loginHref = '/login',
   className,
 }: FamilyTreeSelectedCardProps) {
   const t = useTranslations('Tree');
   const tCommon = useTranslations('Common');
-  const tAuth = useTranslations('Auth');
   const { givenName, familyLine } = getPersonTreeNameParts(person);
+  const showYears = !person.is_living || showDetailLink;
+  const yearsLine = showYears
+    ? [person.birth_year, person.death_year].filter(Boolean).join(' – ')
+    : '';
 
   return (
     <Card
@@ -68,6 +68,11 @@ export function FamilyTreeSelectedCard({
                 {familyLine}
               </p>
             ) : null}
+            {yearsLine ? (
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                {yearsLine}
+              </p>
+            ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
               <span>
                 {t('selected.chi', {
@@ -85,16 +90,7 @@ export function FamilyTreeSelectedCard({
             <Button asChild size="sm" className="rounded-full px-4 sm:px-6">
               <Link href={`/people/${person.id}`}>{tCommon('details')}</Link>
             </Button>
-          ) : (
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="rounded-full px-3 text-xs sm:px-4 sm:text-sm"
-            >
-              <Link href={loginHref}>{tAuth('login.title')}</Link>
-            </Button>
-          )}
+          ) : null}
           <Button
             variant="ghost"
             size="icon"

@@ -20,19 +20,20 @@ function escapeHtml(value: string): string {
 }
 
 function buildNodeCardClass(gender: number, isSelected: boolean): string {
-  const genderColor = gender === 1 ? 'border-blue-400' : 'border-pink-400';
+  const genderAccent =
+    gender === 1 ? 'border-t-blue-400' : 'border-t-pink-400';
   const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
-  return `h-full flex-1 min-w-0 bg-card border ${genderColor} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
+  return `h-full flex-1 min-w-0 bg-card border border-border/70 border-t-2 ${genderAccent} ${selectedRing} rounded-lg shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
 }
 
 function buildPersonCardHtml(person: Person, isSelected: boolean): string {
   const { givenName, familyLine } = getPersonTreeNameParts(person);
   const isDead = !person.is_living
-    ? `<span class="text-xs text-muted-foreground pointer-events-none absolute top-0.5 right-1.5">†</span>`
+    ? `<span class="text-[10px] text-muted-foreground/70 pointer-events-none absolute top-0.5 right-1.5">†</span>`
     : '';
   const avatarHtml = person.avatar_url
-    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-5 w-5 mb-0.5 rounded-full object-cover pointer-events-none border border-muted shadow-sm" loading="lazy" />`
-    : `<div class="h-5 w-5 mb-0.5 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-bold border border-muted shadow-sm pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
+    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-5 w-5 mb-0.5 rounded-full object-cover pointer-events-none border border-muted" loading="lazy" />`
+    : `<div class="h-5 w-5 mb-0.5 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
   const familyHtml = familyLine
     ? `<span class="text-[10px] text-muted-foreground text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${escapeHtml(familyLine)}</span>`
     : '';
