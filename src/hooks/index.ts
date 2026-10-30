@@ -34,3 +34,4 @@ export * from './use-tree-person-search';
 export * from './use-tree-zoom';
 export * from './use-tree-render';
 export * from './use-upcoming-events';
+export * from './use-nav-accordion';

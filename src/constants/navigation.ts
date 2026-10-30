@@ -4,8 +4,8 @@
  * @description Sidebar navigation definitions — main, account and admin
  *              groups. Each item maps a Layout.nav translation key to a URL
  *              and lucide icon.
- * @version 1.0.0
- * @updated 2026-10-29
+ * @version 1.1.0
+ * @updated 2026-10-30
  */
 
 import {
@@ -40,6 +40,7 @@ import {
 import type { AppMessages } from '@messages/types';
 
 export type LayoutNavKey = keyof AppMessages['Layout']['nav'];
+export type LayoutNavGroupKey = keyof AppMessages['Layout']['groups'];
 
 export interface NavItemDef {
   titleKey: LayoutNavKey;
@@ -51,46 +52,102 @@ export interface NavItemDef {
   viewerHidden?: boolean;
 }
 
-export const MAIN_NAV_ITEMS: NavItemDef[] = [
-  { titleKey: 'home', url: '/admin', icon: Home, adminHome: true },
-  { titleKey: 'tree', url: '/tree', icon: GitBranchPlus },
-  { titleKey: 'people', url: '/people', icon: Users },
-  { titleKey: 'directory', url: '/directory', icon: BookUser, viewerHidden: true },
-  { titleKey: 'events', url: '/events', icon: Calendar },
-  { titleKey: 'contributions', url: '/contributions', icon: ClipboardList },
-  { titleKey: 'achievements', url: '/achievements', icon: Trophy },
-  { titleKey: 'fund', url: '/fund', icon: BookOpen },
-  { titleKey: 'charter', url: '/charter', icon: ScrollText },
-  { titleKey: 'relationship', url: '/relationship', icon: Route },
-  { titleKey: 'stats', url: '/stats', icon: BarChart3 },
-  { titleKey: 'cauDuong', url: '/cau-duong', icon: RotateCcw },
-  { titleKey: 'feed', url: '/feed', icon: MessageSquare },
-  { titleKey: 'notifications', url: '/notifications', icon: Bell },
-  { titleKey: 'documents', url: '/documents', icon: FileText },
-  { titleKey: 'help', url: '/help', icon: HelpCircle },
+/** A labelled cluster of sidebar entries sharing one function. */
+export interface NavGroupDef {
+  labelKey: LayoutNavGroupKey;
+  items: NavItemDef[];
+}
+
+/** Standalone entry rendered above the grouped main menu. */
+export const HOME_NAV_ITEM: NavItemDef = {
+  titleKey: 'home',
+  url: '/admin',
+  icon: Home,
+  adminHome: true,
+};
+
+export const MAIN_NAV_GROUPS: NavGroupDef[] = [
+  {
+    labelKey: 'genealogy',
+    items: [
+      { titleKey: 'tree', url: '/tree', icon: GitBranchPlus },
+      { titleKey: 'people', url: '/people', icon: Users },
+      { titleKey: 'directory', url: '/directory', icon: BookUser, viewerHidden: true },
+      { titleKey: 'relationship', url: '/relationship', icon: Route },
+      { titleKey: 'stats', url: '/stats', icon: BarChart3 },
+    ],
+  },
+  {
+    labelKey: 'clan',
+    items: [
+      { titleKey: 'events', url: '/events', icon: Calendar },
+      { titleKey: 'cauDuong', url: '/cau-duong', icon: RotateCcw },
+      { titleKey: 'achievements', url: '/achievements', icon: Trophy },
+      { titleKey: 'fund', url: '/fund', icon: BookOpen },
+    ],
+  },
+  {
+    labelKey: 'community',
+    items: [
+      { titleKey: 'feed', url: '/feed', icon: MessageSquare },
+      { titleKey: 'contributions', url: '/contributions', icon: ClipboardList },
+      { titleKey: 'notifications', url: '/notifications', icon: Bell },
+    ],
+  },
+  {
+    labelKey: 'library',
+    items: [
+      { titleKey: 'documents', url: '/documents', icon: FileText },
+      { titleKey: 'charter', url: '/charter', icon: ScrollText },
+      { titleKey: 'help', url: '/help', icon: HelpCircle },
+    ],
+  },
 ];
 
-export const ACCOUNT_NAV_ITEMS: NavItemDef[] = [
-  { titleKey: 'profile', url: '/settings/profile', icon: UserCircle },
-  { titleKey: 'security', url: '/settings/security', icon: ShieldCheck },
-];
+export const ACCOUNT_NAV_GROUP: NavGroupDef = {
+  labelKey: 'account',
+  items: [
+    { titleKey: 'profile', url: '/settings/profile', icon: UserCircle },
+    { titleKey: 'security', url: '/settings/security', icon: ShieldCheck },
+  ],
+};
 
-export const ADMIN_NAV_ITEMS: NavItemDef[] = [
-  { titleKey: 'adminDashboard', url: '/admin', icon: Settings },
-  { titleKey: 'adminUsers', url: '/admin/users', icon: UserCog },
-  { titleKey: 'adminContributions', url: '/admin/contributions', icon: ClipboardList },
-  { titleKey: 'adminEvents', url: '/admin/events', icon: Calendar },
-  { titleKey: 'adminAchievements', url: '/admin/achievements', icon: Trophy },
-  { titleKey: 'adminFund', url: '/admin/fund', icon: BookOpen },
-  { titleKey: 'adminCharter', url: '/admin/charter', icon: ScrollText },
-  { titleKey: 'adminCauDuong', url: '/admin/cau-duong', icon: RotateCcw },
-  { titleKey: 'adminDocuments', url: '/admin/documents', icon: FileText },
-  { titleKey: 'adminFeed', url: '/admin/feed', icon: MessageSquare },
-  { titleKey: 'adminExport', url: '/admin/export', icon: Download },
-  { titleKey: 'adminImport', url: '/admin/import', icon: Upload },
-  { titleKey: 'adminSpouses', url: '/admin/spouses', icon: Heart },
-  { titleKey: 'adminDuplicates', url: '/admin/duplicates', icon: Copy },
-  { titleKey: 'adminRegistrations', url: '/admin/registrations', icon: Landmark },
-  { titleKey: 'adminSettings', url: '/admin/settings', icon: Settings },
-  { titleKey: 'adminBackup', url: '/admin/backup', icon: DatabaseBackup },
+export const ADMIN_NAV_GROUPS: NavGroupDef[] = [
+  {
+    labelKey: 'adminOverview',
+    items: [
+      { titleKey: 'adminDashboard', url: '/admin', icon: Settings },
+      { titleKey: 'adminSettings', url: '/admin/settings', icon: Settings },
+    ],
+  },
+  {
+    labelKey: 'adminMembers',
+    items: [
+      { titleKey: 'adminUsers', url: '/admin/users', icon: UserCog },
+      { titleKey: 'adminRegistrations', url: '/admin/registrations', icon: Landmark },
+      { titleKey: 'adminContributions', url: '/admin/contributions', icon: ClipboardList },
+    ],
+  },
+  {
+    labelKey: 'adminContent',
+    items: [
+      { titleKey: 'adminEvents', url: '/admin/events', icon: Calendar },
+      { titleKey: 'adminCauDuong', url: '/admin/cau-duong', icon: RotateCcw },
+      { titleKey: 'adminAchievements', url: '/admin/achievements', icon: Trophy },
+      { titleKey: 'adminFund', url: '/admin/fund', icon: BookOpen },
+      { titleKey: 'adminCharter', url: '/admin/charter', icon: ScrollText },
+      { titleKey: 'adminDocuments', url: '/admin/documents', icon: FileText },
+      { titleKey: 'adminFeed', url: '/admin/feed', icon: MessageSquare },
+    ],
+  },
+  {
+    labelKey: 'adminData',
+    items: [
+      { titleKey: 'adminImport', url: '/admin/import', icon: Upload },
+      { titleKey: 'adminSpouses', url: '/admin/spouses', icon: Heart },
+      { titleKey: 'adminDuplicates', url: '/admin/duplicates', icon: Copy },
+      { titleKey: 'adminExport', url: '/admin/export', icon: Download },
+      { titleKey: 'adminBackup', url: '/admin/backup', icon: DatabaseBackup },
+    ],
+  },
 ];

@@ -4,46 +4,48 @@
  * @description Main navigation sidebar — clan header, filtered nav groups
  *              (main, account, admin), footer auth. Nav definitions live in
  *              constants/navigation; group/footer components are siblings.
- * @version 4.0.0
- * @updated 2026-10-29
+ * @version 5.0.0
+ * @updated 2026-10-30
  */
 
 'use client';
 
 import Link from 'next/link';
 import { ClanLogo } from './clan-logo';
+import { SidebarNavSection } from './sidebar-nav-section';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarTrigger,
 } from '@components/ui';
 import { useAuth } from '@components/auth';
 import {
-  ACCOUNT_NAV_ITEMS,
+  ACCOUNT_NAV_GROUP,
+  ADMIN_NAV_GROUPS,
+  ELDERLY_ADMIN_URLS,
   ELDERLY_NAV_URLS,
-  MAIN_NAV_ITEMS,
+  HOME_NAV_ITEM,
+  MAIN_NAV_GROUPS,
+  type NavGroupDef,
+  type NavItemDef,
 } from '@constants';
 import { useElderly } from '@contexts';
-import { useClanSettings } from '@hooks';
+import { useClanSettings, useNavAccordion } from '@hooks';
 import {
   CLAN_FULL_NAME,
   CLAN_NAME,
   deriveClanSubtitle,
 } from '@lib';
-import { AdminNavGroup } from './admin-nav-group';
 import { SidebarFooterAuth } from './sidebar-footer-auth';
 import { SidebarNavMenu } from './sidebar-nav-menu';
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const t = useTranslations('Layout');
   const { user, isAdmin, isEditor } = useAuth();
   const { elderlyMode } = useElderly();
   const { data: cs } = useClanSettings();
@@ -51,11 +53,35 @@ export function AppSidebar() {
   const clanFullName = cs?.clan_full_name ?? CLAN_FULL_NAME;
   const clanSubtitle = deriveClanSubtitle(clanFullName, clanName);
 
-  const mainItems = MAIN_NAV_ITEMS.filter(
-    (item) => !item.adminHome || isAdmin || isEditor
-  )
-    .filter((item) => !item.viewerHidden || isEditor)
-    .filter((item) => !elderlyMode || ELDERLY_NAV_URLS.has(item.url));
+  function isVisible(item: NavItemDef) {
+    return (
+      (!item.adminHome || isAdmin || isEditor) &&
+      (!item.viewerHidden || isEditor) &&
+      (!elderlyMode || ELDERLY_NAV_URLS.has(item.url))
+    );
+  }
+
+  function isVisibleAdmin(item: NavItemDef) {
+    return !elderlyMode || ELDERLY_ADMIN_URLS.has(item.url);
+  }
+
+  function visibleGroups(
+    defs: NavGroupDef[],
+    filter: (item: NavItemDef) => boolean
+  ) {
+    return defs
+      .map((group) => ({ ...group, items: group.items.filter(filter) }))
+      .filter((group) => group.items.length > 0);
+  }
+
+  const navGroups = [
+    ...visibleGroups(MAIN_NAV_GROUPS, isVisible),
+    ...(user ? [ACCOUNT_NAV_GROUP] : []),
+    ...(isAdmin || isEditor
+      ? visibleGroups(ADMIN_NAV_GROUPS, isVisibleAdmin)
+      : []),
+  ];
+  const { openKey, activeKey, toggle } = useNavAccordion(navGroups, pathname);
 
   return (
     <Sidebar collapsible="icon">
@@ -83,25 +109,24 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>{t('groups.main')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarNavMenu items={mainItems} pathname={pathname} />
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {user && (
-          <SidebarGroup>
-            <SidebarGroupLabel>{t('groups.account')}</SidebarGroupLabel>
+        {isVisible(HOME_NAV_ITEM) && (
+          <SidebarGroup className="pb-0">
             <SidebarGroupContent>
-              <SidebarNavMenu items={ACCOUNT_NAV_ITEMS} pathname={pathname} />
+              <SidebarNavMenu items={[HOME_NAV_ITEM]} pathname={pathname} />
             </SidebarGroupContent>
           </SidebarGroup>
         )}
 
-        {(isAdmin || isEditor) && (
-          <AdminNavGroup pathname={pathname} elderlyMode={elderlyMode} />
-        )}
+        {navGroups.map((group) => (
+          <SidebarNavSection
+            key={group.labelKey}
+            group={group}
+            pathname={pathname}
+            open={openKey === group.labelKey}
+            active={activeKey === group.labelKey}
+            onToggle={() => toggle(group.labelKey)}
+          />
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t">

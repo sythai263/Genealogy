@@ -1,4 +1,3 @@
-export * from './admin-nav-group';
 export * from './app-sidebar';
 export * from './elderly-toggle';
 export * from './header-user';
@@ -9,4 +8,5 @@ export * from './locale-switcher';
 export * from './notification-bell';
 export * from './sidebar-footer-auth';
 export * from './sidebar-nav-menu';
+export * from './sidebar-nav-section';
 export * from './theme-toggle';

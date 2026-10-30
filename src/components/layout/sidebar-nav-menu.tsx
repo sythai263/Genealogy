@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
 } from '@components/ui';
 import type { NavItemDef } from '@constants';
+import { isNavItemActive } from '@lib';
 
 interface SidebarNavMenuProps {
   items: NavItemDef[];
@@ -33,11 +34,8 @@ export function SidebarNavMenu({ items, pathname }: SidebarNavMenuProps) {
           <SidebarMenuButton
             asChild
             tooltip={t(`nav.${item.titleKey}`)}
-            isActive={
-              item.url === '/admin'
-                ? pathname === '/admin'
-                : pathname.startsWith(item.url)
-            }
+            isActive={isNavItemActive(item.url, pathname)}
+            className="data-[active=true]:bg-primary/10 data-[active=true]:font-semibold data-[active=true]:text-primary"
           >
             <Link href={item.url}>
               <item.icon className="h-4 w-4" />

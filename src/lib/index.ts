@@ -7,6 +7,7 @@ export * from './duplicate-detection';
 export * from './duplicate-dismiss';
 export * from './format';
 export * from './format-utils';
+export * from './nav-utils';
 export * from './gedcom-export';
 export * from './gedcom-export-builder';
 export * from './gedcom-import';
