@@ -42,10 +42,8 @@ export function FamilyTreeSelectedCard({
   const showYears = !person.is_living || showDetailLink;
   const yearsLine = showYears
     ? person.is_living
-      ? person.birth_year != null
-        ? `(${person.birth_year})`
-        : ''
-      : `(${person.birth_year ?? '..'} - ${person.death_year ?? '...'})`
+      ? `(${person.birth_year ?? '...'})`
+      : `(${person.birth_year ?? '...'} - ${person.death_year ?? '...'})`
     : '';
 
   return (

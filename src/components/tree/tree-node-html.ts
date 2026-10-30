@@ -26,8 +26,8 @@ function buildNodeCardClass(
 ): string {
   const genderStyle =
     gender === 1
-      ? 'bg-blue-100 dark:bg-blue-950/50 rounded'
-      : 'bg-pink-100 dark:bg-pink-950/50 rounded';
+      ? 'bg-blue-100 dark:bg-blue-950/50 rounded-lg'
+      : 'bg-pink-100 dark:bg-pink-950/50 rounded-lg';
   const inLawStyle = isInLaw ? 'border-dashed opacity-90' : '';
   const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
   return `h-full flex-1 min-w-0 border border-border/70 ${genderStyle} ${inLawStyle} ${selectedRing} shadow-sm hover:shadow-md transition-all p-1.5 flex items-center gap-1.5 relative select-none overflow-hidden`;
@@ -52,10 +52,8 @@ function buildPersonCardHtml(
   const showYears = !person.is_living || !isPublic;
   const yearsText = showYears
     ? person.is_living
-      ? person.birth_year != null
-        ? `(${person.birth_year})`
-        : ''
-      : `(${person.birth_year ?? '..'} - ${person.death_year ?? '...'})`
+      ? `(${person.birth_year ?? '...'})`
+      : `(${person.birth_year ?? '...'} - ${person.death_year ?? '...'})`
     : '';
   const yearsHtml = yearsText
     ? `<p class="text-[9px] text-muted-foreground line-clamp-1 leading-tight pointer-events-none">${escapeHtml(yearsText)}</p>`
