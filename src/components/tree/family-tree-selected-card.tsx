@@ -62,15 +62,16 @@ export function FamilyTreeSelectedCard({
           <div className="min-w-0">
             <h3 className="line-clamp-1 text-sm font-semibold sm:text-base">
               {givenName}
+              {yearsLine ? (
+                <span className="font-normal text-muted-foreground">
+                  {' '}
+                  ({yearsLine})
+                </span>
+              ) : null}
             </h3>
             {familyLine ? (
               <p className="truncate text-xs text-muted-foreground sm:text-sm">
                 {familyLine}
-              </p>
-            ) : null}
-            {yearsLine ? (
-              <p className="text-xs text-muted-foreground sm:text-sm">
-                {yearsLine}
               </p>
             ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
