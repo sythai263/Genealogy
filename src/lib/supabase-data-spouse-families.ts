@@ -9,7 +9,6 @@
 
 import type {
     Family,
-    Person,
 } from '@types';
 import { supabase } from './supabase';
 import { removeChildFromFamily } from './supabase-data-families';

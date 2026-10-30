@@ -16,7 +16,6 @@ import { supabase } from './supabase';
 import {
   addChildToFamily,
   nextChildSortOrder,
-  removeChildFromFamily,
 } from './supabase-data-families';
 
 /**
