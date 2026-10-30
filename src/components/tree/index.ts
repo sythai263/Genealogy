@@ -9,6 +9,7 @@
 export * from './elderly-tree-view';
 export * from './family-tree';
 export * from './family-tree-canvas';
+export * from './family-tree-search';
 export * from './family-tree-selected-card';
 export * from './family-tree-toolbar';
 export * from './interactive-tree-section';
