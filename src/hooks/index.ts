@@ -4,6 +4,7 @@ export * from './use-backup-schedule';
 export * from './use-broadcast-notification';
 export * from './use-can-edit';
 export * from './use-cau-duong';
+export * from './use-cau-duong-assignment-actions';
 export * from './use-clan-articles';
 export * from './use-clan-settings';
 export * from './use-contributions';
