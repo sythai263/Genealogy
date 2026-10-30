@@ -32,12 +32,12 @@ function buildPersonCardHtml(
   isPublic: boolean
 ): string {
   const { givenName, familyLine } = getPersonTreeNameParts(person);
-  const isDead = !person.is_living
-    ? `<span class="text-[10px] text-muted-foreground/70 pointer-events-none absolute top-0.5 right-1">†</span>`
-    : '';
+  const livingRing = person.is_living ? 'ring-2 ring-emerald-500/70' : '';
   const avatarHtml = person.avatar_url
-    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-7 w-7 shrink-0 rounded-full object-cover pointer-events-none border border-muted" loading="lazy" />`
-    : `<div class="h-7 w-7 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
+    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-7 w-7 shrink-0 rounded-full object-cover pointer-events-none ${livingRing || 'grayscale'}" loading="lazy" />`
+    : person.is_living
+      ? `<div class="h-7 w-7 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none ${livingRing}">${escapeHtml(getInitials(givenName))}</div>`
+      : `<div class="h-7 w-7 shrink-0 rounded-full bg-muted-foreground/25 text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
   const showYears = !person.is_living || !isPublic;
   const yearsText = showYears
     ? [person.birth_year, person.death_year].filter(Boolean).join('–')
@@ -56,7 +56,6 @@ function buildPersonCardHtml(
         <p class="text-[11px] font-semibold line-clamp-1 leading-tight pointer-events-none">${escapeHtml(givenName)}${yearsHtml}</p>
         ${familyHtml}
       </div>
-      ${isDead}
     </div>
   `;
 }

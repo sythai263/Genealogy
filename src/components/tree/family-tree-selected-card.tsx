@@ -53,9 +53,23 @@ export function FamilyTreeSelectedCard({
     >
       <CardContent className="flex items-center justify-between gap-2 rounded-xl bg-background p-3 sm:gap-4 sm:p-4">
         <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-          <Avatar className="h-10 w-10 shrink-0 border-2 border-primary/10 sm:h-12 sm:w-12">
+          <Avatar
+            className={cn(
+              'h-10 w-10 shrink-0 sm:h-12 sm:w-12',
+              person.is_living
+                ? 'ring-2 ring-emerald-500/70'
+                : 'grayscale opacity-80'
+            )}
+          >
             <AvatarImage src={person.avatar_url || ''} />
-            <AvatarFallback className="bg-muted text-base font-semibold text-muted-foreground sm:text-lg">
+            <AvatarFallback
+              className={cn(
+                'text-base font-semibold sm:text-lg',
+                person.is_living
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-muted-foreground/25 text-muted-foreground'
+              )}
+            >
               {getInitials(givenName)}
             </AvatarFallback>
           </Avatar>
