@@ -6,7 +6,7 @@
  * @updated 2026-07-19
  */
 
-export const NODE_WIDTH = 120;
+export const NODE_WIDTH = 96;
 export const NODE_HEIGHT = 72;
 export const LEVEL_HEIGHT = 140;
 export const SIBLING_GAP = 20;
