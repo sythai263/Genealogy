@@ -43,6 +43,7 @@ export * from './supabase-data-charter';
 export * from './supabase-data-clan-settings';
 export * from './supabase-data-documents';
 export * from './supabase-data-feed';
+export * from './supabase-data-feed-interactions';
 export * from './supabase-data-fund';
 export * from './supabase-data-notifications';
 export * from './supabase-data-registrations';
