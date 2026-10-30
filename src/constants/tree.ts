@@ -6,8 +6,8 @@
  * @updated 2026-07-19
  */
 
-export const NODE_WIDTH = 96;
-export const NODE_HEIGHT = 70;
+export const NODE_WIDTH = 112;
+export const NODE_HEIGHT = 78;
 export const LEVEL_HEIGHT = 140;
 export const SIBLING_GAP = 20;
 export const BRANCH_GAP = 60;
@@ -19,7 +19,7 @@ export const MINIMAP_HEIGHT = 100;
 /** Empty space between a generation column and the next one */
 export const TREE_DEPTH_GAP = 80;
 /** Empty space between two sibling cards */
-export const TREE_SIBLING_GAP = 24;
+export const TREE_SIBLING_GAP = 28;
 
 /** Sibling spacing along Y for horizontal (LTR) tree nodeSize[0] */
 export const TREE_NODE_SIZE_Y = NODE_HEIGHT + TREE_SIBLING_GAP;

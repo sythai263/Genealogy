@@ -11,14 +11,7 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton,
-} from '@components/ui';
+import { Card, CardContent, Skeleton } from '@components/ui';
 
 const FamilyTree = dynamic(
   () =>
@@ -35,28 +28,28 @@ export function InteractiveTreeSection() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{t('guide.title')}</CardTitle>
-        <CardDescription className="space-y-1">
-          <span className="block sm:inline">
-            • <span className="text-blue-500">{t('guide.maleBorder')}</span> ={' '}
-            {tCommon('male')} •{' '}
-            <span className="text-pink-500">{t('guide.femaleBorder')}</span> ={' '}
-            {tCommon('female')}
-          </span>
-          <span className="block sm:inline">
-            • <span className="text-pink-400">{t('guide.spouseLine')}</span> ={' '}
-            {t('node.spouse')} • † = {tCommon('deceased')}
-          </span>
-          <span className="mt-1 block text-xs">{t('guide.mobileHint')}</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Suspense
           fallback={<Skeleton className="h-[60vh] w-full rounded-lg" />}
         >
           <FamilyTree />
         </Suspense>
+        <div className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+          <p className="mb-1 font-medium text-foreground">
+            {t('guide.title')}
+          </p>
+          <p>
+            • <span className="text-sky-500">{t('guide.maleBorder')}</span> ={' '}
+            {tCommon('male')} •{' '}
+            <span className="text-rose-500">{t('guide.femaleBorder')}</span> ={' '}
+            {tCommon('female')} •{' '}
+            <span className="text-rose-400">{t('guide.spouseLine')}</span> ={' '}
+            {t('node.spouse')} •{' '}
+            <span className="mx-0.5 inline-block h-[3px] w-3 rotate-45 bg-foreground/80 align-middle" />{' '}
+            = {tCommon('deceased')}
+          </p>
+          <p className="mt-1">{t('guide.mobileHint')}</p>
+        </div>
       </CardContent>
     </Card>
   );

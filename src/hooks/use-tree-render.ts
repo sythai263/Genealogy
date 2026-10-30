@@ -249,8 +249,7 @@ export function useTreeRender({
           ? d.data.spouses.find((s) => s.id === clickedId)
           : undefined;
         onSelectPersonRef.current(clickedSpouse ?? d.data.person);
-        // A spouse carries no branch of her own — only the main card collapses.
-        if (!clickedSpouse) toggleNode(d.data);
+        toggleNode(d.data);
       });
 
     nodeEnter

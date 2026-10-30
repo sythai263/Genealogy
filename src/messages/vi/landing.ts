@@ -65,7 +65,7 @@ export const Landing = {
       title: 'Cây gia phả',
       description: 'Xem sơ đồ gia phả dòng họ (chế độ khách).',
       legendDesktop:
-        '<male>Viền xanh</male> = Nam · <female>Viền hồng</female> = Nữ · Kéo để di chuyển · Nút +/- để zoom',
+        '<male>Nền xanh</male> = Nam · <female>Nền hồng</female> = Nữ · Kéo để di chuyển · Nút +/- để zoom',
       legendMobile:
         'Kéo để di chuyển · Dùng nút +/- để zoom · Chạm nút ± trên nhánh để thu/mở',
     },

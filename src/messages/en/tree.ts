@@ -40,8 +40,8 @@ export const Tree = {
   },
   guide: {
     title: 'Guide',
-    maleBorder: 'Blue border',
-    femaleBorder: 'Pink border',
+    maleBorder: 'Blue background',
+    femaleBorder: 'Pink background',
     spouseLine: 'Pink line',
     mobileHint: 'On mobile: drag to pan, use +/- buttons to zoom',
   },

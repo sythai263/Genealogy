@@ -38,8 +38,8 @@ export const Tree = {
   },
   guide: {
     title: 'Hướng dẫn',
-    maleBorder: 'Viền xanh',
-    femaleBorder: 'Viền hồng',
+    maleBorder: 'Nền xanh',
+    femaleBorder: 'Nền hồng',
     spouseLine: 'Đường hồng',
     mobileHint: 'Trên mobile: kéo để di chuyển, dùng nút +/- để zoom',
   },

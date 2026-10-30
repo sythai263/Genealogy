@@ -135,12 +135,12 @@ export function FamilyTreeToolbar({
         )}
 
         <div
-          className="flex items-center gap-0.5 rounded-lg border bg-background p-1 shadow-sm"
+          className="flex items-center gap-0.5 rounded-lg border p-1"
           role="group"
           aria-label={t('toolbar.orientation')}
         >
           <Button
-            variant={orientation === 'horizontal' ? 'secondary' : 'ghost'}
+            variant={orientation === 'horizontal' ? 'outline' : 'ghost'}
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={() => onOrientationChange('horizontal')}
@@ -151,7 +151,7 @@ export function FamilyTreeToolbar({
             <ArrowRightFromLine className="h-4 w-4" />
           </Button>
           <Button
-            variant={orientation === 'vertical' ? 'secondary' : 'ghost'}
+            variant={orientation === 'vertical' ? 'outline' : 'ghost'}
             size="icon"
             className="h-9 w-9 sm:h-7 sm:w-7"
             onClick={() => onOrientationChange('vertical')}
@@ -163,7 +163,7 @@ export function FamilyTreeToolbar({
           </Button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 rounded-lg border bg-background p-1 shadow-sm sm:ml-0">
+        <div className="ml-auto flex items-center gap-1 rounded-lg border p-1 sm:ml-0">
           <Button
             variant="ghost"
             size="icon"

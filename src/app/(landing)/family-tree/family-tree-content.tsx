@@ -53,10 +53,10 @@ export function FamilyTreeContent() {
             <p className="mt-1 hidden text-xs text-muted-foreground sm:block">
               {t.rich('pages.familyTree.legendDesktop', {
                 male: (chunks) => (
-                  <span className="text-blue-500">{chunks}</span>
+                  <span className="text-sky-500">{chunks}</span>
                 ),
                 female: (chunks) => (
-                  <span className="text-pink-500">{chunks}</span>
+                  <span className="text-rose-500">{chunks}</span>
                 ),
               })}
             </p>

@@ -49,18 +49,16 @@ export function FamilyTreeSelectedCard({
   return (
     <Card
       className={cn(
-        'animate-in fade-in slide-in-from-bottom-8 fixed bottom-4 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 shadow-2xl sm:bottom-6 sm:w-[90%]',
+        'animate-in fade-in slide-in-from-bottom-8 fixed bottom-4 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 border-border/60 py-0 shadow-lg sm:bottom-6 sm:w-[90%]',
         className
       )}
     >
-      <CardContent className="flex items-center justify-between gap-2 rounded-xl bg-background p-3 sm:gap-4 sm:p-4">
+      <CardContent className="relative flex items-center justify-between gap-2 px-4 py-3 sm:gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
           <Avatar
             className={cn(
-              'h-10 w-10 shrink-0 sm:h-12 sm:w-12',
-              person.is_living
-                ? 'ring-2 ring-emerald-500/70'
-                : 'grayscale opacity-80'
+              'h-9 w-9 shrink-0 sm:h-10 sm:w-10',
+              person.is_living ? '' : 'grayscale opacity-80'
             )}
           >
             <AvatarImage src={person.avatar_url || ''} />

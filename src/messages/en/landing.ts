@@ -67,7 +67,7 @@ export const Landing = {
       title: 'Family tree',
       description: 'View the clan pedigree chart (guest mode).',
       legendDesktop:
-        '<male>Blue border</male> = Male · <female>Pink border</female> = Female · Drag to pan · Use +/- to zoom',
+        '<male>Blue background</male> = Male · <female>Pink background</female> = Female · Drag to pan · Use +/- to zoom',
       legendMobile:
         'Drag to pan · Use +/- to zoom · Tap ± on a branch to collapse/expand',
     },
