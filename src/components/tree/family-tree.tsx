@@ -266,6 +266,7 @@ export function FamilyTree({
         wrapperRef={wrapperRef}
         svgRef={svgRef}
         compactHint={isPublic || orientation === 'vertical'}
+        isPublic={isPublic}
         className={
           isPublic
             ? 'h-full min-h-0 flex-1 rounded-none border-x-0 border-b-0 sm:rounded-xl sm:border'

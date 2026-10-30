@@ -37,6 +37,8 @@ interface FamilyTreeCanvasProps {
   className?: string;
   /** Shorter mobile hint text. */
   compactHint?: boolean;
+  /** Public landing view — mask living persons' years in nodes. */
+  isPublic?: boolean;
 }
 
 export function FamilyTreeCanvas({
@@ -51,6 +53,7 @@ export function FamilyTreeCanvas({
   svgRef,
   className,
   compactHint = false,
+  isPublic = false,
 }: FamilyTreeCanvasProps) {
   const t = useTranslations('Tree');
 
@@ -64,6 +67,7 @@ export function FamilyTreeCanvas({
     zoomBehaviorRef,
     wrapperRef,
     svgRef,
+    isPublic,
   });
 
   return (

@@ -21,28 +21,36 @@ function escapeHtml(value: string): string {
 
 function buildNodeCardClass(gender: number, isSelected: boolean): string {
   const genderAccent =
-    gender === 1 ? 'border-t-blue-400' : 'border-t-pink-400';
+    gender === 1 ? 'border-l-blue-400' : 'border-l-pink-400';
   const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
-  return `h-full flex-1 min-w-0 bg-card border border-border/70 border-t-2 ${genderAccent} ${selectedRing} rounded-lg shadow-sm hover:shadow-md transition-all p-1.5 flex flex-col items-center justify-center relative select-none`;
+  return `h-full flex-1 min-w-0 bg-card border border-border/70 border-l-2 ${genderAccent} ${selectedRing} rounded-md shadow-sm hover:shadow-md transition-all pl-1.5 pr-1 flex items-center gap-1.5 relative select-none`;
 }
 
-function buildPersonCardHtml(person: Person, isSelected: boolean): string {
+function buildPersonCardHtml(
+  person: Person,
+  isSelected: boolean,
+  isPublic: boolean
+): string {
   const { givenName, familyLine } = getPersonTreeNameParts(person);
   const isDead = !person.is_living
-    ? `<span class="text-[10px] text-muted-foreground/70 pointer-events-none absolute top-0.5 right-1.5">†</span>`
+    ? `<span class="text-[10px] text-muted-foreground/70 pointer-events-none absolute top-0.5 right-1">†</span>`
     : '';
   const avatarHtml = person.avatar_url
-    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-5 w-5 mb-0.5 rounded-full object-cover pointer-events-none border border-muted" loading="lazy" />`
-    : `<div class="h-5 w-5 mb-0.5 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
-  const familyHtml = familyLine
-    ? `<span class="text-[10px] text-muted-foreground text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${escapeHtml(familyLine)}</span>`
+    ? `<img src="${escapeHtml(person.avatar_url)}" class="h-6 w-6 shrink-0 rounded-full object-cover pointer-events-none border border-muted" loading="lazy" />`
+    : `<div class="h-6 w-6 shrink-0 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-semibold pointer-events-none">${escapeHtml(getInitials(givenName))}</div>`;
+  const fullName = [familyLine, givenName].filter(Boolean).join(' ');
+  const showYears = !person.is_living || !isPublic;
+  const yearsText = showYears
+    ? [person.birth_year, person.death_year].filter(Boolean).join('–')
+    : '';
+  const yearsHtml = yearsText
+    ? ` <span class="text-muted-foreground">(${escapeHtml(yearsText)})</span>`
     : '';
 
   return `
     <div data-person-id="${escapeHtml(person.id)}" class="${buildNodeCardClass(person.gender, isSelected)}">
       ${avatarHtml}
-      <span class="text-xs font-semibold text-center line-clamp-1 leading-tight pointer-events-none px-0.5">${escapeHtml(givenName)}</span>
-      ${familyHtml}
+      <span class="text-[11px] font-medium line-clamp-1 leading-tight pointer-events-none">${escapeHtml(fullName)}${yearsHtml}</span>
       ${isDead}
     </div>
   `;
@@ -54,12 +62,17 @@ const COUPLE_CONNECTOR_HTML =
 
 export function buildNodeHtml(
   data: HierarchyPersonNode,
-  selectedPersonId: string | null
+  selectedPersonId: string | null,
+  isPublic = false
 ): string {
-  const cards = [buildPersonCardHtml(data.person, selectedPersonId === data.person.id)];
+  const cards = [
+    buildPersonCardHtml(data.person, selectedPersonId === data.person.id, isPublic),
+  ];
   for (const spouse of data.spouses) {
     cards.push(COUPLE_CONNECTOR_HTML);
-    cards.push(buildPersonCardHtml(spouse, selectedPersonId === spouse.id));
+    cards.push(
+      buildPersonCardHtml(spouse, selectedPersonId === spouse.id, isPublic)
+    );
   }
   return `<div class="flex h-full w-full items-stretch">${cards.join('')}</div>`;
 }

@@ -72,6 +72,8 @@ interface UseTreeRenderParams {
   > | null>;
   wrapperRef: RefObject<HTMLDivElement | null>;
   svgRef: RefObject<SVGSVGElement | null>;
+  /** Public landing view — mask living persons' years. */
+  isPublic?: boolean;
 }
 
 export function useTreeRender({
@@ -84,6 +86,7 @@ export function useTreeRender({
   zoomBehaviorRef,
   wrapperRef,
   svgRef,
+  isPublic = false,
 }: UseTreeRenderParams) {
   const onSelectPersonRef = useRef(onSelectPerson);
   const onHierarchyMutatedRef = useRef(onHierarchyMutated);
@@ -254,7 +257,7 @@ export function useTreeRender({
       .append('foreignObject')
       .attr('width', (d) => cardWidth(d.data))
       .attr('height', NODE_HEIGHT)
-      .html((d) => buildNodeHtml(d.data, selectedPersonId));
+      .html((d) => buildNodeHtml(d.data, selectedPersonId, isPublic));
 
     nodeEnter.each(function (d) {
       if (!hierarchyHasKids(d.data)) return;
@@ -279,7 +282,7 @@ export function useTreeRender({
       .selectAll<SVGGElement, HierarchyPoint>('g.node')
       .select('foreignObject')
       .attr('width', (d) => cardWidth(d.data))
-      .html((d) => buildNodeHtml(d.data, selectedPersonId));
+      .html((d) => buildNodeHtml(d.data, selectedPersonId, isPublic));
 
     nodesLayer
       .selectAll<SVGGElement, HierarchyPoint>('g.node')
@@ -327,6 +330,7 @@ export function useTreeRender({
     });
   }, [
     hierarchyRoot,
+    isPublic,
     layoutVersion,
     orientation,
     selectedPersonId,
