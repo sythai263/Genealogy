@@ -27,7 +27,7 @@ function buildNodeCardClass(
   const genderStyle =
     gender === 1
       ? 'bg-blue-100 dark:bg-blue-950/50 rounded'
-      : 'bg-pink-100 dark:bg-pink-950/50 rounded-3xl';
+      : 'bg-pink-100 dark:bg-pink-950/50 rounded';
   const inLawStyle = isInLaw ? 'border-dashed opacity-90' : '';
   const selectedRing = isSelected ? 'ring-2 ring-primary ring-offset-2' : '';
   return `h-full flex-1 min-w-0 border border-border/70 ${genderStyle} ${inLawStyle} ${selectedRing} shadow-sm hover:shadow-md transition-all p-1.5 flex items-center gap-1.5 relative select-none overflow-hidden`;
