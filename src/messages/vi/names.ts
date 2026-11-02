@@ -34,6 +34,7 @@ export const Names = {
     words3: '3 chữ',
     words4: '4 chữ',
     both: 'Nam/Nữ',
+    noMeaning: 'Chưa có ý nghĩa',
   },
   contribute: {
     button: 'Đóng góp tên',
@@ -50,6 +51,8 @@ export const Names = {
     error: 'Không gửi được đóng góp, vui lòng thử lại.',
   },
   admin: {
+    title: 'Quản lý tên gọi',
+    subtitle: 'Duyệt đóng góp và quản lý từ điển tên đặt cho con',
     pending: 'Chờ duyệt',
     approved: 'Đã duyệt',
     all: 'Tất cả',
@@ -60,11 +63,12 @@ export const Names = {
     deleteConfirm: 'Xóa tên "{name}"?',
     created: 'Đã thêm tên mới.',
     updated: 'Đã cập nhật.',
-    approved_done: 'Đã duyệt tên.',
     deleted: 'Đã xóa.',
-    approvedDone: 'Đã duyệt.',
     error: 'Thao tác thất bại, thử lại.',
     contributor: 'Người gửi',
     anonymous: 'Ẩn danh',
+    meanings: 'Ý nghĩa',
+    meaningPlaceholder: 'Nhập một ý nghĩa…',
+    addMeaning: 'Thêm ý nghĩa',
   },
 };

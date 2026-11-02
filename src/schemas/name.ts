@@ -26,3 +26,19 @@ export function createNameSubmissionSchema(t: ValidationT) {
     contributor_note: z.string().max(300, t('common.tooLong')).optional(),
   });
 }
+
+/** Admin form — meanings as a repeatable list of inputs. */
+export function createAdminNameSchema(t: ValidationT) {
+  return z.object({
+    name: z
+      .string()
+      .min(1, t('common.required'))
+      .max(60, t('common.tooLong')),
+    gender: z.enum(['male', 'female', 'both']),
+    meanings: z
+      .array(
+        z.object({ value: z.string().max(500, t('common.tooLong')) })
+      )
+      .optional(),
+  });
+}

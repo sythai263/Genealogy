@@ -19,10 +19,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@components/ui';
-import type { NameMeaning } from '@types';
+import type { NameEntry } from '@types';
 
 interface NameDeleteDialogProps {
-  target: NameMeaning | null;
+  target: NameEntry | null;
   onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;

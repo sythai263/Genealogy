@@ -10,10 +10,10 @@
 import { useTranslations } from 'next-intl';
 import { Badge, Card, CardContent } from '@components/ui';
 import { cn } from '@lib';
-import type { NameMeaning } from '@types';
+import type { NameEntry } from '@types';
 
 interface NameCardProps {
-  entry: NameMeaning;
+  entry: NameEntry;
   prefix: string;
 }
 
@@ -47,9 +47,23 @@ export function NameCard({ entry, prefix }: NameCardProps) {
             </Badge>
           </div>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {entry.meaning}
-        </p>
+        {entry.meanings.length > 0 ? (
+          <ul className="space-y-1">
+            {entry.meanings.map((m) => (
+              <li
+                key={m.id}
+                className="text-sm leading-relaxed text-muted-foreground"
+              >
+                {entry.meanings.length > 1 && '· '}
+                {m.meaning}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {t('card.noMeaning')}
+          </p>
+        )}
         {prefix.trim() && (
           <p className="text-xs text-muted-foreground/80">
             {t('prefix.preview')}:{' '}

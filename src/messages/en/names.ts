@@ -34,6 +34,7 @@ export const Names = {
     words3: '3 words',
     words4: '4 words',
     both: 'Unisex',
+    noMeaning: 'No meaning yet',
   },
   contribute: {
     button: 'Suggest a name',
@@ -50,6 +51,8 @@ export const Names = {
     error: 'Could not submit, please try again.',
   },
   admin: {
+    title: 'Name dictionary',
+    subtitle: 'Review community submissions and manage the baby-name dictionary',
     pending: 'Pending',
     approved: 'Approved',
     all: 'All',
@@ -60,11 +63,12 @@ export const Names = {
     deleteConfirm: 'Delete "{name}"?',
     created: 'Name added.',
     updated: 'Updated.',
-    approved_done: 'Approved.',
     deleted: 'Deleted.',
-    approvedDone: 'Approved.',
     error: 'Action failed, please retry.',
     contributor: 'Contributor',
     anonymous: 'Anonymous',
+    meanings: 'Meanings',
+    meaningPlaceholder: 'Enter a meaning…',
+    addMeaning: 'Add meaning',
   },
 };

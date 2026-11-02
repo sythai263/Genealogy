@@ -1,17 +1,18 @@
 /**
  * @project AncestorTree
  * @file src/components/names/name-form-dialog.tsx
- * @description Admin add/edit name dialog — name, gender, meaning (+ status
- *              on edit)
- * @version 1.0.0
+ * @description Admin add/edit name dialog — name, gender, meanings
+ *              (one per line, optional)
+ * @version 1.1.0
  * @updated 2026-10-30
  */
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Plus, X } from 'lucide-react';
 import {
   Button,
   Dialog,
@@ -26,20 +27,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Textarea,
 } from '@components/ui';
-import { createNameSubmissionSchema } from '@schemas';
+import { createAdminNameSchema } from '@schemas';
 import { useCreateName, useUpdateName } from '@hooks';
-import type { NameMeaning, NameStatus } from '@types';
+import type { NameEntry, NameStatus } from '@types';
 import type { z } from 'zod';
 
-type NameFormValues = z.infer<ReturnType<typeof createNameSubmissionSchema>>;
+type NameFormValues = z.infer<ReturnType<typeof createAdminNameSchema>>;
 
 interface NameFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Null → create (approved); a row → edit it. */
-  target: NameMeaning | null;
+  target: NameEntry | null;
 }
 
 export function NameFormDialog({
@@ -53,18 +53,23 @@ export function NameFormDialog({
   const update = useUpdateName();
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
   } = useForm<NameFormValues>({
-    resolver: zodResolver(createNameSubmissionSchema(tv)),
+    resolver: zodResolver(createAdminNameSchema(tv)),
     defaultValues: {
       name: target?.name ?? '',
       gender: target?.gender ?? 'male',
-      meaning: target?.meaning ?? '',
-      contributor_name: target?.contributor_name ?? undefined,
+      meanings:
+        target?.meanings.map((m) => ({ value: m.meaning })) ?? [],
     },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'meanings',
   });
 
   const isPending = create.isPending || update.isPending;
@@ -73,7 +78,9 @@ export function NameFormDialog({
     const input = {
       name: values.name,
       gender: values.gender,
-      meaning: values.meaning,
+      meanings: (values.meanings ?? [])
+        .map((m) => m.value.trim())
+        .filter(Boolean),
       status: (target?.status ?? 'approved') as NameStatus,
     };
     if (target) {
@@ -121,13 +128,43 @@ export function NameFormDialog({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>{t('contribute.meaning')}</Label>
-            <Textarea rows={3} {...register('meaning')} />
-            {errors.meaning && (
-              <p className="text-xs text-destructive">
-                {errors.meaning.message}
-              </p>
-            )}
+            <Label>{t('admin.meanings')}</Label>
+            <div className="space-y-2">
+              {fields.map((field, index) => (
+                <div key={field.id}>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder={t('admin.meaningPlaceholder')}
+                      {...register(`meanings.${index}.value`)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0 text-muted-foreground"
+                      onClick={() => remove(index)}
+                      aria-label={t('admin.delete')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {errors.meanings?.[index]?.value && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {errors.meanings[index]?.value?.message}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ value: '' })}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {t('admin.addMeaning')}
+            </Button>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>

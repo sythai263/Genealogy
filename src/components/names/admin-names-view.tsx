@@ -39,7 +39,7 @@ import {
 } from '@hooks';
 import { cn } from '@lib';
 import type { AdminNameFilters } from '@lib';
-import type { NameMeaning, NameStatus } from '@types';
+import type { NameEntry, NameStatus } from '@types';
 import { NameFormDialog } from './name-form-dialog';
 import { NameDeleteDialog } from './name-delete-dialog';
 
@@ -48,8 +48,8 @@ export function AdminNamesView() {
   const [status, setStatus] = useState<NameStatus | 'all'>('pending');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useResettablePage(`${status}-${keyword}`);
-  const [editTarget, setEditTarget] = useState<NameMeaning | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<NameMeaning | null>(null);
+  const [editTarget, setEditTarget] = useState<NameEntry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<NameEntry | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const filters: AdminNameFilters = {
@@ -67,7 +67,18 @@ export function AdminNamesView() {
   const totalPages = Math.max(1, Math.ceil(total / 30));
 
   return (
-    <div className="space-y-4">
+    <div className="container mx-auto space-y-6 px-4 py-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
+          <p className="text-muted-foreground">{t('admin.subtitle')}</p>
+        </div>
+        <Button onClick={() => setAddOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {t('admin.add')}
+        </Button>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
           <Search className="absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -91,10 +102,6 @@ export function AdminNamesView() {
             <SelectItem value="all">{t('admin.all')}</SelectItem>
           </SelectContent>
         </Select>
-        <Button className="ml-auto" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" />
-          {t('admin.add')}
-        </Button>
       </div>
 
       <Card>
@@ -133,7 +140,8 @@ export function AdminNamesView() {
                         : t(`filters.${item.gender}`)}
                     </TableCell>
                     <TableCell className="hidden max-w-xs truncate md:table-cell">
-                      {item.meaning}
+                      {item.meanings.map((m) => m.meaning).join(' · ') ||
+                        '—'}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {item.contributor_name ?? t('admin.anonymous')}
