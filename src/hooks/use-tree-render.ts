@@ -353,6 +353,9 @@ export function useTreeRender({
           ? d.data.spouses.find((s) => s.id === clickedId)
           : undefined;
         onSelectPersonRef.current(clickedSpouse ?? d.data.person);
+        // Always refocus — covers leaf nodes and collapsing, whose clicks
+        // only re-render through the selection state.
+        pendingFocusNodeIdRef.current = d.data.id;
         toggleNode(d.data);
       });
 
