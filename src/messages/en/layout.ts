@@ -51,6 +51,7 @@ export const Layout = {
     adminCauDuong: 'Manage Cầu đương',
     adminDocuments: 'Manage documents',
     adminFeed: 'Manage posts',
+    adminNames: 'Manage names',
     adminExport: 'Export data',
     adminImport: 'Import GEDCOM',
     adminSpouses: 'Add spouses',

@@ -91,3 +91,45 @@ export function formatBackupDate(value: Date | string | null): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Vietnamese name normalization — title-case each word and fix tone-mark
+ * placement per modern orthography:
+ *   · open 'oa' → mark on o  (Hoà → Hòa, Toà → Tòa)
+ *   · open 'uy' → mark on u  (Thuý → Thúy, Thuỷ → Thủy)
+ *   · closed syllables keep their mark (hoàng, hoành, quỳnh, hoàn…)
+ */
+const O_TONE_A: Record<string, [string, string]> = {
+  'à': ['ò', 'Ò'], 'á': ['ó', 'Ó'], 'ả': ['ỏ', 'Ỏ'], 'ã': ['õ', 'Õ'], 'ạ': ['ọ', 'Ọ'],
+};
+const O_TONE_E: Record<string, [string, string]> = {
+  'è': ['ò', 'Ò'], 'é': ['ó', 'Ó'], 'ẻ': ['ỏ', 'Ỏ'], 'ẽ': ['õ', 'Õ'], 'ẹ': ['ọ', 'Ọ'],
+};
+const U_TONE_Y: Record<string, [string, string]> = {
+  'ý': ['ú', 'Ú'], 'ỳ': ['ù', 'Ù'], 'ỷ': ['ủ', 'Ủ'], 'ỹ': ['ũ', 'Ũ'], 'ỵ': ['ụ', 'Ụ'],
+};
+
+export function normalizeVietnameseName(input: string): string {
+  return input
+    .normalize('NFC')
+    .replace(/[^\p{L}\s]/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map((w) =>
+      w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w
+    )
+    .join(' ')
+    .replace(/([oO])([àáảãạÀÁẢÃẠ])(?=\s|$)/g, (_, o: string, t: string) => {
+      const [lc, uc] = O_TONE_A[t.toLowerCase()];
+      return (o === 'O' ? uc : lc) + (t === t.toLowerCase() ? 'a' : 'A');
+    })
+    .replace(/([oO])([èéẻẽẹÈÉẺẼẸ])(?=\s|$)/g, (_, o: string, t: string) => {
+      const [lc, uc] = O_TONE_E[t.toLowerCase()];
+      return (o === 'O' ? uc : lc) + (t === t.toLowerCase() ? 'e' : 'E');
+    })
+    .replace(/([uU])([ýỳỷỹỵÝỲỶỸỴ])(?=\s|$)/g, (_, u: string, t: string) => {
+      const [lc, uc] = U_TONE_Y[t.toLowerCase()];
+      return (u === 'U' ? uc : lc) + (t === t.toLowerCase() ? 'y' : 'Y');
+    });
+}

@@ -48,6 +48,12 @@ export default async function LandingLayout({
               {t('nav.ancestralHall')}
             </Link>
             <Link
+              href="/names"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t('nav.names')}
+            </Link>
+            <Link
               href="/register-member"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground md:inline"
             >

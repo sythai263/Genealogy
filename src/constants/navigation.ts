@@ -32,6 +32,7 @@ import {
   Route,
   BarChart3,
   MessageSquare,
+  Baby,
   Bell,
   Landmark,
   Heart,
@@ -138,6 +139,7 @@ export const ADMIN_NAV_GROUPS: NavGroupDef[] = [
       { titleKey: 'adminCharter', url: '/admin/charter', icon: ScrollText },
       { titleKey: 'adminDocuments', url: '/admin/documents', icon: FileText },
       { titleKey: 'adminFeed', url: '/admin/feed', icon: MessageSquare },
+      { titleKey: 'adminNames', url: '/admin/names', icon: Baby },
     ],
   },
   {

@@ -32,6 +32,7 @@ export * from './supabase-data-contributions';
 export * from './supabase-data-events';
 export * from './supabase-data-families';
 export * from './supabase-data-media';
+export * from './supabase-data-names';
 export * from './supabase-data-people';
 export * from './supabase-data-profiles';
 export * from './supabase-data-stats';

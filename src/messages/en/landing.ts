@@ -14,6 +14,7 @@ export const Landing = {
     council: 'Council',
     ancestralHall: 'Ancestral hall',
     registerMember: 'Register',
+    names: 'Names',
   },
   hero: {
     tagline: 'Preserve the essence — Follow in our ancestors’ footsteps',
