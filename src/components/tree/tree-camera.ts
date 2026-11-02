@@ -75,16 +75,9 @@ export function applyTreeCamera({
       const current = zoomTransform(svgRef.current);
       const scale = current.k;
 
-      // The selected node always lands at vertical center. Horizontally
-      // we bias toward the revealed children so the branch stays in view.
+      // The selected node lands exactly at the viewport center.
+      const focusX = px(target);
       const focusY = py(target);
-      let focusX = px(target);
-      if (target.children && target.children.length > 0) {
-        const childXs = target.children.map((c) => px(c));
-        const childMidX =
-          (Math.min(...childXs) + Math.max(...childXs)) / 2;
-        focusX = (focusX + childMidX) / 2;
-      }
 
       svg
         .transition()

@@ -437,7 +437,22 @@ export function useTreeRender({
 
     // Refit when the canvas resizes (fullscreen toggle, window resize) —
     // otherwise the stale transform leaves the tree shifted off-center.
+    // observe() fires an initial callback with the current size; skipping it
+    // keeps the observer from cancelling the pending focus transition above.
+    let sawInitialObservation = false;
     const resizeObserver = new ResizeObserver(() => {
+      if (!sawInitialObservation) {
+        sawInitialObservation = true;
+        return;
+      }
+      const focusTarget = selectedPersonId
+        ? descendants.find(
+            (d) =>
+              d.data.person.id === selectedPersonId ||
+              d.data.spouses.some((s) => s.id === selectedPersonId)
+          )
+        : undefined;
+      pendingFocusNodeIdRef.current = focusTarget?.data.id ?? null;
       didInitialZoomRef.current = false;
       applyTreeCamera({
         svg,
