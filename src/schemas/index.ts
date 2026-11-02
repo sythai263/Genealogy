@@ -3,4 +3,5 @@ export * from './auth';
 export * from './achievement';
 export * from './cau-duong';
 export * from './contribution';
+export * from './name';
 export * from './profile';

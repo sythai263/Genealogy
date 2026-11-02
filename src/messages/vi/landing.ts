@@ -12,6 +12,7 @@ export const Landing = {
     council: 'Hội đồng',
     ancestralHall: 'Nhà thờ',
     registerMember: 'Ghi danh',
+    names: 'Đặt tên',
   },
   hero: {
     tagline: 'Gìn giữ tinh hoa — Tiếp bước cha ông',

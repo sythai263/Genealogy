@@ -49,6 +49,7 @@ export const Layout = {
     adminCauDuong: 'QL Cầu đương',
     adminDocuments: 'QL Tài liệu',
     adminFeed: 'QL Bài viết',
+    adminNames: 'QL Tên gọi',
     adminExport: 'Xuất dữ liệu',
     adminImport: 'Nhập GEDCOM',
     adminSpouses: 'Nhập vợ/chồng',

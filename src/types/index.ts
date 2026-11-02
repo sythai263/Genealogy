@@ -27,6 +27,7 @@ export * from './person';
 export * from './profile';
 export * from './registration';
 export * from './spouse';
+export * from './name';
 export * from './tree';
 export * from './ui-state';
 export * from './zodiac';

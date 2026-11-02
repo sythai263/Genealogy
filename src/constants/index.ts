@@ -23,6 +23,7 @@ export * from './registrations';
 export * from './route-boundaries';
 export * from './settings';
 export * from './spouses';
+export * from './names';
 export * from './stats';
 export * from './ui-states';
 export * from './users';

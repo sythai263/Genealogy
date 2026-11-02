@@ -23,6 +23,7 @@ import { Help } from './help';
 import { Landing } from './landing';
 import { Layout } from './layout';
 import { Metadata } from './metadata';
+import { Names } from './names';
 import { Notifications } from './notifications';
 import { People } from './people';
 import { Relationship } from './relationship';
@@ -46,6 +47,7 @@ export const en = {
   Charter,
   CauDuong,
   Feed,
+  Names,
   Notifications,
   Documents,
   Relationship,

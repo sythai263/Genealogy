@@ -33,6 +33,7 @@ export function LandingMobileNav() {
     { href: '/family-tree', label: t('nav.tree') },
     { href: '/council', label: t('nav.council') },
     { href: '/ancestral-hall', label: t('nav.ancestralHall') },
+    { href: '/names', label: t('nav.names') },
     { href: '/register-member', label: t('nav.registerMember') },
   ];
 
