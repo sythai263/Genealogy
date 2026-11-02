@@ -32,7 +32,7 @@ import type { NameGender } from '@types';
 export function NamesContent() {
   const t = useTranslations('Names');
   const [keyword, setKeyword] = useState('');
-  const [gender, setGender] = useState<NameGender | 'all'>('all');
+  const [gender, setGender] = useState<NameGender | 'all'>('male');
   const [wordCount, setWordCount] = useState<'all' | '3' | '4'>('all');
   const [prefix, setPrefix] = useState('Lê Sỹ');
   const [contributeOpen, setContributeOpen] = useState(false);
@@ -47,8 +47,27 @@ export function NamesContent() {
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / 30));
-  const prefixOptions =
-    NAME_PREFIX_OPTIONS[gender === 'all' ? 'both' : gender];
+  const isCustomPrefix = !NAME_PREFIX_OPTIONS.some((o) => o.label === prefix);
+
+  function handlePrefixSelect(option: (typeof NAME_PREFIX_OPTIONS)[number]) {
+    setPrefix(option.label);
+    setGender(option.gender ?? 'all');
+  }
+
+  function handleCustomPrefix(value: string) {
+    setPrefix(value);
+    setGender('all');
+  }
+
+  function handleGenderChange(value: NameGender | 'all') {
+    setGender(value);
+    const current = NAME_PREFIX_OPTIONS.find((o) => o.label === prefix);
+    if (value === 'all' || !current?.gender || current.gender === value) {
+      return;
+    }
+    const replacement = NAME_PREFIX_OPTIONS.find((o) => o.gender === value);
+    if (replacement) setPrefix(replacement.label);
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
@@ -76,7 +95,7 @@ export function NamesContent() {
         </div>
         <Select
           value={gender}
-          onValueChange={(v) => setGender(v as NameGender | 'all')}
+          onValueChange={(v) => handleGenderChange(v as NameGender | 'all')}
         >
           <SelectTrigger className="w-28">
             <SelectValue />
@@ -114,27 +133,27 @@ export function NamesContent() {
         <span className="text-sm text-muted-foreground">
           {t('prefix.label')}:
         </span>
-        {prefixOptions.map((p) => (
+        {NAME_PREFIX_OPTIONS.map((option) => (
           <Badge
-            key={p}
-            variant={prefix === p ? 'default' : 'outline'}
+            key={option.label}
+            variant={prefix === option.label ? 'default' : 'outline'}
             className={cn('cursor-pointer text-xs')}
-            onClick={() => setPrefix(p)}
+            onClick={() => handlePrefixSelect(option)}
           >
-            {p}
+            {option.label}
           </Badge>
         ))}
         <Badge
-          variant={!prefixOptions.includes(prefix as never) ? 'default' : 'outline'}
+          variant={isCustomPrefix ? 'default' : 'outline'}
           className="cursor-pointer text-xs"
-          onClick={() => setPrefix('')}
+          onClick={() => handleCustomPrefix('')}
         >
           {t('prefix.custom')}
         </Badge>
-        {!prefixOptions.includes(prefix as never) && (
+        {isCustomPrefix && (
           <Input
             value={prefix}
-            onChange={(e) => setPrefix(e.target.value)}
+            onChange={(e) => handleCustomPrefix(e.target.value)}
             placeholder={t('prefix.customPlaceholder')}
             className="h-7 w-44 text-sm"
           />
